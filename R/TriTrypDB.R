@@ -9,9 +9,9 @@
 # 1. http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHubRecipes.html
 # 2. https://github.com/Bioconductor-mirror/AnnotationHubData/tree/master/R
 #
-library('dplyr')
 library('AnnotationForge')
 library('AnnotationHubData')
+library('dplyr')
 
 # Current version
 get_tritrypdb_version = function() {
@@ -77,6 +77,8 @@ create_tritrypdb_ahms = function(currentMetadata, justRunUnitTest, BiocVersion) 
 ## object.
 tritryp_to_dbs_recipe = function(ahm){
     input_files = metadata(ahm)$SourceFile 
+    # InParanoid-specific -- need to replace...
+    # https://github.com/Bioconductor-mirror/AnnotationForge/blob/master/R/makeInparanoidDbs.R
     dbname = makeInpDb(dir=file.path(input_files,""),
                         dataDir=tempdir())
     db = loadDb(file=dbname)
@@ -88,3 +90,4 @@ tritryp_to_dbs_recipe = function(ahm){
 
 ## STEP 3:  Call the helper to set up the newResources() method
 makeAnnotationHubResource("TriTrypDBImportPreparer", create_tritrypdb_ahms)
+

@@ -1,0 +1,11 @@
+import("AnnotationHub")
+import("AnnotationHubData")
+import("Biostrings")
+
+importFrom("Biobase", "addVigs2WinMenu")
+importFrom("BiocInstaller", "biocVersion")
+
+importFrom("utils", "packageVersion", "packageDescription",
+           "vignette", "download.file")
+
+export(EuPathDB, availableEuPathDB)
