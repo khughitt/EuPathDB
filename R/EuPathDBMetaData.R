@@ -6,7 +6,7 @@
 #
 # References
 # ----------
-# 1. http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHubRecipes.html
+# 1. http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHubRecipes.html
 # 2. https://github.com/Bioconductor-mirror/AnnotationHubData/tree/master/R
 #
 library('AnnotationForge')
@@ -82,7 +82,7 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
 
 	# Current version
     # Starting EuPathDB 25, version numbers have been normalized across
-    # all databases.
+    # all databases, so version for any of the databases can be used.
 	version <- get_eupathdb_version('http://tritrypdb.org/')
 
     ## Make list of metadata in a helper function
@@ -115,16 +115,11 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
 ## STEP 2: Make a recipe function that takes an AnnotationHubRecipe
 ## object.
 eupathdb_recipe <- function(ahm){
-    input_files <- metadata(ahm)$SourceFile 
-    # InParanoid-specific -- need to replace...
-    # https://github.com/Bioconductor-mirror/AnnotationForge/blob/master/R/makeInparanoidDbs.R
-    dbname <- makeInpDb(dir=file.path(input_files,""),
-                        dataDir=tempdir())
-    db <- loadDb(file=dbname)
-    outputPath <- file.path(metadata(ahm)$AnnotationHubRoot,
-                            metadata(ahm)$RDataPath)
-    saveDb(db, file=outputPath) 
-    outputFile(ahm)
+    #
+    # TODO: Recipe function needs to implemented
+    #
+    # - Question: Should AnnotationForge MarkOrgXX functions be used? Or should custom
+    #   functions be created?
 }
 
 ## STEP 3:  Call the helper to set up the newResources() method
