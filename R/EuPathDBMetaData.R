@@ -28,7 +28,7 @@ eupathdb_database_urls <- list(
 )
 
 # Current version
-get_database_version <- function(baseurl) {
+get_eupathdb_version <- function(baseurl) {
     library(RCurl)
     version_url <- sprintf('%s/common/downloads/Current_Release/Build_number', baseurl)
     gsub('\n', '', as.character(getURLContent(version_url)))
@@ -37,7 +37,7 @@ get_database_version <- function(baseurl) {
 # Load EuPathDB supported organisms
 .load_eupathdb_organisms <- function(version) {
     # Source: http://www.eupathdb.org/eupathdb/showApplication.do
-    organisms <- tbl_df(read.delim('inst/extdata/eupathdb_organisms_20151206.txt',
+    organisms <- tbl_df(read.delim('../inst/extdata/eupathdb_organisms_20151206.txt',
                                    stringsAsFactors=FALSE))
 
     #organisms <- read.delim(system.file('extdata','eupathdb_organisms_20151206.txt',
@@ -47,9 +47,12 @@ get_database_version <- function(baseurl) {
     colnames(organisms) <- sub('\\.+', '_', sub('\\.+$', '', sub('X.', '', colnames(organisms))))
 
     # Get organism base URL
-    organisms$sourceURL <- as.character(sapply(organisms$Fasta_Download.Link, function(x) {
+    organisms$sourceUrl <- as.character(sapply(organisms$Fasta_Download.Link, function(x) {
         paste(unlist(strsplit(x, '/'))[1:7], collapse='/')
     }))
+
+    # Fix NCBI taxon ids
+    organisms$NCBI_taxon.ID[organisms$NCBI_taxon.ID == 'null'] <- NA
 
     # RData paths
     sqlite_filenames= paste0(gsub(" ", "_", organisms$Organism_1), 
@@ -61,12 +64,12 @@ get_database_version <- function(baseurl) {
     organisms <- organisms %>% 
         mutate(
             species=Organism_1,
-            taxonomyId=as.numeric(NCBI_taxon.ID),
+            taxonomyId=as.integer(NCBI_taxon.ID),
             genome=sprintf("%s %s", Project, version),
             sourceVersion=sprintf("%s %s", Project, version),
             description=sprintf("%s %s annotations for %s", Project, version, Organism_1)
         ) %>% 
-        select(species, taxonomyId, genome, sourceURL, sourceVersion, description, 
+        select(species, taxonomyId, genome, sourceUrl, sourceVersion, description, 
                rDataPath)
 
     as.data.frame(organisms)
@@ -78,7 +81,9 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
     #base_url <- 'http://eupathdb.org/common/downloads/Current_Release/'
 
 	# Current version
-	version <- get_eupathdb_version()
+    # Starting EuPathDB 25, version numbers have been normalized across
+    # all databases.
+	version <- get_eupathdb_version('http://tritrypdb.org/')
 
     ## Make list of metadata in a helper function
     meta <- .load_eupathdb_organisms(version)
@@ -95,22 +100,21 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
         RDataPath=meta$rDataPath,
         MoreArgs=list(
 			BiocVersion=BiocVersion,
-			SourceType="EuPathDB",
+			SourceType="GFF",
 			Coordinate_1_based=TRUE,
 			DataProvider="EuPathDB",
 			Maintainer="Keith Hughitt <khughitt@umd.edu>",
 			RDataClass="EuPathDB",
 			DispatchClass="SQLiteFile",
 			RDataDateAdded=Sys.time(),
-			RDataVersion="0.1",
-			Recipe="AnnotaionHubData:::eupathdb_to_dbs_recipe",
+			Recipe="EuPathDB:::eupathdb_recipe",
 			Tags=c("EuPathDB", "Pathogen", "Parasite", "Trypanosome", "Kinetoplastid", "Annotation")
 		))
 }
 
 ## STEP 2: Make a recipe function that takes an AnnotationHubRecipe
 ## object.
-eupathdb_to_dbs_recipe <- function(ahm){
+eupathdb_recipe <- function(ahm){
     input_files <- metadata(ahm)$SourceFile 
     # InParanoid-specific -- need to replace...
     # https://github.com/Bioconductor-mirror/AnnotationForge/blob/master/R/makeInparanoidDbs.R
