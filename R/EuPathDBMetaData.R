@@ -37,6 +37,9 @@ get_eupathdb_version <- function(baseurl) {
 # Load EuPathDB supported organisms
 .load_eupathdb_organisms <- function(version) {
     # Source: http://www.eupathdb.org/eupathdb/showApplication.do
+    # TODO 2015/12/06
+    # Switch to using REST API to query dynamically, e.g.
+    # http://www.eupathdb.org/webservices/OrganismQuestions/GenomeDataTypes.json?o-fields=all 
     organisms <- tbl_df(read.delim('../inst/extdata/eupathdb_organisms_20151206.txt',
                                    stringsAsFactors=FALSE))
 
@@ -44,18 +47,18 @@ get_eupathdb_version <- function(baseurl) {
     #                           package='EuPathDB'))
 
     # Fix column names
-    colnames(organisms) <- sub('\\.+', '_', sub('\\.+$', '', sub('X.', '', colnames(organisms))))
+    colnames(organisms) <- gsub('\\.+', '_', sub('\\.+$', '', sub('X.', '', colnames(organisms))))
 
     # Get organism base URL
-    organisms$sourceUrl <- as.character(sapply(organisms$Fasta_Download.Link, function(x) {
+    organisms$sourceUrl <- as.character(sapply(organisms$Fasta_Download_Link, function(x) {
         paste(unlist(strsplit(x, '/'))[1:7], collapse='/')
     }))
 
     # Fix NCBI taxon ids
-    organisms$NCBI_taxon.ID[organisms$NCBI_taxon.ID == 'null'] <- NA
+    organisms$NCBI_taxon_ID[organisms$NCBI_taxon_ID == 'null'] <- NA
 
     # RData paths
-    sqlite_filenames= paste0(gsub(" ", "_", organisms$Organism_1), 
+    sqlite_filenames <- paste0(gsub(" ", "_", organisms$Organism_1), 
                              "_", organisms$Project, version, ".sqlite")
     organisms$rDataPath <- file.path(sprintf("EuPathDB%s", version),
                                     organisms$Project,
@@ -63,14 +66,18 @@ get_eupathdb_version <- function(baseurl) {
 
     organisms <- organisms %>% 
         mutate(
+            provider=Project,
             species=Organism_1,
-            taxonomyId=as.integer(NCBI_taxon.ID),
+            gff=GFF_Download_Link,
+            fasta=Fasta_Download_Link,
+            gene_details=Gene_Details_Download_Link,
+            taxonomyId=as.integer(NCBI_taxon_ID),
             genome=sprintf("%s %s", Project, version),
             sourceVersion=sprintf("%s %s", Project, version),
             description=sprintf("%s %s annotations for %s", Project, version, Organism_1)
         ) %>% 
-        select(species, taxonomyId, genome, sourceUrl, sourceVersion, description, 
-               rDataPath)
+        select(provider, species, gff, fasta, gene_details, taxonomyId, genome,
+               sourceUrl, sourceVersion, description, rDataPath)
 
     as.data.frame(organisms)
 }
@@ -91,8 +98,12 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
     ## then make AnnotationHubMetadata objects.
     Map(AnnotationHubMetadata,
         Description=meta$description,
+        DataProvider=meta$provider,
         Genome=meta$genome,
-        SourceUrl=meta$sourceUrl,
+        # Note: For now, just pointing to GFF file. Eventually this should be
+        # generalized to deal with multiple input file types
+        #SourceUrl=meta$sourceUrl,
+        SourceUrl=meta$gff,
         SourceVersion=meta$sourceVersion,
         Species=meta$species,
         TaxonomyId=meta$taxonomyId,
@@ -102,24 +113,22 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
 			BiocVersion=BiocVersion,
 			SourceType="GFF",
 			Coordinate_1_based=TRUE,
-			DataProvider="EuPathDB",
 			Maintainer="Keith Hughitt <khughitt@umd.edu>",
-			RDataClass="EuPathDB",
+			RDataClass="OrganismDb",
 			DispatchClass="SQLiteFile",
 			RDataDateAdded=Sys.time(),
 			Recipe="EuPathDB:::eupathdb_recipe",
-			Tags=c("EuPathDB", "Pathogen", "Parasite", "Trypanosome", "Kinetoplastid", "Annotation")
+			Tags=c("Annotation", "EuPathDB", "Pathogen", "Parasite", 
+                   "Trypanosome", "Kinetoplastid")
 		))
 }
 
 ## STEP 2: Make a recipe function that takes an AnnotationHubRecipe
 ## object.
-eupathdb_recipe <- function(ahm){
-    #
-    # TODO: Recipe function needs to implemented
-    #
+EuPathDBGFFtoOrgDb <- function(ahm) {
     # - Question: Should AnnotationForge MarkOrgXX functions be used? Or should custom
     #   functions be created?
+
 }
 
 ## STEP 3:  Call the helper to set up the newResources() method
