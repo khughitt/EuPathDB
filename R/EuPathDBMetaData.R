@@ -84,13 +84,13 @@ get_eupathdb_version <- function(baseurl) {
 
 # Create EuPathDB AnnotationHubMetadata objects
 create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) {
-	# Base URL for current version of EuPathDB
+    # Base URL for current version of EuPathDB
     #base_url <- 'http://eupathdb.org/common/downloads/Current_Release/'
 
-	# Current version
+    # Current version
     # Starting EuPathDB 25, version numbers have been normalized across
     # all databases, so version for any of the databases can be used.
-	version <- get_eupathdb_version('http://tritrypdb.org/')
+    version <- get_eupathdb_version('http://tritrypdb.org/')
 
     ## Make list of metadata in a helper function
     meta <- .load_eupathdb_organisms(version)
@@ -110,17 +110,17 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
         Title=basename(meta$rDataPath),
         RDataPath=meta$rDataPath,
         MoreArgs=list(
-			BiocVersion=BiocVersion,
-			SourceType="GFF",
-			Coordinate_1_based=TRUE,
-			Maintainer="Keith Hughitt <khughitt@umd.edu>",
-			RDataClass="OrganismDb",
-			DispatchClass="SQLiteFile",
-			RDataDateAdded=Sys.time(),
-			Recipe="EuPathDB:::eupathdb_recipe",
-			Tags=c("Annotation", "EuPathDB", "Pathogen", "Parasite", 
+            BiocVersion=BiocVersion,
+            SourceType="GFF",
+            Coordinate_1_based=TRUE,
+            Maintainer="Keith Hughitt <khughitt@umd.edu>",
+            RDataClass="OrganismDb",
+            DispatchClass="SQLiteFile",
+            RDataDateAdded=Sys.time(),
+            Recipe="EuPathDB:::eupathdb_recipe",
+            Tags=c("Annotation", "EuPathDB", "Pathogen", "Parasite", 
                    "Trypanosome", "Kinetoplastid")
-		))
+        ))
 }
 
 ## STEP 2: Make a recipe function that takes an AnnotationHubRecipe
