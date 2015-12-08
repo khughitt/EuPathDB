@@ -118,8 +118,10 @@ create_eupathdb_ahms <- function(currentMetadata, justRunUnitTest, BiocVersion) 
             DispatchClass="SQLiteFile",
             RDataDateAdded=Sys.time(),
             Recipe="EuPathDB:::eupathdb_recipe",
-            Tags=c("Annotation", "EuPathDB", "Pathogen", "Parasite", 
-                   "Trypanosome", "Kinetoplastid")
+            Tags=c("Annotation", "EuPathDB", "Eukaryote", "Pathogen",
+                   "Parasite", "Amoeba", "Cryptosporidium", "Fungi", "Giardia",
+                   "Microsporidia", "Piroplasma", "Plasmodium", "Toxoplasma",
+                   "Trichomonas", "Leishmania", "Trypanosoma", "Kinetoplastid")
         ))
 }
 
