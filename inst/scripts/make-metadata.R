@@ -7,22 +7,39 @@ library('jsonlite')
 library('dplyr')
 
 # Database URLs
-eupathdb_database_urls <- list(
-    "AmoebaDB"="http://amoebadb.org",
-    "CryptoDB"="http://cryptodb.org",
-    "FungiDB"="http://fungidb.org",
-    "GiardiaDB"="http://giardiadb.org",
-    "MicrosporidiaDB"="http://microsporidiadb.org",
-    "PiroplasmaDB"="http://piroplasmadb.org",
-    "PlasmoDB"="http://plasmodb.org",
-    "ToxoDB"="http://toxodb.org",
-    "TrichDB"="http://trichdb.org",
-    "TriTrypDB"="http://tritrypdb.org"
+eupathdb_db_urls <- list(
+    "AmoebaDB"="http://amoebadb.org/amoebadb/",
+    "CryptoDB"="http://cryptodb.org/cryptodb/",
+    "FungiDB"="http://fungidb.org/fungidb/",
+    "GiardiaDB"="http://giardiadb.org/giardiadb/",
+    "MicrosporidiaDB"="http://microsporidiadb.org/microsporidiadb/",
+    "PiroplasmaDB"="http://piroplasmadb.org/piroplasmadb/",
+    "PlasmoDB"="http://plasmodb.org/plasmodb/",
+    "ToxoDB"="http://toxodb.org/toxodb/",
+    "TrichDB"="http://trichdb.org/trichdb/",
+    "TriTrypDB"="http://tritrypdb.org/tritrypdb/"
+)
+
+# AnnotationHub tags
+shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
+
+tags <- list(
+    "AmoebaDB"=c(shared_tags, 'Amoeba'),
+    "CryptoDB"=c(shared_tags, 'Cryptosporidium'),
+    "FungiDB"=c(shared_tags, 'Fungus', 'Fungi'),
+    "GiardiaDB"=c(shared_tags, 'Giardia'),
+    "MicrosporidiaDB"=c(shared_tags, 'Microsporidia'),
+    "PiroplasmaDB"=c(shared_tags, 'Piroplasma'),
+    "PlasmoDB"=c(shared_tags, 'Plasmodium'),
+    "ToxoDB"=c(shared_tags, 'Toxoplasmosis'),
+    "TrichDB"=c(shared_tags, 'Trichomonas'),
+    "TriTrypDB"=c(shared_tags, 'Trypanosome', 'Kinetoplastid', 'Leishmania')
 )
 
 # 2016/08/20 - for now, we will just load resources from TriTrypDB; eventually
 # this will be extended to all other EuPathDB databases
-query_url <- 'http://tritrypdb.org/tritrypdb/webservices/OrganismQuestions/GenomeDataTypes.json?o-fields=all'
+api_request <- 'webservices/OrganismQuestions/GenomeDataTypes.json?o-fields=all' 
+query_url <- paste0(eupathdb_db_urls[['TriTrypDB']], api_request)
 
 # EuPathDB version (same for all databases)
 dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
@@ -32,14 +49,19 @@ result <- fromJSON(query_url)
 records <- result$response$recordset$records
 
 # convert to a dataframe
-dat <- data.frame(t(sapply(records$fields, function (x) x[,'value'])), stringsAsFactors=FALSE)
+dat <- data.frame(t(sapply(records$fields, function (x) x[,'value'])), 
+                  stringsAsFactors=FALSE)
 colnames(dat) <- records$fields[[1]]$name 
 
+# reformat to match expectations
+# NOTE: there are currently two hard-coded fields which contain "Lmjf" (L.
+# major Friedlin); these are placeholders for generic text once a mapping from
+# species names to short identifiers.
 metadata <- dat %>% transmute(
     Title=sprintf('Genome annotations for %s', primary_key),
     Description=sprintf('%s %s annotations for %s', project_id, dbversion, primary_key),
     BiocVersion='3.3',
-    Genome=sprintf('LmjF%s', dbversion), # TODO: generalize for all organisms
+    Genome=sprintf('LmjF%s', dbversion),
     SourceType='GFF',
     SourceUrl=URLgff,
     SourceVersion=dbversion,
@@ -48,9 +70,9 @@ metadata <- dat %>% transmute(
     Coordinate_1_based=TRUE,
     DataProvider=project_id,
     Maintainer='Keith Hughitt <khughitt@umd.edu>',
-    RDataClass='OrgDb',
+    RDataClass='TxDb',
     DispatchClass='Rda',
-    ResourceName='LmjF_OrgDb.rda'
+    ResourceName='LmjF_TxDb.rda'
 )
 
 # save to file
@@ -69,15 +91,12 @@ Map(AnnotationHubMetadata,
     RDataPath="tmp/path/to/file.rda",
     MoreArgs=list(
         BiocVersion=biocVersion(),
-        SourceType=metadata$SourceType,
-        Coordinate_1_based=metadata$Coordinate_1_based,
-        Maintainer=metadata$Maintainer,
-        RDataClass=metadata$RDataClass,
-        DispatchClass=metadata$DispatchClass,
+        SourceType='GFF',
+        Coordinate_1_based=TRUE,
+        Maintainer='Keith Hughitt <khughitt@umd.edu>',
+        RDataClass='TxDb',
+        DispatchClass='Rda',
         RDataDateAdded=Sys.time(),
         Recipe=NA_character_,
-        Tags=c("Annotation", "EuPathDB", "Eukaryote", "Pathogen",
-               "Parasite", "Amoeba", "Cryptosporidium", "Fungi", "Giardia",
-               "Microsporidia", "Piroplasma", "Plasmodium", "Toxoplasma",
-               "Trichomonas", "Leishmania", "Trypanosoma", "Kinetoplastid")
+        Tags=tags[['TriTrypDB']]
     ))
