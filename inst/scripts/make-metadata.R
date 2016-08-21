@@ -58,14 +58,14 @@ colnames(dat) <- records$fields[[1]]$name
 # major Friedlin); these are placeholders for generic text once a mapping from
 # species names to short identifiers.
 metadata <- dat %>% transmute(
-    Title=sprintf('Genome annotations for %s', primary_key),
-    Description=sprintf('%s %s annotations for %s', project_id, dbversion, primary_key),
+    Title=sprintf('Genome annotations for %s', organism),
+    Description=sprintf('%s %s annotations for %s', project_id, dbversion, organism),
     BiocVersion='3.3',
     Genome=sprintf('LmjF%s', dbversion),
     SourceType='GFF',
     SourceUrl=URLgff,
     SourceVersion=dbversion,
-    Species=primary_key,
+    Species=organism,
     TaxonomyId=ncbi_tax_id,
     Coordinate_1_based=TRUE,
     DataProvider=project_id,
