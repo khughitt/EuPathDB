@@ -21,7 +21,7 @@ EuPathDBGFFtoTxDb <- function(ahm) {
     input_gff <- tempfile()
     download.file(ahm@SourceUrl, input_gff)
 
-    message(sprintf("Generating TxDb for %s", ahm@Species))
+    message(sprintf("- Generating TxDb for %s", ahm@Species))
 
     # get chromosome information from GFF file
     gff <- rtracklayer::import.gff3(input_gff)
@@ -59,7 +59,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     genus <- species_parts[1]
     species <- species_parts[2]
 
-    message(sprintf("Generating OrgDb for %s", ahm@Species))
+    message(sprintf("- Generating OrgDb for %s", ahm@Species))
 
     # save gff as tempfile
     input_gff <- tempfile()
@@ -237,7 +237,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     query_string <- sprintf('organism=%s&%s', URLencode(organism), query_args)
     request_url <- paste0(base_url, query_string)
 
-    message(sprintf("Querying %s", request_url))
+    message(sprintf("- Querying %s", request_url))
 
     # query API for gene types
     if (format == 'json') {

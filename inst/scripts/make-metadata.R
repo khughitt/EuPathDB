@@ -1,24 +1,17 @@
 #!/usr/bin/env Rscript
 #
-# EuPathDB metadata generation script
+# EuPathDB metadata[i,] generation script
 #
 library('ExperimentHubData')
+library('AnnotationHubData')
 library('jsonlite')
 library('dplyr')
 
-# Database URLs
-eupathdb_db_urls <- list(
-    "AmoebaDB"="http://amoebadb.org/amoebadb/",
-    "CryptoDB"="http://cryptodb.org/cryptodb/",
-    "FungiDB"="http://fungidb.org/fungidb/",
-    "GiardiaDB"="http://giardiadb.org/giardiadb/",
-    "MicrosporidiaDB"="http://microsporidiadb.org/microsporidiadb/",
-    "PiroplasmaDB"="http://piroplasmadb.org/piroplasmadb/",
-    "PlasmoDB"="http://plasmodb.org/plasmodb/",
-    "ToxoDB"="http://toxodb.org/toxodb/",
-    "TrichDB"="http://trichdb.org/trichdb/",
-    "TriTrypDB"="http://tritrypdb.org/tritrypdb/"
-)
+# Get EuPathDB version (same for all databases)
+dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
+message('===========================================')
+message(sprintf('EuPathDB version: %s', dbversion))
+message('===========================================')
 
 # AnnotationHub tags
 shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
@@ -36,16 +29,14 @@ tags <- list(
     "TriTrypDB"=c(shared_tags, 'Trypanosome', 'Kinetoplastid', 'Leishmania')
 )
 
-# 2016/08/20 - for now, we will just load resources from TriTrypDB; eventually
-# this will be extended to all other EuPathDB databases
-api_request <- 'webservices/OrganismQuestions/GenomeDataTypes.json?o-fields=all' 
-query_url <- paste0(eupathdb_db_urls[['TriTrypDB']], api_request)
-
-# EuPathDB version (same for all databases)
-dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
+# construct API request URL
+base_url <- 'http://eupathdb.org/eupathdb/webservices/'
+query_string <- 'OrganismQuestions/GenomeDataTypes.json?o-fields=all' 
+request_url <- paste0(base_url, query_string)
 
 # retrieve organism metadata from EuPathDB
-result <- fromJSON(query_url)
+message(sprintf("- Querying %s", request_url))
+result <- fromJSON(request_url)
 records <- result$response$recordset$records
 
 # convert to a dataframe
@@ -53,14 +44,16 @@ dat <- data.frame(t(sapply(records$fields, function (x) x[,'value'])),
                   stringsAsFactors=FALSE)
 colnames(dat) <- records$fields[[1]]$name 
 
+message(sprintf("- Found metadata for %d organisms", nrow(dat)))
+
 # reformat to match expectations
-# NOTE: there are currently two hard-coded fields which contain "Lmjf" (L.
+# NOTE: there are currently two hard-coded fields which contain "LmjF" (L.
 # major Friedlin); these are placeholders for generic text once a mapping from
 # species names to short identifiers.
 metadata <- dat %>% transmute(
     Title=sprintf('Genome annotations for %s', organism),
     Description=sprintf('%s %s annotations for %s', project_id, dbversion, organism),
-    BiocVersion='3.3',
+    BiocVersion='3.4',
     Genome=sprintf('LmjF%s', dbversion),
     SourceType='GFF',
     SourceUrl=URLgff,
@@ -75,6 +68,9 @@ metadata <- dat %>% transmute(
     ResourceName='LmjF_TxDb.rda'
 )
 
+# replace missing taxonomy ids with NAs
+metadata$TaxonomyId[metadata$TaxonomyId == ''] <- NA
+
 # save to file
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')
 
@@ -86,17 +82,17 @@ Map(AnnotationHubMetadata,
     SourceUrl=metadata$SourceUrl,
     SourceVersion=metadata$SourceVersion,
     Species=metadata$Species,
+    Tags=tags[dat$project_id],
     TaxonomyId=metadata$TaxonomyId,
     Title=basename(metadata$SourceUrl),
     RDataPath="tmp/path/to/file.rda",
     MoreArgs=list(
-        BiocVersion=biocVersion(),
+        BiocVersion=BiocInstaller::biocVersion(),
         SourceType='GFF',
         Coordinate_1_based=TRUE,
         Maintainer='Keith Hughitt <khughitt@umd.edu>',
         RDataClass='TxDb',
         DispatchClass='Rda',
         RDataDateAdded=Sys.time(),
-        Recipe=NA_character_,
-        Tags=tags[['TriTrypDB']]
+        Recipe=NA_character_
     ))
