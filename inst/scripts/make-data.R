@@ -18,19 +18,35 @@ options(stringsAsFactors=FALSE)
 #' 
 EuPathDBGFFtoTxDb <- function(ahm) {
     # save gff as tempfile
-    input_gff <- tempfile()
-    download.file(ahm@SourceUrl, input_gff)
+    input_gff <- tempfile(fileext='.gff')
+
+    # attempt to download file
+    res <- tryCatch({
+        download.file(ahm@SourceUrl, input_gff)
+    }, error=function(e) {
+        return(404)
+    })
+
+    # stop here if file not successfully downloaded
+    if (res != 0) {
+        warning("Unable to download annotations for %s; skipping...",
+                ahm@Species)
+        return(NA)
+    }
 
     message(sprintf("- Generating TxDb for %s", ahm@Species))
 
     # get chromosome/contig information from GFF file
     gff <- rtracklayer::import.gff3(input_gff)
-    ch <- gff[gff$type %in% c('chromosome', 'contig', 'supercontig')]
+    ch <- gff[gff$type %in% c('chromosome', 'contig', 'supercontig',
+                              'mitochondrial_chromosome',
+                              'apicoplast_chromosome',
+                              'geneontig', 'random_sequence')]
 
     chr_info <- data.frame(
         'chrom'=ch$ID,
         'length'=width(ch),
-        'is_circular'=rep(FALSE, length(ch))
+        'is_circular'=ch$topology == 'circular'
     )
 
     # NOTE: warning to look into when creating txdb for LmjF
@@ -63,7 +79,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     message(sprintf("- Generating OrgDb for %s", ahm@Species))
 
     # save gff as tempfile
-    input_gff <- tempfile()
+    input_gff <- tempfile(fileext='.gff')
     download.file(ahm@SourceUrl, input_gff)
 
     # get chromosome information from GFF file
