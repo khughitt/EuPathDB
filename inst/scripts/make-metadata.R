@@ -71,6 +71,30 @@ metadata <- dat %>% transmute(
 # replace missing taxonomy ids with NAs
 metadata$TaxonomyId[metadata$TaxonomyId == ''] <- NA
 
+# overide missing taxonomy ids for strains where it can be assigned; ideally
+# OrgDb and TxDb should not depend on taxonomy id information since this
+# precludes the inclusion of a lot of prokaryotic resources.
+known_taxon_ids <- data.frame(
+    species=c('Ordospora colligata OC4', 
+              'Trypanosoma cruzi CL Brener Esmeraldo-like',
+              'Trypanosoma cruzi CL Brener Non-Esmeraldo-like'),
+    taxonomy_id=c('1354746', '353153', '353153')
+)
+
+taxon_mask <- metadata$Species %in% known_taxon_ids$species
+ind <- match(metadata[taxon_mask,'Species'], known_taxon_ids$species)
+metadata[taxon_mask,]$TaxonomyId <- known_taxon_ids$taxonomy_id[ind]
+
+na_ind <- is.na(metadata$TaxonomyId)
+message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
+                sum(na_ind), sum(!na_ind)))
+
+# exclude remaining species which are missing taxonomy information from
+# metadata; cannot construct TxDb/OrgDb instances for them since they are
+# have no known taxonomy id, and are not in available.species()
+dat <- dat[!na_ind,]
+metadata <- metadata[!na_ind,]
+
 # save to file
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')
 

@@ -23,9 +23,9 @@ EuPathDBGFFtoTxDb <- function(ahm) {
 
     message(sprintf("- Generating TxDb for %s", ahm@Species))
 
-    # get chromosome information from GFF file
+    # get chromosome/contig information from GFF file
     gff <- rtracklayer::import.gff3(input_gff)
-    ch <- gff[gff$type == 'chromosome']
+    ch <- gff[gff$type %in% c('chromosome', 'contig', 'supercontig')]
 
     chr_info <- data.frame(
         'chrom'=ch$ID,
@@ -39,11 +39,12 @@ EuPathDBGFFtoTxDb <- function(ahm) {
     #  The following transcripts were dropped because their exon ranks could not be
     #  inferred (either because the exons are not on the same chromosome/strand or
     #  because they are not separated by introns): rna_LmjF.28.2965-1
-    makeTxDbFromGFF(input_gff,
-                    dataSource=dirname(ahm@SourceUrl),
-                    organism=ahm@Species,
-                    taxonomyId=ahm@TaxonomyId,
-                    chrominfo=chr_info)
+    GenomicFeatures::makeTxDbFromGFF(input_gff,
+        format='gff3',
+        dataSource=dirname(ahm@SourceUrl),
+        organism=ahm@Species,
+        taxonomyId=ahm@TaxonomyId,
+        chrominfo=chr_info)
 }
 
 
@@ -108,7 +109,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     #    orgdb_args[['kegg']] <- kegg_table
     #}
 
-    org_result <- do.call('makeOrgPackage', orgdb_args)
+    org_result <- do.call('AnnotationForge::makeOrgPackage', orgdb_args)
 }
 
 #'
