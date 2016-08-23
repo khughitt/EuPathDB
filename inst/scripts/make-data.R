@@ -8,6 +8,7 @@
 # Questions:
 #
 ###############################################################################
+library('AnnotationForge')
 options(stringsAsFactors=FALSE)
 
 #'
@@ -98,10 +99,15 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     gene_info <- .extract_gene_info(gff)
 
     # gene types
-    gene_types <- .get_gene_types(ahm@DataProvider, organism)
+    gene_types <- .get_gene_types(ahm@DataProvider, ahm@Species)
 
     # go terms
-    go_table <- .get_go_terms(ahm@DataProvider, organism)
+    go_table <- .get_go_terms(ahm@DataProvider, ahm@Species)
+
+    # create a random directory to use for package build
+    sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
+    temp_dir <- file.path(tempdir(), sub_dir)
+    dir.create(temp_dir, recursive=TRUE)
 
     # Compile list of arguments for makeOrgPackage call
     orgdb_args <- list(
@@ -115,6 +121,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
         'tax_id'     = as.character(ahm@TaxonomyId),
         'genus'      = genus,
         'species'    = species,
+        'outputDir'  = temp_dir,
         'goTable'    = "go"
     )
 
@@ -125,7 +132,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     #    orgdb_args[['kegg']] <- kegg_table
     #}
 
-    org_result <- do.call('AnnotationForge::makeOrgPackage', orgdb_args)
+    org_result <- do.call('makeOrgPackage', orgdb_args)
 }
 
 #'
@@ -138,7 +145,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 .extract_gene_info <- function(gff) {
     # get gene features and convert to a dataframe
     genes <- gff[gff$type == 'gene']
-    gene_info <- as.data.frame(elementMetadata(genes), stringsAsFactors=FALSE)
+    gene_info <- as.data.frame(elementMetadata(genes))
 
     # drop any empty and NA columns
     na_mask <- apply(gene_info, 2, function(x) { sum(!is.na(x)) > 0 })
