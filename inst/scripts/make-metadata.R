@@ -6,6 +6,7 @@ library('ExperimentHubData')
 library('AnnotationHubData')
 library('jsonlite')
 library('dplyr')
+library('httr')
 
 # Get EuPathDB version (same for all databases)
 dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
@@ -83,17 +84,25 @@ known_taxon_ids <- data.frame(
 
 taxon_mask <- metadata$Species %in% known_taxon_ids$species
 ind <- match(metadata[taxon_mask,'Species'], known_taxon_ids$species)
-metadata[taxon_mask,]$TaxonomyId <- known_taxon_ids$taxonomy_id[ind]
-
-na_ind <- is.na(metadata$TaxonomyId)
-message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
-                sum(na_ind), sum(!na_ind)))
+metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
 
 # exclude remaining species which are missing taxonomy information from
 # metadata; cannot construct TxDb/OrgDb instances for them since they are
 # have no known taxonomy id, and are not in available.species()
-dat <- dat[!na_ind,]
+na_ind <- is.na(metadata$TaxonomyId)
+message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
+                sum(na_ind), sum(!na_ind)))
 metadata <- metadata[!na_ind,]
+
+# convert remaining taxonomy ids to numeric
+metadata$TaxonomyId <- as.numeric(metadata$TaxonomyId)
+
+# remove any organisms for which no GFF is available
+gff_exists <- sapply(metadata$SourceUrl, function(url) { HEAD(url)$status_code == 200 })
+
+message(sprintf("- Excluding %d organisms for which no GFF file is available (%d remaining)",
+        sum(!gff_exists), sum(gff_exists)))
+metadata <- metadata[gff_exists,]
 
 # save to file
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')
@@ -106,7 +115,7 @@ Map(AnnotationHubMetadata,
     SourceUrl=metadata$SourceUrl,
     SourceVersion=metadata$SourceVersion,
     Species=metadata$Species,
-    Tags=tags[dat$project_id],
+    Tags=tags[metadata$DataProvider],
     TaxonomyId=metadata$TaxonomyId,
     Title=basename(metadata$SourceUrl),
     RDataPath="tmp/path/to/file.rda",
@@ -116,7 +125,7 @@ Map(AnnotationHubMetadata,
         Coordinate_1_based=TRUE,
         Maintainer='Keith Hughitt <khughitt@umd.edu>',
         RDataClass='TxDb',
+        RDataDateAdded=format(Sys.time(), '%Y-%m-%d'),
         DispatchClass='Rda',
-        RDataDateAdded=Sys.time(),
         Recipe=NA_character_
     ))
