@@ -262,7 +262,8 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     # construct API query
     base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
-    query_string <- sprintf('organism=%s&%s', URLencode(organism), query_args)
+    query_string <- sprintf('organism=%s&%s', 
+                            URLencode(organism, reserved=TRUE), query_args)
     request_url <- paste0(base_url, query_string)
 
     message(sprintf("- Querying %s", request_url))
