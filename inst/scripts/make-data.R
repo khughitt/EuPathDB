@@ -235,6 +235,10 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     # drop everything except for GID, GO, and EVIDENCE columns
     result <- result[,colnames(result) %in% c('GID', 'GO', 'EVIDENCE')]
 
+    # remove duplicated entries resulting from alternative sources / envidence
+    # codes
+    result <- result[!duplicated(result),]
+
     return(result)
 }
 
