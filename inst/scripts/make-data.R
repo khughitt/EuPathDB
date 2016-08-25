@@ -197,36 +197,16 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 }
 
 #'
+#' Returns a mapping of gene ID to GO terms for a specified organism
 #'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#'
+#' @return Dataframe with 'GID', 'GO', and 'EVIDENCE' fields
 #'
 .get_go_terms <- function(data_provider, organism) {
-    # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, 'o-tables=GoTerms')
-    dat <- res$response$recordset$records
-
-    # drop genes with no associated GO terms
-    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
-    dat <- dat[gene_mask,]
-
-    # create empty data frame to store result in
-    result <- data.frame(stringsAsFactors=FALSE)
-
-    # iterate over remaining genes and extract GO annotations for them
-    for (i in 1:nrow(dat)) {
-        # example entry:
-        # 
-        # > dat$tables[[1]]$rows[[1]]$fields[[1]]
-        #         name                      value
-        # 1         go_id                 GO:0007018
-        # 2      ontology         Biological Process
-        # 3  go_term_name microtubule-based movement
-        # 4        source                   Interpro
-        # 5 evidence_code                        IEA
-        # 6        is_not                       <NA>
-        gene_go_terms <- dat$tables[[i]]
-        rows <- t(sapply(gene_go_terms$rows[[1]]$fields, function(x) { as.vector(x$value) }))
-        result <- rbind(result, cbind(dat$id[i], rows))
-    }
+    # retrieve GoTerms table
+    result <- .retrieve_eupathdb_table(data_provider, organism, 'GoTerms')
 
     # fix column names and return result
     colnames(result) <- c("GID", "GO", "ONTOLOGY", "GO_TERM_NAME", "SOURCE",
@@ -238,6 +218,54 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     # remove duplicated entries resulting from alternative sources / envidence
     # codes
     result <- result[!duplicated(result),]
+
+    return(result)
+}
+
+#'
+#' Queries one of the EuPathDB APIs for table data.
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#' @param table_name Name of the particular table to be retrieved (e.g.
+#' 'GoTerms')
+#' @param wadl String specifying API service to be queried
+#' @param format String specifying API response type (currently only 'json'
+#'        is supported)
+#' @return list containing response from API request.
+.retrieve_eupathdb_table <- function(data_provider, organism, table_name,
+                                     wadl='GeneQuestions/GenesByTaxon',
+                                     format='json') {
+    # query EuPathDB API
+    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name))
+    dat <- res$response$recordset$records
+
+    # drop genes with no associated table entries
+    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
+    dat <- dat[gene_mask,]
+
+    # create empty data frame to store result in
+    result <- data.frame(stringsAsFactors=FALSE)
+
+    # iterate over remaining genes and extract table entries for them
+    for (i in 1:nrow(dat)) {
+        # example entry:
+        # 
+        # > dat$tables[[1]]$rows[[1]]$fields[[1]]
+        #         name                      value
+        # 1         go_id                 GO:0007018
+        # 2      ontology         Biological Process
+        # 3  go_term_name microtubule-based movement
+        # 4        source                   Interpro
+        # 5 evidence_code                        IEA
+        # 6        is_not                       <NA>
+        table_entries <- dat$tables[[i]]
+        rows <- t(sapply(table_entries$rows[[1]]$fields, function(x) { x$value }))
+        result <- rbind(result, cbind(dat$id[i], rows))
+    }
+
+    # set column names for result
+    colnames(result) <- dat$tables[[1]]$rows[[1]]$fields[[1]]$name
 
     return(result)
 }
@@ -258,7 +286,8 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 #' ----------------
 #' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
 #'
-.query_eupathdb <- function(data_provider, organism, query_args, wadl='GeneQuestions/GenesByTaxon', format='json') {
+.query_eupathdb <- function(data_provider, organism, query_args,
+                            wadl='GeneQuestions/GenesByTaxon', format='json') {
     # construct API query
     base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
@@ -266,7 +295,12 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
                             URLencode(organism, reserved=TRUE), query_args)
     request_url <- paste0(base_url, query_string)
 
-    message(sprintf("- Querying %s", request_url))
+    if (length(request_url) > 200) {
+        paste0(log_url <- strtrim(request_url, 160), '...')
+    } else {
+        log_url <- request_url
+    }
+    message(sprintf("- Querying %s", log_url))
 
     # query API for gene types
     if (format == 'json') {
