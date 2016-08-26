@@ -102,7 +102,10 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     gene_types <- .get_gene_types(ahm@DataProvider, ahm@Species)
 
     # go terms
-    go_table <- .get_go_terms(ahm@DataProvider, ahm@Species)
+    go_table <- .get_go_term_table(ahm@DataProvider, ahm@Species)
+
+    # interpro domains
+    interpro_table <- .get_interpro_table(ahm@DataProvider, ahm@Species)
 
     # create a random directory to use for package build
     sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
@@ -114,6 +117,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
         'gene_info'  = gene_info,
         'chromosome' = chr_mapping,
         'go'         = go_table,
+        'interpro'   = interpro_table,
         'type'       = gene_types,
         'version'    = ahm@SourceVersion,
         'author'     = ahm@Maintainer,
@@ -204,7 +208,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 #'
 #' @return Dataframe with 'GID', 'GO', and 'EVIDENCE' fields
 #'
-.get_go_terms <- function(data_provider, organism) {
+.get_go_term_table <- function(data_provider, organism) {
     # retrieve GoTerms table
     result <- .retrieve_eupathdb_table(data_provider, organism, 'GoTerms')
 
@@ -218,6 +222,33 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     # remove duplicated entries resulting from alternative sources / envidence
     # codes
     result <- result[!duplicated(result),]
+
+    return(result)
+}
+
+#'
+#' Returns a mapping of gene ID to InterPro domains for a specified organism
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#'
+#' @return Dataframe with ....
+#'
+.get_interpro_table <- function(data_provider, organism) {
+    # retrieve InterPro domain table
+    result <- .retrieve_eupathdb_table(data_provider, organism, 'InterPro')
+
+    # fix numeric types
+    result$interpro_e_value <- as.numeric(result$interpro_e_value)
+    result$interpro_start_min <- as.numeric(result$interpro_start_min)
+    result$interpro_end_min <- as.numeric(result$interpro_end_min)
+
+    # replace NA's with empty strings (occur in INTERPRO_FAMILY_ID and
+    # INTERPRO_SECONDARY_ID fields)
+    result <- result[is.na(result)]
+
+    # fix column names and return result
+    colnames(result) <- toupper(colnames(result)) 
 
     return(result)
 }
@@ -265,7 +296,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     }
 
     # set column names for result
-    colnames(result) <- dat$tables[[1]]$rows[[1]]$fields[[1]]$name
+    colnames(result) <- c('GID', dat$tables[[1]]$rows[[1]]$fields[[1]]$name)
 
     return(result)
 }
