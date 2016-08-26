@@ -2,8 +2,6 @@
 #
 # EuPathDB metadata[i,] generation script
 #
-library('ExperimentHubData')
-library('AnnotationHubData')
 library('jsonlite')
 library('dplyr')
 library('httr')
@@ -47,15 +45,10 @@ colnames(dat) <- records$fields[[1]]$name
 
 message(sprintf("- Found metadata for %d organisms", nrow(dat)))
 
-# reformat to match expectations
-# NOTE: there are currently two hard-coded fields which contain "LmjF" (L.
-# major Friedlin); these are placeholders for generic text once a mapping from
-# species names to short identifiers.
-metadata <- dat %>% transmute(
-    Title=sprintf('Genome annotations for %s', organism),
-    Description=sprintf('%s %s annotations for %s', project_id, dbversion, organism),
+# shared metadata
+shared_metadata <- dat %>% transmute(
     BiocVersion='3.4',
-    Genome=sprintf('LmjF%s', dbversion),
+    Genome=sub('.gff', '', basename(URLgff)),
     SourceType='GFF',
     SourceUrl=URLgff,
     SourceVersion=dbversion,
@@ -63,14 +56,11 @@ metadata <- dat %>% transmute(
     TaxonomyId=ncbi_tax_id,
     Coordinate_1_based=TRUE,
     DataProvider=project_id,
-    Maintainer='Keith Hughitt <khughitt@umd.edu>',
-    RDataClass='TxDb',
-    DispatchClass='Rda',
-    ResourceName='LmjF_TxDb.rda'
+    Maintainer='Keith Hughitt <khughitt@umd.edu>'
 )
 
 # replace missing taxonomy ids with NAs
-metadata$TaxonomyId[metadata$TaxonomyId == ''] <- NA
+shared_metadata$TaxonomyId[shared_metadata$TaxonomyId == ''] <- NA
 
 # overide missing taxonomy ids for strains where it can be assigned; ideally
 # OrgDb and TxDb should not depend on taxonomy id information since this
@@ -82,50 +72,45 @@ known_taxon_ids <- data.frame(
     taxonomy_id=c('1354746', '353153', '353153')
 )
 
-taxon_mask <- metadata$Species %in% known_taxon_ids$species
-ind <- match(metadata[taxon_mask,'Species'], known_taxon_ids$species)
-metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
+taxon_mask <- shared_metadata$Species %in% known_taxon_ids$species
+ind <- match(shared_metadata[taxon_mask,'Species'], known_taxon_ids$species)
+shared_metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
 
 # exclude remaining species which are missing taxonomy information from
 # metadata; cannot construct TxDb/OrgDb instances for them since they are
 # have no known taxonomy id, and are not in available.species()
-na_ind <- is.na(metadata$TaxonomyId)
+na_ind <- is.na(shared_metadata$TaxonomyId)
 message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
                 sum(na_ind), sum(!na_ind)))
-metadata <- metadata[!na_ind,]
+shared_metadata <- shared_metadata[!na_ind,]
 
 # convert remaining taxonomy ids to numeric
-metadata$TaxonomyId <- as.numeric(metadata$TaxonomyId)
+shared_metadata$TaxonomyId <- as.numeric(shared_metadata$TaxonomyId)
 
 # remove any organisms for which no GFF is available
-gff_exists <- sapply(metadata$SourceUrl, function(url) { HEAD(url)$status_code == 200 })
+gff_exists <- sapply(shared_metadata$SourceUrl, function(url) { HEAD(url)$status_code == 200 })
 
 message(sprintf("- Excluding %d organisms for which no GFF file is available (%d remaining)",
         sum(!gff_exists), sum(gff_exists)))
-metadata <- metadata[gff_exists,]
+shared_metadata <- shared_metadata[gff_exists,]
+
+# generate separate metadata table for OrgDB and TxDB targets
+txdb_metadata <- shared_metadata %>% mutate(
+    Title=sprintf('Transcript information for %s', Species),
+    Description=sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Species),
+    RDataClass='GRanges',
+    DispatchClass='GRanges',
+    ResourceName=sub('.gff', '.rda', basename(SourceUrl))
+)
+
+orgdb_metadata <- shared_metadata %>% mutate(
+    Title=sprintf('Genome wide annotations for %s', Species),
+    Description=sprintf('%s %s annotations for %s', DataProvider, SourceVersion, Species),
+    RDataClass='OrgDb',
+    DispatchClass='SQLiteFile',
+    ResourceName=sub('.gff', '.rda', basename(SourceUrl))
+)
 
 # save to file
+metadata <- rbind(txdb_metadata, orgdb_metadata)
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')
-
-# Create EuPathDB AnnotationHubMetadata objects
-Map(AnnotationHubMetadata,
-    Description=metadata$Description,
-    DataProvider=metadata$DataProvider,
-    Genome=metadata$Genome,
-    SourceUrl=metadata$SourceUrl,
-    SourceVersion=metadata$SourceVersion,
-    Species=metadata$Species,
-    Tags=tags[metadata$DataProvider],
-    TaxonomyId=metadata$TaxonomyId,
-    Title=basename(metadata$SourceUrl),
-    RDataPath="tmp/path/to/file.rda",
-    MoreArgs=list(
-        BiocVersion=BiocInstaller::biocVersion(),
-        SourceType='GFF',
-        Coordinate_1_based=TRUE,
-        Maintainer='Keith Hughitt <khughitt@umd.edu>',
-        RDataClass='TxDb',
-        RDataDateAdded=format(Sys.time(), '%Y-%m-%d'),
-        DispatchClass='Rda',
-        Recipe=NA_character_
-    ))

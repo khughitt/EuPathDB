@@ -9,6 +9,10 @@
 #
 ###############################################################################
 library('AnnotationForge')
+library('jsonlite')
+library('rtracklayer')
+library('GenomicFeatures')
+
 options(stringsAsFactors=FALSE)
 
 #'
@@ -38,7 +42,7 @@ EuPathDBGFFtoTxDb <- function(ahm) {
     message(sprintf("- Generating TxDb for %s", ahm@Species))
 
     # get chromosome/contig information from GFF file
-    gff <- rtracklayer::import.gff3(input_gff)
+    gff <- import.gff3(input_gff)
     ch <- gff[gff$type %in% c('chromosome', 'contig', 'supercontig',
                               'mitochondrial_chromosome',
                               'apicoplast_chromosome',
@@ -56,7 +60,7 @@ EuPathDBGFFtoTxDb <- function(ahm) {
     #  The following transcripts were dropped because their exon ranks could not be
     #  inferred (either because the exons are not on the same chromosome/strand or
     #  because they are not separated by introns): rna_LmjF.28.2965-1
-    GenomicFeatures::makeTxDbFromGFF(input_gff,
+    makeTxDbFromGFF(input_gff,
         format='gff3',
         dataSource=dirname(ahm@SourceUrl),
         organism=ahm@Species,
@@ -84,7 +88,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     download.file(ahm@SourceUrl, input_gff)
 
     # get chromosome information from GFF file
-    gff <- rtracklayer::import.gff3(input_gff)
+    gff <- import.gff3(input_gff)
 
     # gene/chr mapping
     genes <- gff[gff$type == 'gene']
@@ -365,7 +369,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 
     # query API for gene types
     if (format == 'json') {
-        jsonlite::fromJSON(request_url)
+        fromJSON(request_url)
     } else {
         stop("Invalid response type specified.")
     }
