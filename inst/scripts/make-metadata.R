@@ -63,8 +63,8 @@ shared_metadata <- dat %>% transmute(
 shared_metadata$TaxonomyId[shared_metadata$TaxonomyId == ''] <- NA
 
 # overide missing taxonomy ids for strains where it can be assigned; ideally
-# OrgDb and TxDb should not depend on taxonomy id information since this
-# precludes the inclusion of a lot of prokaryotic resources.
+# OrgDb and GRanges objects should not depend on taxonomy id information since
+# this precludes the inclusion of a lot of prokaryotic resources.
 known_taxon_ids <- data.frame(
     species=c('Ordospora colligata OC4', 
               'Trypanosoma cruzi CL Brener Esmeraldo-like',
@@ -77,7 +77,7 @@ ind <- match(shared_metadata[taxon_mask,'Species'], known_taxon_ids$species)
 shared_metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
 
 # exclude remaining species which are missing taxonomy information from
-# metadata; cannot construct TxDb/OrgDb instances for them since they are
+# metadata; cannot construct GRanges/OrgDb instances for them since they are
 # have no known taxonomy id, and are not in available.species()
 na_ind <- is.na(shared_metadata$TaxonomyId)
 message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
@@ -94,8 +94,8 @@ message(sprintf("- Excluding %d organisms for which no GFF file is available (%d
         sum(!gff_exists), sum(gff_exists)))
 shared_metadata <- shared_metadata[gff_exists,]
 
-# generate separate metadata table for OrgDB and TxDB targets
-txdb_metadata <- shared_metadata %>% mutate(
+# generate separate metadata table for OrgDB and GRanges targets
+granges_metadata <- shared_metadata %>% mutate(
     Title=sprintf('Transcript information for %s', Species),
     Description=sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Species),
     RDataClass='GRanges',
@@ -112,5 +112,5 @@ orgdb_metadata <- shared_metadata %>% mutate(
 )
 
 # save to file
-metadata <- rbind(txdb_metadata, orgdb_metadata)
+metadata <- rbind(granges_metadata, orgdb_metadata)
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')

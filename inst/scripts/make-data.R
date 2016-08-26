@@ -16,14 +16,16 @@ library('GenomicFeatures')
 options(stringsAsFactors=FALSE)
 
 #'
-#' Generate TxDb for EuPathDB organism
+#' Generate GRanges for EuPathDB organism
 #'
 #' @param ahm AnnotationHubMetadata instance
-#' @return TxDb instance
+#' @return GRanges instance
 #' 
-EuPathDBGFFtoTxDb <- function(ahm) {
+EuPathDBGFFtoGRanges <- function(ahm) {
     # save gff as tempfile
     input_gff <- tempfile(fileext='.gff')
+
+    message(sprintf("- Generating GRanges object for %s", ahm@Species))
 
     # attempt to download file
     res <- tryCatch({
@@ -39,33 +41,8 @@ EuPathDBGFFtoTxDb <- function(ahm) {
         return(NA)
     }
 
-    message(sprintf("- Generating TxDb for %s", ahm@Species))
-
-    # get chromosome/contig information from GFF file
-    gff <- import.gff3(input_gff)
-    ch <- gff[gff$type %in% c('chromosome', 'contig', 'supercontig',
-                              'mitochondrial_chromosome',
-                              'apicoplast_chromosome',
-                              'geneontig', 'random_sequence')]
-
-    chr_info <- data.frame(
-        'chrom'=ch$ID,
-        'length'=width(ch),
-        'is_circular'=ch$topology == 'circular'
-    )
-
-    # NOTE: warning to look into when creating txdb for LmjF
-    # Warning message:
-    # In makeTxDbFromGRanges(gr, metadata = metadata) :
-    #  The following transcripts were dropped because their exon ranks could not be
-    #  inferred (either because the exons are not on the same chromosome/strand or
-    #  because they are not separated by introns): rna_LmjF.28.2965-1
-    makeTxDbFromGFF(input_gff,
-        format='gff3',
-        dataSource=dirname(ahm@SourceUrl),
-        organism=ahm@Species,
-        taxonomyId=ahm@TaxonomyId,
-        chrominfo=chr_info)
+    # convert to GRanges with rtracklayer and return 
+    import.gff3(input_gff)
 }
 
 
@@ -73,7 +50,7 @@ EuPathDBGFFtoTxDb <- function(ahm) {
 #' Generate OrgDb for EuPathDB organism
 #'
 #' @param ahm AnnotationHubMetadata instance
-#' @return TxDb instance
+#' @return OrgDb instance
 #' 
 EuPathDBGFFtoOrgDb <- function(ahm) {
     # Get genus and species from organism name
