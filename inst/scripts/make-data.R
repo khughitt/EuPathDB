@@ -107,6 +107,9 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     # interpro domains
     interpro_table <- .get_interpro_table(ahm@DataProvider, ahm@Species)
 
+    # ortholog table
+    ortholog_table <- .get_ortholog_table(ahm@DataProvider, ahm@Species)
+
     # create a random directory to use for package build
     sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
     temp_dir <- file.path(tempdir(), sub_dir)
@@ -118,6 +121,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
         'chromosome' = chr_mapping,
         'go'         = go_table,
         'interpro'   = interpro_table,
+        'orthologs'  = ortholog_table,
         'type'       = gene_types,
         'version'    = ahm@SourceVersion,
         'author'     = ahm@Maintainer,
@@ -249,6 +253,32 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 
     # fix column names and return result
     colnames(result) <- toupper(colnames(result)) 
+
+    return(result)
+}
+
+#'
+#' Returns a mapping of gene ID to ortholog genes
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#'
+#' @return Dataframe with ....
+#'
+.get_ortholog_table <- function(data_provider, organism) {
+    # retrieve ortholog domain table
+    result <- .retrieve_eupathdb_table(data_provider, organism, 'Orthologs')
+
+    # fix column names and return result
+    colnames(result) <- c("GID", "GO", "ONTOLOGY", "GO_TERM_NAME", "SOURCE",
+                          "EVIDENCE", "IS_NOT")
+
+    # drop everything except for GID, GO, and EVIDENCE columns
+    result <- result[,colnames(result) %in% c('GID', 'GO', 'EVIDENCE')]
+
+    # remove duplicated entries resulting from alternative sources / envidence
+    # codes
+    result <- result[!duplicated(result),]
 
     return(result)
 }
