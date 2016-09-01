@@ -1,50 +1,18 @@
 ###############################################################################
 #
-# Functions for parsing EuPathDB resources
+# Functions for creating GRanges objects from EuPathDB resources
 # 
 # Author: Keith Hughitt (khughitt@umd.edu)
-# Last Update: Aug 26, 2016
-#
-# Questions:
+# Last Update: Sept 01, 2016
 #
 ###############################################################################
 library('AnnotationForge')
 library('jsonlite')
 library('rtracklayer')
 library('GenomicFeatures')
+source('shared.R')
 
 options(stringsAsFactors=FALSE)
-
-#'
-#' Generate GRanges for EuPathDB organism
-#'
-#' @param ahm AnnotationHubMetadata instance
-#' @return GRanges instance
-#' 
-EuPathDBGFFtoGRanges <- function(ahm) {
-    # save gff as tempfile
-    input_gff <- tempfile(fileext='.gff')
-
-    message(sprintf("- Generating GRanges object for %s", ahm@Species))
-
-    # attempt to download file
-    res <- tryCatch({
-        download.file(ahm@SourceUrl, input_gff)
-    }, error=function(e) {
-        return(404)
-    })
-
-    # stop here if file not successfully downloaded
-    if (res != 0) {
-        warning("Unable to download annotations for %s; skipping...",
-                ahm@Species)
-        return(NA)
-    }
-
-    # convert to GRanges with rtracklayer and return 
-    import.gff3(input_gff)
-}
-
 
 #'
 #' Generate OrgDb for EuPathDB organism
@@ -262,92 +230,4 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     result <- result[!duplicated(result),]
 
     return(result)
-}
-
-#'
-#' Queries one of the EuPathDB APIs for table data.
-#'
-#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
-#' @param organism Full name of organism, as used by EuPathDB APIs
-#' @param table_name Name of the particular table to be retrieved (e.g.
-#' 'GoTerms')
-#' @param wadl String specifying API service to be queried
-#' @param format String specifying API response type (currently only 'json'
-#'        is supported)
-#' @return list containing response from API request.
-.retrieve_eupathdb_table <- function(data_provider, organism, table_name,
-                                     wadl='GeneQuestions/GenesByTaxon',
-                                     format='json') {
-    # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name))
-    dat <- res$response$recordset$records
-
-    # drop genes with no associated table entries
-    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
-    dat <- dat[gene_mask,]
-
-    # create empty data frame to store result in
-    result <- data.frame(stringsAsFactors=FALSE)
-
-    # iterate over remaining genes and extract table entries for them
-    for (i in 1:nrow(dat)) {
-        # example entry:
-        # 
-        # > dat$tables[[1]]$rows[[1]]$fields[[1]]
-        #         name                      value
-        # 1         go_id                 GO:0007018
-        # 2      ontology         Biological Process
-        # 3  go_term_name microtubule-based movement
-        # 4        source                   Interpro
-        # 5 evidence_code                        IEA
-        # 6        is_not                       <NA>
-        table_entries <- dat$tables[[i]]
-        rows <- t(sapply(table_entries$rows[[1]]$fields, function(x) { x$value }))
-        result <- rbind(result, cbind(dat$id[i], rows))
-    }
-
-    # set column names for result
-    colnames(result) <- c('GID', dat$tables[[1]]$rows[[1]]$fields[[1]]$name)
-
-    return(result)
-}
-
-#'
-#' Queries one of the EuPathDB APIs and returns a dataframe representation
-#' of the result.
-#'
-#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
-#' @param organism Full name of organism, as used by EuPathDB APIs
-#' @param query_args String of additional query arguments
-#' @param wadl String specifying API service to be queried
-#' @param format String specifying API response type (currently only 'json'
-#'        is supported)
-#' @return list containing response from API request.
-#'
-#' More information
-#' ----------------
-#' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
-#'
-.query_eupathdb <- function(data_provider, organism, query_args,
-                            wadl='GeneQuestions/GenesByTaxon', format='json') {
-    # construct API query
-    base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
-                        tolower(data_provider), wadl, format)
-    query_string <- sprintf('organism=%s&%s', 
-                            URLencode(organism, reserved=TRUE), query_args)
-    request_url <- paste0(base_url, query_string)
-
-    if (length(request_url) > 200) {
-        paste0(log_url <- strtrim(request_url, 160), '...')
-    } else {
-        log_url <- request_url
-    }
-    message(sprintf("- Querying %s", log_url))
-
-    # query API for gene types
-    if (format == 'json') {
-        fromJSON(request_url)
-    } else {
-        stop("Invalid response type specified.")
-    }
 }
