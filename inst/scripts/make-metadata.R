@@ -114,3 +114,4 @@ orgdb_metadata <- shared_metadata %>% mutate(
 # save to file
 metadata <- rbind(granges_metadata, orgdb_metadata)
 write.csv(metadata, row.names=FALSE, quote=FALSE, file='../extdata/metadata.csv')
+

@@ -1,9 +1,9 @@
 ###############################################################################
 #
-# Functions for parsing EuPathDb resources
+# Functions for parsing EuPathDB resources
 # 
 # Author: Keith Hughitt (khughitt@umd.edu)
-# Last Update: Aug 20, 2016
+# Last Update: Aug 26, 2016
 #
 # Questions:
 #
@@ -230,7 +230,7 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
 
     # replace NA's with empty strings (occur in INTERPRO_FAMILY_ID and
     # INTERPRO_SECONDARY_ID fields)
-    result <- result[is.na(result)]
+    result[is.na(result)] <- ''
 
     # fix column names and return result
     colnames(result) <- toupper(colnames(result)) 
