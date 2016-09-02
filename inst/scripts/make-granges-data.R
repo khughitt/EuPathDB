@@ -65,12 +65,18 @@ dat <- read.csv('../extdata/granges_metadata.csv')
 
 # iterate over metadata entries and create GRanges objects for each item
 for (i in 1:nrow(dat)) {
-    # create GRanges object from metadata entry
+    # check to see if output already exists
     entry <- dat[i,]
+    outfile <- file.path(output_dir, entry$ResourceName)
+
+    if (file.exists(outfile)) {
+        return
+    }
+
+    # create GRanges object from metadata entry
     gr <- EuPathDBGFFtoGRanges(entry)
 
     # save to file
-    outfile <- file.path(output_dir, entry$ResourceName)
     message(sprintf("Saving GRanges object to %s", outfile))
     save(gr, file=outfile)
 }

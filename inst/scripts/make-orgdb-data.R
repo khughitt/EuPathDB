@@ -101,6 +101,8 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     dbpath <- file.path(orgdb_path, 'inst/extdata', 
                         sub('.db', '.sqlite', basename(orgdb_path)))
 
+    message(sprintf("- Fixing sqlite Orgdb sqlite database %s", dbpath))
+
     # make sqlite database editable
     Sys.chmod(dbpath, mode='0644')
 
@@ -280,7 +282,10 @@ dat <- read.csv('../extdata/orgdb_metadata.csv')
 dat <- dat[sample(1:nrow(dat)),]
 
 # iterate over metadata entries and create GRanges objects for each item
-cl <- makeCluster(min(12, detectCores() - 2), outfile="")
+#cl <- makeCluster(max(1, min(12, detectCores() - 2)), outfile="")
+
+# testing
+cl <- makeCluster(2, outfile="")
 registerDoParallel(cl)
 
 # packages needed during OrgDb construction
