@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 ###############################################################################
 #
 # Functions for creating GRanges objects from EuPathDB resources
@@ -5,32 +6,36 @@
 # Author: Keith Hughitt (khughitt@umd.edu)
 # Last Update: Sept 01, 2016
 #
+# Usage: ./make-orgdb-data.R /path/to/output
+#
 ###############################################################################
 library('AnnotationForge')
+library('RSQLite')
 library('jsonlite')
 library('rtracklayer')
 library('GenomicFeatures')
-source('shared.R')
+library('doParallel')
+library('foreach')
 
+source('shared.R')
 options(stringsAsFactors=FALSE)
 
 #'
 #' Generate OrgDb for EuPathDB organism
 #'
-#' @param ahm AnnotationHubMetadata instance
+#' @param entry One dimensional dataframe with organism metadata
 #' @return OrgDb instance
 #' 
-EuPathDBGFFtoOrgDb <- function(ahm) {
+EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # Get genus and species from organism name
-    species_parts <- unlist(strsplit(ahm@Species, ' '))
+    species_parts <- unlist(strsplit(entry$Species, ' '))
     genus <- species_parts[1]
     species <- species_parts[2]
 
-    message(sprintf("- Generating OrgDb for %s", ahm@Species))
 
     # save gff as tempfile
     input_gff <- tempfile(fileext='.gff')
-    download.file(ahm@SourceUrl, input_gff)
+    download.file(entry$SourceUrl, input_gff)
 
     # get chromosome information from GFF file
     gff <- import.gff3(input_gff)
@@ -48,21 +53,21 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     gene_info <- .extract_gene_info(gff)
 
     # gene types
-    gene_types <- .get_gene_types(ahm@DataProvider, ahm@Species)
+    gene_types <- .get_gene_types(entry$DataProvider, entry$Species)
 
     # go terms
-    go_table <- .get_go_term_table(ahm@DataProvider, ahm@Species)
+    go_table <- .get_go_term_table(entry$DataProvider, entry$Species)
 
     # interpro domains
-    interpro_table <- .get_interpro_table(ahm@DataProvider, ahm@Species)
+    interpro_table <- .get_interpro_table(entry$DataProvider, entry$Species)
 
     # ortholog table
-    ortholog_table <- .get_ortholog_table(ahm@DataProvider, ahm@Species)
+    ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
 
     # create a random directory to use for package build
-    sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
-    temp_dir <- file.path(tempdir(), sub_dir)
-    dir.create(temp_dir, recursive=TRUE)
+    #sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
+    #temp_dir <- file.path(tempdir(), sub_dir)
+    #dir.create(temp_dir, recursive=TRUE)
 
     # Compile list of arguments for makeOrgPackage call
     orgdb_args <- list(
@@ -72,13 +77,13 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
         'interpro'   = interpro_table,
         'orthologs'  = ortholog_table,
         'type'       = gene_types,
-        'version'    = ahm@SourceVersion,
-        'author'     = ahm@Maintainer,
-        'maintainer' = ahm@Maintainer,
-        'tax_id'     = as.character(ahm@TaxonomyId),
+        'version'    = entry$SourceVersion,
+        'author'     = entry$Maintainer,
+        'maintainer' = entry$Maintainer,
+        'tax_id'     = as.character(entry$TaxonomyId),
         'genus'      = genus,
         'species'    = species,
-        'outputDir'  = temp_dir,
+        'outputDir'  = output_dir,
         'goTable'    = "go"
     )
 
@@ -89,7 +94,33 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     #    orgdb_args[['kegg']] <- kegg_table
     #}
 
-    org_result <- do.call('makeOrgPackage', orgdb_args)
+    message(sprintf("- Calling makeOrgPackage for %s", entry$Species))
+    orgdb_path <- do.call('makeOrgPackage', orgdb_args)
+
+    # Fix name in sqlite metadata table
+    dbpath <- file.path(orgdb_path, 'inst/extdata', 
+                        sub('.db', '.sqlite', basename(orgdb_path)))
+
+    # make sqlite database editable
+    Sys.chmod(dbpath, mode='0644')
+
+    db = dbConnect(SQLite(), dbname=dbpath)
+
+    # update SPECIES field
+    query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";',
+                     entry$Species)
+    dbSendQuery(conn=db, query)
+
+    # update ORGANISM field
+    query <- sprintf('UPDATE metadata SET value="%s" WHERE name="ORGANISM";',
+                     entry$Species)
+    dbSendQuery(conn=db, query)
+
+    # lock it back down
+    Sys.chmod(dbpath, mode='0444')
+
+    # return the path to the sqlite database
+    dbpath
 }
 
 #'
@@ -219,15 +250,65 @@ EuPathDBGFFtoOrgDb <- function(ahm) {
     result <- .retrieve_eupathdb_table(data_provider, organism, 'Orthologs')
 
     # fix column names and return result
-    colnames(result) <- c("GID", "GO", "ONTOLOGY", "GO_TERM_NAME", "SOURCE",
-                          "EVIDENCE", "IS_NOT")
-
-    # drop everything except for GID, GO, and EVIDENCE columns
-    result <- result[,colnames(result) %in% c('GID', 'GO', 'EVIDENCE')]
-
-    # remove duplicated entries resulting from alternative sources / envidence
-    # codes
-    result <- result[!duplicated(result),]
+    colnames(result) <- toupper(colnames(result)) 
 
     return(result)
 }
+
+###############################################################################
+# MAIN
+###############################################################################
+
+# parse command-line arguments
+args <- commandArgs(trailingOnly=TRUE)
+
+# Create output directory if it doesn't already exist
+output_dir <- args[1]
+
+if (is.na(output_dir)) {
+    stop("Missing argument specifying output directory to use...")
+}
+
+if (!file.exists(output_dir)) {
+    dir.create(output_dir, recursive=TRUE)
+}
+
+# load metadata
+dat <- read.csv('../extdata/orgdb_metadata.csv')
+
+# randomize order of entries to spread out the requests to multiple databases
+dat <- dat[sample(1:nrow(dat)),]
+
+# iterate over metadata entries and create GRanges objects for each item
+cl <- makeCluster(min(12, detectCores() - 2), outfile="")
+registerDoParallel(cl)
+
+# packages needed during OrgDb construction
+dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures', 'jsonlite')
+
+dbpath <- foreach(i=1:nrow(dat), .packages=dependencies) %dopar% {
+    # get metadata entry for a single organism
+    entry <- dat[i,]
+
+    # location to save orgdb to
+    outfile <- file.path(output_dir, entry$ResourceName)
+
+    # if sqlite database already exists, skip entry
+    if (file.exists(outfile)) {
+        message(sprintf("- Skipping %s... (EXISTS)", entry$Species))
+        return
+    }
+
+    # create GRanges object from metadata entry
+    message(sprintf("- Building OrgDb for %s.", entry$Species))
+
+    dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
+
+    # copy sqlite database to main output directory
+    message(sprintf("- Saving OrgDb sqlite database to %s", outfile))
+    file.copy(dbpath, output_dir)
+}
+
+# unregister cpus
+stopCluster(cl)
+
