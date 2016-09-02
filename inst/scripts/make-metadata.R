@@ -100,7 +100,8 @@ granges_metadata <- shared_metadata %>% mutate(
     Description=sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Species),
     RDataClass='GRanges',
     DispatchClass='GRanges',
-    ResourceName=sub('.gff', '.rda', basename(SourceUrl))
+    ResourceName=sprintf('GRanges.%s.%s%s.rda', gsub(' ', '_', Species), 
+                         tolower(DataProvider), SourceVersion, 'rda')
 )
 
 orgdb_metadata <- shared_metadata %>% mutate(
@@ -108,7 +109,8 @@ orgdb_metadata <- shared_metadata %>% mutate(
     Description=sprintf('%s %s annotations for %s', DataProvider, SourceVersion, Species),
     RDataClass='OrgDb',
     DispatchClass='SQLiteFile',
-    ResourceName=sub('.gff', '.rda', basename(SourceUrl))
+    ResourceName=sprintf('org.%s.%s.db.sqlite', gsub(' ', '_', Species), 
+                         tolower(substring(DataProvider, 1, nchar(DataProvider) - 2)))
 )
 
 # save to file

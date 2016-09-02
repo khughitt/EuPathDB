@@ -291,7 +291,7 @@ dbpath <- foreach(i=1:nrow(dat), .packages=dependencies) %dopar% {
     entry <- dat[i,]
 
     # location to save orgdb to
-    outfile <- file.path(output_dir, entry$ResourceName)
+    outfile <- file.path(output_dir, sub('.rda', '.sqlite', entry$ResourceName))
 
     # if sqlite database already exists, skip entry
     if (file.exists(outfile)) {
