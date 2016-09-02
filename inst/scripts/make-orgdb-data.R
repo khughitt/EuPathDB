@@ -77,7 +77,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
         'interpro'   = interpro_table,
         'orthologs'  = ortholog_table,
         'type'       = gene_types,
-        'version'    = entry$SourceVersion,
+        'version'    = as.character(entry$SourceVersion),
         'author'     = entry$Maintainer,
         'maintainer' = entry$Maintainer,
         'tax_id'     = as.character(entry$TaxonomyId),
@@ -282,16 +282,18 @@ dat <- read.csv('../extdata/orgdb_metadata.csv')
 dat <- dat[sample(1:nrow(dat)),]
 
 # iterate over metadata entries and create GRanges objects for each item
-#cl <- makeCluster(max(1, min(12, detectCores() - 2)), outfile="")
+cl <- makeCluster(max(1, min(12, detectCores() - 2)), outfile="")
 
-# testing
-cl <- makeCluster(2, outfile="")
 registerDoParallel(cl)
 
 # packages needed during OrgDb construction
-dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures', 'jsonlite')
+dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
+                  'jsonlite', 'RSQLite')
 
-dbpath <- foreach(i=1:nrow(dat), .packages=dependencies) %dopar% {
+dbpath <- foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+    # re-initialize options
+    options(stringsAsFactors=FALSE)
+
     # get metadata entry for a single organism
     entry <- dat[i,]
 
@@ -311,7 +313,7 @@ dbpath <- foreach(i=1:nrow(dat), .packages=dependencies) %dopar% {
 
     # copy sqlite database to main output directory
     message(sprintf("- Saving OrgDb sqlite database to %s", outfile))
-    file.copy(dbpath, output_dir)
+    file.copy(dbpath, outfile)
 }
 
 # unregister cpus
