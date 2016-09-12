@@ -22,12 +22,19 @@
     res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name))
     dat <- res$response$recordset$records
 
+    message(sprintf("- Parsing %s table for %s.", table_name, organism))
+
     # drop genes with no associated table entries
     gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
     dat <- dat[gene_mask,]
 
     # create empty data frame to store result in
     result <- data.frame(stringsAsFactors=FALSE)
+
+    # if no GO terms found, return empty data.frame
+    if (nrow(result) == 0) {
+        return(result)
+    }
 
     # iterate over remaining genes and extract table entries for them
     for (i in 1:nrow(dat)) {

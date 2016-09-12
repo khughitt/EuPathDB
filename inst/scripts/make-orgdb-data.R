@@ -1,7 +1,16 @@
 #!/usr/bin/env Rscript
 ###############################################################################
 #
-# Functions for creating GRanges objects from EuPathDB resources
+# Functions for creating OrgDb objects from EuPathDB resources
+#
+# Note: Trichomonas vaginalis G3 genome contains significantly
+# more (about 4x) genes and orthologs compared to most other
+# EuPathDb organisms, and may require much more memory and time
+# to build.
+#
+# Most organisms should finish within several hours and use 10GB memory or
+# less. On a workstation, T. vaginalis G3 required 42GB memory and took over
+# 12 hours to complete.
 # 
 # Author: Keith Hughitt (khughitt@umd.edu)
 # Last Update: Sept 01, 2016
@@ -64,18 +73,16 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # ortholog table
     ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
 
-    # create a random directory to use for package build
-    #sub_dir <- paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse='')
-    #temp_dir <- file.path(tempdir(), sub_dir)
-    #dir.create(temp_dir, recursive=TRUE)
+    # create a randomly-named sub-directory to store orgdb output in; since
+    # makeOrganismPackage doesn't incorporate strain information in the 
+    # package name, this is necessary to avoid directory name collisions
+    build_dir <- file.path(output_dir, paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse=''))
+    dir.create(build_dir, recursive=TRUE)
 
     # Compile list of arguments for makeOrgPackage call
     orgdb_args <- list(
         'gene_info'  = gene_info,
         'chromosome' = chr_mapping,
-        'go'         = go_table,
-        'interpro'   = interpro_table,
-        'orthologs'  = ortholog_table,
         'type'       = gene_types,
         'version'    = as.character(entry$SourceVersion),
         'author'     = entry$Maintainer,
@@ -83,9 +90,20 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
         'tax_id'     = as.character(entry$TaxonomyId),
         'genus'      = genus,
         'species'    = species,
-        'outputDir'  = output_dir,
-        'goTable'    = "go"
+        'outputDir'  = build_dir
     )
+
+    # add non-empty tables
+    if (nrow(go_table) > 0) {
+        orgdb_args[['go']] <- go_table
+        'goTable' <- "go"
+    }
+    if (nrow(interpro_table) > 0) {
+        orgdb_args[['interpro']] <- interpro_table
+    }
+    if (nrow(ortholog_table) > 0) {
+        orgdb_args[['orthologs']] <- ortholog_table
+    }
 
     # NOTE: Aug 20, 2016 - skipping KEGG table for now; will add in once
     # everything else is working...
@@ -198,6 +216,10 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # retrieve GoTerms table
     result <- .retrieve_eupathdb_table(data_provider, organism, 'GoTerms')
 
+    if (nrow(result) == 0) {
+        return(result)
+    }
+
     # fix column names and return result
     colnames(result) <- c("GID", "GO", "ONTOLOGY", "GO_TERM_NAME", "SOURCE",
                           "EVIDENCE", "IS_NOT")
@@ -281,16 +303,17 @@ dat <- read.csv('../extdata/orgdb_metadata.csv')
 # randomize order of entries to spread out the requests to multiple databases
 dat <- dat[sample(1:nrow(dat)),]
 
-# iterate over metadata entries and create GRanges objects for each item
-cl <- makeCluster(max(1, min(12, detectCores() - 2)), outfile="")
+# iterate over metadata entries and create OrgDb objects for each item
+#cl <- makeCluster(max(1, min(12, detectCores() - 4)), outfile="")
 
-registerDoParallel(cl)
+#registerDoParallel(cl)
 
 # packages needed during OrgDb construction
-dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
-                  'jsonlite', 'RSQLite')
+#dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
+#                  'jsonlite', 'RSQLite')
 
-dbpath <- foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+#foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+for (i in 1:nrow(dat)) {
     # re-initialize options
     options(stringsAsFactors=FALSE)
 
@@ -304,18 +327,18 @@ dbpath <- foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% 
     if (file.exists(outfile)) {
         message(sprintf("- Skipping %s... (EXISTS)", entry$Species))
         return
+    } else {
+        # create OrgDb object from metadata entry
+        message(sprintf("- Building OrgDb for %s.", entry$Species))
+        dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
+
+        # copy sqlite database to main output directory
+        message(sprintf("- Finished building OrgDb for %s", entry$Species))
+        file.copy(dbpath, outfile)
     }
-
-    # create GRanges object from metadata entry
-    message(sprintf("- Building OrgDb for %s.", entry$Species))
-
-    dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
-
-    # copy sqlite database to main output directory
-    message(sprintf("- Saving OrgDb sqlite database to %s", outfile))
-    file.copy(dbpath, outfile)
+    gc()
 }
 
 # unregister cpus
-stopCluster(cl)
+#stopCluster(cl)
 
