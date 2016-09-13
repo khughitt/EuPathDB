@@ -70,14 +70,15 @@ for (i in 1:nrow(dat)) {
     outfile <- file.path(output_dir, entry$ResourceName)
 
     if (file.exists(outfile)) {
+        message(sprintf("- Skipping %s (EXISTS)", entry$Species))
         return
+    } else {
+        # create GRanges object from metadata entry
+        gr <- EuPathDBGFFtoGRanges(entry)
+
+        # save to file
+        message(sprintf("Saving GRanges object to %s", outfile))
+        save(gr, file=outfile)
     }
-
-    # create GRanges object from metadata entry
-    gr <- EuPathDBGFFtoGRanges(entry)
-
-    # save to file
-    message(sprintf("Saving GRanges object to %s", outfile))
-    save(gr, file=outfile)
 }
 

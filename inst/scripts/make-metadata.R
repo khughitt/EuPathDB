@@ -102,7 +102,7 @@ granges_metadata <- shared_metadata %>% mutate(
     Description=sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Species),
     RDataClass='GRanges',
     DispatchClass='GRanges',
-    ResourceName=sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]', '_', Species), 
+    ResourceName=sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', Species), 
                          tolower(DataProvider), SourceVersion, 'rda')
 )
 
@@ -111,7 +111,7 @@ orgdb_metadata <- shared_metadata %>% mutate(
     Description=sprintf('%s %s annotations for %s', DataProvider, SourceVersion, Species),
     RDataClass='OrgDb',
     DispatchClass='SQLiteFile',
-    ResourceName=sprintf('org.%s.%s.db.sqlite', gsub('[ /.]', '_', Species), 
+    ResourceName=sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', Species), 
                          tolower(substring(DataProvider, 1, nchar(DataProvider) - 2)))
 )
 
