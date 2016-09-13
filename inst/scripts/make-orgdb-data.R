@@ -71,7 +71,19 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     interpro_table <- .get_interpro_table(entry$DataProvider, entry$Species)
 
     # ortholog table
-    ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
+    #
+    # Note: skipping for organisms with large number of orthologs for now since
+    # the requests can be very large (~500Mb) and often fail jsonlite which
+    # uses cURL under the hood.
+    #
+    # A possible work-around would be to manually download the results using
+    # wget, e.g.: download.file(url, 'out.json', method='wget')
+    #
+    if (entry$NumOrthologs < 20000) {
+        ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
+    } else {
+        ortholog_table <- data.frame()
+    }
 
     # create a randomly-named sub-directory to store orgdb output in; since
     # makeOrganismPackage doesn't incorporate strain information in the 
@@ -159,6 +171,15 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     na_mask <- apply(gene_info, 2, function(x) { sum(!is.na(x)) > 0 })
     empty_mask <- apply(gene_info, 2, function(x) { length(unlist(x)) > 0 })
     gene_info <- gene_info[,na_mask & empty_mask]
+
+    # remove problematic GENECOLOUR field if it exists.
+    # Found for "Leishmania braziliensis MHOM/BR/75/M2904" -- only one row
+    # has a non-empty value and it does not appear to be correct:
+    # > gene_info$GENECOLOUR[1859]
+    # [[1]]
+    # [1] "10"                  "LbrM15.0470"         "LbrM.15.0630"
+    # "LbrM15_V2.0630"      "LbrM15_V2.0630:pep"  "LbrM15_V2.0630:mRNA"
+    gene_info <- gene_info[,colnames(gene_info) != 'GENECOLOUR']
 
     # Convert form-encoded description string to human-readable
     gene_info$description <- gsub("\\+", " ", gene_info$description)
@@ -304,16 +325,15 @@ dat <- read.csv('../extdata/orgdb_metadata.csv')
 dat <- dat[sample(1:nrow(dat)),]
 
 # iterate over metadata entries and create OrgDb objects for each item
-#cl <- makeCluster(max(1, min(12, detectCores() - 4)), outfile="")
+cl <- makeCluster(max(1, min(12, detectCores() - 4)), outfile="")
 
-#registerDoParallel(cl)
+registerDoParallel(cl)
 
 # packages needed during OrgDb construction
-#dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
-#                  'jsonlite', 'RSQLite')
+dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
+                  'jsonlite', 'RSQLite')
 
-#foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
-for (i in 1:nrow(dat)) {
+foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
     # re-initialize options
     options(stringsAsFactors=FALSE)
 
@@ -340,5 +360,5 @@ for (i in 1:nrow(dat)) {
 }
 
 # unregister cpus
-#stopCluster(cl)
+stopCluster(cl)
 
