@@ -27,6 +27,7 @@ tags <- list(
     "TrichDB"=c(shared_tags, 'Trichomonas'),
     "TriTrypDB"=c(shared_tags, 'Trypanosome', 'Kinetoplastid', 'Leishmania')
 )
+tag_strings <- lapply(tags, function(x) { paste(x, collapse=',') })
 
 # construct API request URL
 base_url <- 'http://eupathdb.org/eupathdb/webservices/'
@@ -60,6 +61,10 @@ shared_metadata <- dat %>% transmute(
     DataProvider=project_id,
     Maintainer='Keith Hughitt <khughitt@umd.edu>'
 )
+
+# Add project-specific tags for each entry
+shared_metadata$Tags <- sapply(shared_metadata$DataProvider, 
+                               function(x) { tag_strings[[x]] })
 
 # replace missing taxonomy ids with NAs
 shared_metadata$TaxonomyId[shared_metadata$TaxonomyId == ''] <- NA
@@ -116,6 +121,6 @@ orgdb_metadata <- shared_metadata %>% mutate(
 )
 
 # save to file
-write.csv(granges_metadata, row.names=FALSE, quote=FALSE, file='../extdata/granges_metadata.csv')
-write.csv(orgdb_metadata, row.names=FALSE, quote=FALSE, file='../extdata/orgdb_metadata.csv')
+write.csv(granges_metadata, row.names=FALSE, quote=TRUE, file='../extdata/granges_metadata.csv')
+write.csv(orgdb_metadata, row.names=FALSE, quote=TRUE, file='../extdata/orgdb_metadata.csv')
 
