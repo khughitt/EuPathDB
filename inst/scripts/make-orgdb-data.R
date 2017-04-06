@@ -79,9 +79,13 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # A possible work-around would be to manually download the results using
     # wget, e.g.: download.file(url, 'out.json', method='wget')
     #
-    if (entry$NumOrthologs < 20000) {
+    #if (entry$NumOrthologs < 20000) {
+    if (entry$NumOrthologs < 3000) {
+        message(sprintf('- Retrieving %d orthologs for %s', 
+                        entry$NumOrthologs, entry$Species))
         ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
     } else {
+        message(sprintf('- Skipping ortholog table for %s', entry$Species))
         ortholog_table <- data.frame()
     }
 
@@ -194,13 +198,16 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     colnames(gene_info) <- paste0("GENE", colnames(gene_info))
     colnames(gene_info)[1] <- "GID"
 
-    num_rows <- nrow(gene_info)
-    gene_info[["GENEALIAS"]] <- as.character(gene_info[["GENEALIAS"]])
+    # fix type for GENEALIAS column if present (found in version 28 and
+    # earlier)
+    if ("GENEALIAS" %in% colnames(gene_info)) {
+        gene_info[["GENEALIAS"]] <- as.character(gene_info[["GENEALIAS"]])
 
-    # Remove any newlines present in GENEALIAS field;
-    # as.character inserts newlines for objects with >500 characters.
-	# https://stat.ethz.ch/R-manual/R-devel/library/base/html/character.html
-    gene_info[["GENEALIAS"]] <- gsub('\n', '', gene_info[["GENEALIAS"]])
+        # Remove any newlines present in GENEALIAS field;
+        # as.character inserts newlines for objects with >500 characters.
+        # https://stat.ethz.ch/R-manual/R-devel/library/base/html/character.html
+        gene_info[["GENEALIAS"]] <- gsub('\n', '', gene_info[["GENEALIAS"]])
+    }
 
     return(gene_info)
 }
@@ -235,7 +242,8 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 #'
 .get_go_term_table <- function(data_provider, organism) {
     # retrieve GoTerms table
-    result <- .retrieve_eupathdb_table(data_provider, organism, 'GoTerms')
+    #result <- .retrieve_eupathdb_table(data_provider, organism, 'GoTerms')
+    result <- .retrieve_eupathdb_attributes(data_provider, organism, 'GOTerms')
 
     if (nrow(result) == 0) {
         return(result)
@@ -265,7 +273,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 #'
 .get_interpro_table <- function(data_provider, organism) {
     # retrieve InterPro domain table
-    result <- .retrieve_eupathdb_table(data_provider, organism, 'InterPro')
+    result <- .retrieve_eupathdb_attributes(data_provider, organism, 'InterPro')
 
     # fix numeric types
     result$interpro_e_value <- as.numeric(result$interpro_e_value)
@@ -292,7 +300,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 #'
 .get_ortholog_table <- function(data_provider, organism) {
     # retrieve ortholog domain table
-    result <- .retrieve_eupathdb_table(data_provider, organism, 'Orthologs')
+    result <- .retrieve_eupathdb_attributes(data_provider, organism, 'Orthologs')
 
     # fix column names and return result
     colnames(result) <- toupper(colnames(result)) 

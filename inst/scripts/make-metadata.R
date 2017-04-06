@@ -13,8 +13,7 @@ message(sprintf('EuPathDB version: %s', dbversion))
 message('===========================================')
 
 # AnnotationHub tags
-shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
-
+shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite") 
 tags <- list(
     "AmoebaDB"=c(shared_tags, 'Amoeba'),
     "CryptoDB"=c(shared_tags, 'Cryptosporidium'),

@@ -5,6 +5,72 @@
 ###############################################################################
 
 #'
+#' Queries one of the EuPathDB APIs for gene data
+#'
+#' Note that as of version 30, EuPathDB no longer supports table queries for
+#' genes, and as such this method must be used instead. Support for tables
+#' queries is likely to be returned in future versions of EuPathDB.
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#' @param table_name Name of the particular table to be retrieved (e.g.
+#' 'GoTerms')
+#' @param wadl String specifying API service to be queried
+#' @param format String specifying API response type (currently only 'json'
+#'        is supported)
+#' @return list containing response from API request.
+.retrieve_eupathdb_attributes <- function(data_provider, organism, table_name,
+                                          wadl='GeneQuestions/GenesByTaxonGene',
+                                          format='json') {
+    # query EuPathDB API
+    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name), wadl)
+    dat <- res$response$recordset$records
+
+    message(sprintf("- Parsing %s table for %s.", table_name, organism))
+
+    # drop genes with no associated table entries
+    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
+    dat <- dat[gene_mask,]
+
+    # create empty data frame to store result in
+    result <- data.frame(stringsAsFactors=FALSE)
+
+    # if no rows found, return empty data.frame
+    if (nrow(dat) == 0) {
+        return(result)
+    }
+
+    message(sprintf("- Parsing %d rows in %s table for %s.", nrow(dat), table_name, organism))
+
+    # iterate over remaining genes and extract table entries for them
+    for (i in 1:nrow(dat)) {
+        # example entry:
+        # 
+        # > dat$tables[[1]]$rows[[1]]$fields[[1]]
+        #         name                      value
+        # 1         go_id                 GO:0007018
+        # 2      ontology         Biological Process
+        # 3  go_term_name microtubule-based movement
+        # 4        source                   Interpro
+        # 5 evidence_code                        IEA
+        # 6        is_not                       <NA>
+        table_entries <- dat$tables[[i]]
+        rows <- t(sapply(table_entries$rows[[1]]$fields, function(x) { x$value }))
+        result <- rbind(result, cbind(dat$id[i], rows))
+
+        if (i %% 1000 == 0) {
+            message(sprintf(" - Parsing row %d/%d in %s table for %s.", 
+                            i, nrow(dat), table_name, organism))
+        }
+    }
+
+    # set column names for result
+    colnames(result) <- c('GID', dat$tables[[1]]$rows[[1]]$fields[[1]]$name)
+    return(result)
+}
+
+
+#'
 #' Queries one of the EuPathDB APIs for table data.
 #'
 #' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
@@ -19,7 +85,7 @@
                                      wadl='GeneQuestions/GenesByTaxon',
                                      format='json') {
     # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name))
+    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name), wadl)
     dat <- res$response$recordset$records
 
     message(sprintf("- Parsing %s table for %s.", table_name, organism))
@@ -32,7 +98,7 @@
     result <- data.frame(stringsAsFactors=FALSE)
 
     # if no GO terms found, return empty data.frame
-    if (nrow(result) == 0) {
+    if (nrow(dat) == 0) {
         return(result)
     }
 
