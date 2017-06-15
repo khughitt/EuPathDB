@@ -47,7 +47,7 @@ message(sprintf("- Found metadata for %d organisms", nrow(dat)))
 
 # shared metadata
 shared_metadata <- dat %>% transmute(
-    BiocVersion='3.4',
+    BiocVersion=as.character(BiocInstaller::biocVersion()),
     Genome=sub('.gff', '', basename(URLgff)),
     NumGenes=genecount,
     NumOrthologs=orthologcount,
