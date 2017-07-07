@@ -6,7 +6,7 @@
 # Author: Keith Hughitt (khughitt@umd.edu)
 # Last Update: Sept 01, 2016
 #
-# Usage: ./make-granges-data.R /path/to/output
+# Usage: ./make-granges-data.R /path/to/eupathdb/granges/32
 #
 ###############################################################################
 options(stringsAsFactors=FALSE)

@@ -15,7 +15,7 @@
 # Author: Keith Hughitt (khughitt@umd.edu)
 # Last Update: Sept 01, 2016
 #
-# Usage: ./make-orgdb-data.R /path/to/output
+# Usage: ./make-orgdb-data.R /path/to/eupathdb/orgdb/32
 #
 ###############################################################################
 library('AnnotationForge')

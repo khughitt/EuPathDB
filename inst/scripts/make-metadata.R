@@ -108,6 +108,8 @@ granges_metadata <- shared_metadata %>% mutate(
     DispatchClass='GRanges',
     ResourceName=sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', Species), 
                          tolower(DataProvider), SourceVersion, 'rda')
+) %>% mutate(
+    RDataPath=file.path('EuPathDB', 'GRanges', BiocVersion, ResourceName)
 )
 
 orgdb_metadata <- shared_metadata %>% mutate(
@@ -117,6 +119,8 @@ orgdb_metadata <- shared_metadata %>% mutate(
     DispatchClass='SQLiteFile',
     ResourceName=sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', Species), 
                          tolower(substring(DataProvider, 1, nchar(DataProvider) - 2)))
+) %>% mutate(
+    RDataPath=file.path('EuPathDB', 'OrgDb', BiocVersion, ResourceName)
 )
 
 # save to file
