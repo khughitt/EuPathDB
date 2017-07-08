@@ -264,6 +264,36 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 }
 
 #'
+#' 2017/07/08: IN DEVELOPMENT
+#'
+#' Returns a mapping of gene ID to metabolic pathways (KEGG, LeishCyc, etc.)
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#' @param gene_ids Vector of gene identifiers
+#' @param pathway_source Specific pathway to query (e.g. KEGG or Any)
+#'
+#' @return Dataframe with gene/pathway mapping
+#'
+.get_pathway_table <- function(data_provider, organism, gene_ids, pathway_source='Any') {
+    # TODO 2017/07/08: Break up gene list into smaller pieces, query individually, and
+    # then combine results (single query URL is too long)
+    gene_ids <- gene_ids[1:50]
+
+    gids <- paste0(gene_ids, collapse=',')
+
+    query_args <- paste0(c(
+        'exact_match_only=Yes',
+        'exclude_incomplete_ec=No',
+        'any_or_all_pathway=any',
+        'o-fields=primary_key,name,source_id,ec_pathway',
+        sprintf('pathways_source=%s&ds_gene_ids_data=%s', pathway_source, gids)
+    ), collapse='&')
+    
+    res <- .query_eupathdb(data_provider, organism, query_args, wadl='PathwayQuestions/PathwaysByGeneList')
+}
+
+#'
 #' Returns a mapping of gene ID to InterPro domains for a specified organism
 #'
 #' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')

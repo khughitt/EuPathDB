@@ -150,8 +150,8 @@
                             URLencode(organism, reserved=TRUE), query_args)
     request_url <- paste0(base_url, query_string)
 
-    if (length(request_url) > 200) {
-        paste0(log_url <- strtrim(request_url, 160), '...')
+    if (nchar(request_url) > 200) {
+        log_url <- paste0(strtrim(request_url, 160), '...')
     } else {
         log_url <- request_url
     }
