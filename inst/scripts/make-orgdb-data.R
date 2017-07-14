@@ -9,13 +9,13 @@
 # to build.
 #
 # Most organisms should finish within several hours and use 10GB memory or
-# less. On a workstation, T. vaginalis G3 required 42GB memory and took over
-# 12 hours to complete.
+# less. On the larger end, T. vaginalis G3 required 42GB memory and took over
+# 12 hours to complete on a PC workstation.
 # 
 # Author: Keith Hughitt (khughitt@umd.edu)
-# Last Update: Sept 01, 2016
+# Last Update: July 13, 2017
 #
-# Usage: ./make-orgdb-data.R /path/to/eupathdb/orgdb/32
+# Usage: ./make-orgdb-data.R /path/to/eupathdb/orgdb/33
 #
 ###############################################################################
 library('AnnotationForge')
@@ -25,6 +25,8 @@ library('rtracklayer')
 library('GenomicFeatures')
 library('doParallel')
 library('foreach')
+library('httr')
+library('readr')
 
 source('shared.R')
 options(stringsAsFactors=FALSE)
@@ -40,7 +42,6 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     species_parts <- unlist(strsplit(entry$Species, ' '))
     genus <- species_parts[1]
     species <- species_parts[2]
-
 
     # save gff as tempfile
     input_gff <- tempfile(fileext='.gff')
@@ -66,6 +67,9 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 
     # go terms
     go_table <- .get_go_term_table(entry$DataProvider, entry$Species)
+
+    # pathways
+    pathway_table <- .get_pathway_table(entry$DataProvider, entry$Species)
 
     # interpro domains
     interpro_table <- .get_interpro_table(entry$DataProvider, entry$Species)
@@ -113,6 +117,9 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     if (nrow(go_table) > 0) {
         orgdb_args[['go']] <- go_table
         'goTable' <- "go"
+    }
+    if (nrow(pathway_table) > 0) {
+        orgdb_args[['pathways']] <- pathway_table
     }
     if (nrow(interpro_table) > 0) {
         orgdb_args[['interpro']] <- interpro_table
@@ -222,14 +229,16 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 #'
 .get_gene_types <- function(data_provider, organism) {
     # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, 'o-fields=gene_type')
+    res <- .query_eupathdb(data_provider, organism, 
+                           list(`o-fields`='primary_key,gene_type'))
     dat <- res$response$recordset$records
 
     # get vector of types
-    types <- sapply(dat$fields, function (x) x[,'value'])
+    ids <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
+    types <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[2] }))
 
     # return as dataframe
-    data.frame(GID=dat$id, TYPE=types, stringsAsFactors=FALSE)
+    data.frame(GID=ids, TYPE=types, stringsAsFactors=FALSE)
 }
 
 #'
@@ -249,12 +258,13 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
         return(result)
     }
 
-    # fix column names and return result
-    colnames(result) <- c("GID", "GO", "ONTOLOGY", "GO_TERM_NAME", "SOURCE",
-                          "EVIDENCE", "IS_NOT")
+    # convert column names to uppercase for consistency
+    colnames(result) <- toupper(colnames(result))
 
-    # drop everything except for GID, GO, and EVIDENCE columns
-    result <- result[,colnames(result) %in% c('GID', 'GO', 'EVIDENCE')]
+    # drop uneeded columns
+    result <- result[,colnames(result) %in% c('GID', 'ONTOLOGY', 'GO_ID',
+                                              'GO_TERM_NAME', 'SOURCE',
+                                              'EVIDENCE_CODE')]
 
     # remove duplicated entries resulting from alternative sources / envidence
     # codes
@@ -270,27 +280,47 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 #'
 #' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
 #' @param organism Full name of organism, as used by EuPathDB APIs
-#' @param gene_ids Vector of gene identifiers
-#' @param pathway_source Specific pathway to query (e.g. KEGG or Any)
 #'
 #' @return Dataframe with gene/pathway mapping
 #'
-.get_pathway_table <- function(data_provider, organism, gene_ids, pathway_source='Any') {
-    # TODO 2017/07/08: Break up gene list into smaller pieces, query individually, and
-    # then combine results (single query URL is too long)
-    gene_ids <- gene_ids[1:50]
+.get_pathway_table <- function(data_provider, organism) {
+    # query body as a structured list
+    query_body <- list(
+        answerSpec=list(
+            'questionName'=unbox("GeneQuestions.GenesByTaxonGene"),
+            parameters=list(organism=unbox(organism)),
+            viewFilters=list(),
+            filters=list()
+        ),
+        formatting=list(
+            formatConfig=list(
+                tables="MetabolicPathways",
+                includeHeader=unbox("true"),
+                attachmentType=unbox("plain")
+            ),
+            format=unbox("tableTabular")
+        )
+    )
 
-    gids <- paste0(gene_ids, collapse=',')
+    # query EuPathDB
+    res <- read.delim(textConnection(.post_eupathdb(data_provider, query_body)), sep='\t')
 
-    query_args <- paste0(c(
-        'exact_match_only=Yes',
-        'exclude_incomplete_ec=No',
-        'any_or_all_pathway=any',
-        'o-fields=primary_key,name,source_id,ec_pathway',
-        sprintf('pathways_source=%s&ds_gene_ids_data=%s', pathway_source, gids)
-    ), collapse='&')
-    
-    res <- .query_eupathdb(data_provider, organism, query_args, wadl='PathwayQuestions/PathwaysByGeneList')
+    # drop empty column
+    res <- res[,1:7]
+
+    # simplify column names
+    # > colnames(res)                                                                                                                                                                                                     
+    # [1] "X.Gene.ID."                        "X.pathway_source_id."                                                                                                                                                      
+    # [3] "X.Pathway."                        "X.Pathway.Source."                                                                                                                                                         
+    # [5] "X.EC.Number.Matched.in.Pathway."   "X.expasy_url."                                                                                                                                                             
+    # [7] "X...Reactions.Matching.EC.Number."     
+    colnames(res) <- toupper(sub('_+$', '', sub('^X_+', '', gsub('\\.', '_', colnames(res)))))
+    colnames(res)[1] <- 'GID'
+
+    # drop unneeded columns
+    res <- res[,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
+
+    res
 }
 
 #'

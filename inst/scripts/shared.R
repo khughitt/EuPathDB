@@ -23,7 +23,9 @@
                                           wadl='GeneQuestions/GenesByTaxonGene',
                                           format='json') {
     # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name), wadl)
+    res <- .query_eupathdb(data_provider, organism, 
+                           list(`o-tables`=table_name,
+                                `o-fields`='primary_key'), wadl)
     dat <- res$response$recordset$records
 
     message(sprintf("- Parsing %s table for %s.", table_name, organism))
@@ -39,6 +41,9 @@
     if (nrow(dat) == 0) {
         return(result)
     }
+
+    # fix id field
+    dat$id <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
 
     message(sprintf("- Parsing %d rows in %s table for %s.", nrow(dat), table_name, organism))
 
@@ -85,7 +90,8 @@
                                      wadl='GeneQuestions/GenesByTaxon',
                                      format='json') {
     # query EuPathDB API
-    res <- .query_eupathdb(data_provider, organism, sprintf('o-tables=%s', table_name), wadl)
+    res <- .query_eupathdb(data_provider, organism, 
+                           list(`o-tables`=table_name), wadl)
     dat <- res$response$recordset$records
 
     message(sprintf("- Parsing %s table for %s.", table_name, organism))
@@ -103,17 +109,23 @@
     }
 
     # iterate over remaining genes and extract table entries for them
+    #
+    # example entry for GO term table query (EuPathDB version 33)
+    # 
+    # > dat$tables[[1]]$rows[[1]]$fields[[1]]
+    #
+    #            name                      value                                                                                                                                                                
+    #  transcript_ids          LmjF.01.0030:mRNA                                                                                                                                                                
+    #        ontology         Biological Process                                                                                                                                                                
+    #           go_id                 GO:0007018                                                                                                                                                                
+    #    go_term_name microtubule-based movement                                                                                                                                                                
+    #          source                   Interpro                                                                                                                                                                
+    #   evidence_code                        IEA                                                                                                                                                                
+    #          is_not                        N/A                                                                                                                                                                
+    #       reference                       <NA>                                                                                                                                                                
+    # evidence_code_parameter               <NA>    
+    #
     for (i in 1:nrow(dat)) {
-        # example entry:
-        # 
-        # > dat$tables[[1]]$rows[[1]]$fields[[1]]
-        #         name                      value
-        # 1         go_id                 GO:0007018
-        # 2      ontology         Biological Process
-        # 3  go_term_name microtubule-based movement
-        # 4        source                   Interpro
-        # 5 evidence_code                        IEA
-        # 6        is_not                       <NA>
         table_entries <- dat$tables[[i]]
         rows <- t(sapply(table_entries$rows[[1]]$fields, function(x) { x$value }))
         result <- rbind(result, cbind(dat$id[i], rows))
@@ -126,8 +138,8 @@
 }
 
 #'
-#' Queries one of the EuPathDB APIs and returns a dataframe representation
-#' of the result.
+#' Queries one of the EuPathDB APIs using a GET request and returns a dataframe
+#' representation of the result.
 #'
 #' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
 #' @param organism Full name of organism, as used by EuPathDB APIs
@@ -146,10 +158,17 @@
     # construct API query
     base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
-    query_string <- sprintf('organism=%s&%s', 
-                            URLencode(organism, reserved=TRUE), query_args)
+
+    # add organism to query arguments
+    query_args[['organism']] <- URLencode(organism, reserved=TRUE)
+    query_string <- paste(paste(names(query_args), query_args, sep='='), collapse='&')
+
+    # GET query
+    #query_string <- sprintf('?organism=%s&%s', 
+    #                        , query_args_str)
     request_url <- paste0(base_url, query_string)
 
+    # logging
     if (nchar(request_url) > 200) {
         log_url <- paste0(strtrim(request_url, 160), '...')
     } else {
@@ -159,10 +178,36 @@
 
     # query API for gene types
     if (format == 'json') {
+        # GET query
         fromJSON(request_url)
     } else {
         stop("Invalid response type specified.")
     }
+}
+
+#'
+#' Queries one of the EuPathDB APIs using a POST request and returns a
+#' dataframe representation of the result.
+#
+#' Note: As of 2017/07/13, POST requests are not yet supported on EuPathDB.
+#' Note: 2017/07/13 POST queries can only use the new API
+#'
+#' @param data_provider Name of data provider to query (e.g. 'TriTrypDB')
+#' @param organism Full name of organism, as used by EuPathDB APIs
+#' @param query_args String of additional query arguments
+#' @param wadl String specifying API service to be queried
+#' @param format String specifying API response type (currently only 'json'
+#'        is supported)
+#' @return list containing response from API request.
+#'
+#' More information
+#' ----------------
+#' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
+#'
+.post_eupathdb <- function(data_provider, query_body) {
+    # construct API query
+    api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), tolower(data_provider))
+    content(POST(api_uri, body=toJSON(query_body)))
 }
 
 #'
