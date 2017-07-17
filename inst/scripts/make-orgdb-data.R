@@ -26,7 +26,6 @@ library('GenomicFeatures')
 library('doParallel')
 library('foreach')
 library('httr')
-library('readr')
 
 source('shared.R')
 options(stringsAsFactors=FALSE)
@@ -413,7 +412,7 @@ registerDoParallel(cl)
 
 # packages needed during OrgDb construction
 dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
-                  'jsonlite', 'RSQLite')
+                  'jsonlite', 'RSQLite', 'httr')
 
 foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
     # re-initialize options
