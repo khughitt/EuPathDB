@@ -237,8 +237,10 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     ids <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
     types <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[2] }))
 
-    # return as dataframe
-    data.frame(GID=ids, TYPE=types, stringsAsFactors=FALSE)
+    df <- data.frame(GID=ids, TYPE=types, stringsAsFactors=FALSE)
+
+    # remove duplicated rows and return
+    df[!duplicated(df),]
 }
 
 #'
@@ -269,6 +271,10 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # remove duplicated entries resulting from alternative sources / envidence
     # codes
     result <- result[!duplicated(result),]
+
+    # remove rows missing the ontology field (Bug in EuPathDB 33; affects only
+    # a small number of entries)
+    result <- result[!is.na(result$ONTOLOGY),]
 
     return(result)
 }
@@ -305,6 +311,11 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # query EuPathDB
     res <- read.delim(textConnection(.post_eupathdb(data_provider, query_body)), sep='\t')
 
+    # if no pathway information is available, return an empty dataframe
+    if (nrow(res) == 0) {
+        return(data.frame())
+    }
+
     # drop empty column
     res <- res[,1:7]
 
@@ -319,6 +330,9 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 
     # drop unneeded columns
     res <- res[,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
+
+    # remove duplicated rows
+    res <- res[!duplicated(res),]
 
     res
 }
