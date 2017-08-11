@@ -205,9 +205,35 @@
 #' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
 #'
 .post_eupathdb <- function(data_provider, query_body) {
+    # determine appropriate prefix to use
+    prefix_mapping <- list(
+        amoebadb='amoeba',
+        cryptodb='cryptodb',
+        eupathdb='eupathdb',
+        fungidb='fungidb',
+        giardiadb='giardiadb',
+        hostdb='hostdb',
+        microbiomedb='mbio',
+        microsporidiadb='micro',
+        orthomcl='orthomcl',
+        piroplasmadb='piro',
+        plasmodb='plasmo',
+        schistodb='schisto',
+        toxodb='toxo',
+        trichdb='trichdb',
+        tritrypdb='tritrypdb'
+    )
+    uri_prefix <- prefix_mapping[[tolower(data_provider)]]
+
     # construct API query
-    api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), tolower(data_provider))
-    content(POST(api_uri, body=toJSON(query_body)))
+    api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
+    res <- POST(api_uri, body=toJSON(query_body), content_type('application/json'))
+
+    # check status
+    # if (res$status_code == 404) { ... }
+
+    # return response contents
+    content(res)
 }
 
 #'

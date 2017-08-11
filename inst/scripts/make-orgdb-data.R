@@ -308,32 +308,35 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     )
 
     # query EuPathDB
-    res <- read.delim(textConnection(.post_eupathdb(data_provider, query_body)), sep='\t')
+    res <- .post_eupathdb(data_provider, query_body)
+
+    # parse response
+    dat <- read.delim(textConnection(res), sep='\t')
 
     # if no pathway information is available, return an empty dataframe
-    if (nrow(res) == 0) {
+    if (nrow(dat) == 0) {
         return(data.frame())
     }
 
     # drop empty column
-    res <- res[,1:7]
+    dat <- dat[,1:7]
 
     # simplify column names
-    # > colnames(res)                                                                                                                                                                                                     
+    # > colnames(dat)                                                                                                                                                                                                     
     # [1] "X.Gene.ID."                        "X.pathway_source_id."                                                                                                                                                      
     # [3] "X.Pathway."                        "X.Pathway.Source."                                                                                                                                                         
     # [5] "X.EC.Number.Matched.in.Pathway."   "X.expasy_url."                                                                                                                                                             
     # [7] "X...Reactions.Matching.EC.Number."     
-    colnames(res) <- toupper(sub('_+$', '', sub('^X_+', '', gsub('\\.', '_', colnames(res)))))
-    colnames(res)[1] <- 'GID'
+    colnames(dat) <- toupper(sub('_+$', '', sub('^X_+', '', gsub('\\.', '_', colnames(dat)))))
+    colnames(dat)[1] <- 'GID'
 
     # drop unneeded columns
-    res <- res[,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
+    dat <- dat[,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
 
     # remove duplicated rows
-    res <- res[!duplicated(res),]
+    dat <- dat[!duplicated(dat),]
 
-    res
+    dat
 }
 
 #'
