@@ -4,6 +4,7 @@ import("Biostrings")
 
 importFrom("Biobase", "addVigs2WinMenu")
 importFrom("BiocInstaller", "biocVersion")
+importFrom("GenomicRanges", "GRanges")
 importFrom("utils", "packageVersion", "packageDescription", "vignette", 
            "download.file")
 

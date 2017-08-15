@@ -1,6 +1,5 @@
 Package: EuPathDB
-Title: Provides access to pathogen annotation resources available on EuPathDB
-    databases.
+Title: Provides access to pathogen annotation resources available on EuPathDB databases
 Version: 1.0.0
 Authors@R: person("Keith", "Hughitt", email = "khughitt@umd.edu", role = c("aut", "cre"))
 Maintainer: Keith Hughitt <khughitt@umd.edu>
@@ -10,9 +9,11 @@ Description: Brings together annotation resources from the various EuPathDB
 Depends:
     R (>= 3.4),
     Biobase,
+    GenomicRanges,
     AnnotationHub (>= 2.4.2),
-    dplyr
+Imports: AnnotationHubData, Biostrings, BiocInstaller, utils
 Suggests:
+    dplyr,
     knitr,
     BiocStyle,
     rmarkdown,

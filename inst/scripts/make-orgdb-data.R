@@ -17,6 +17,9 @@
 #
 # Usage: ./make-orgdb-data.R /path/to/eupathdb/orgdb/33
 #
+# Note: If the list of available organisms changes, the `availableEuPathDB`
+# vector found in R/EuPathDB.R will also need to be updated.
+#
 ###############################################################################
 library('AnnotationForge')
 library('RSQLite')
