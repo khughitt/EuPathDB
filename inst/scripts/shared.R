@@ -43,6 +43,9 @@
     }
 
     # fix id field
+    # replaces <gene id>/<dbname> "id" field with the <gene id> only version
+    # found in dat$fields, e.g.:
+    # "EDEG_00003/MicrosporidiaDB" -> "EDEG_00003"
     dat$id <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
 
     message(sprintf("- Parsing %d rows in %s table for %s.", nrow(dat), table_name, organism))

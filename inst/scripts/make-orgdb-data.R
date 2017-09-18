@@ -101,12 +101,15 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     build_dir <- file.path(output_dir, paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse=''))
     dir.create(build_dir, recursive=TRUE)
 
+    # Version must be of the format xx.yy
+    package_version <- paste0(as.character(entry$SourceVersion) ".0")
+
     # Compile list of arguments for makeOrgPackage call
     orgdb_args <- list(
         'gene_info'  = gene_info,
         'chromosome' = chr_mapping,
         'type'       = gene_types,
-        'version'    = as.character(entry$SourceVersion),
+        'version'    = package_version,
         'author'     = entry$Maintainer,
         'maintainer' = entry$Maintainer,
         'tax_id'     = as.character(entry$TaxonomyId),
