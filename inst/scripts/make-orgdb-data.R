@@ -102,7 +102,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     dir.create(build_dir, recursive=TRUE)
 
     # Version must be of the format xx.yy
-    package_version <- paste0(as.character(entry$SourceVersion) ".0")
+    package_version <- paste0(as.character(entry$SourceVersion), ".0")
 
     # Compile list of arguments for makeOrgPackage call
     orgdb_args <- list(
@@ -445,6 +445,12 @@ foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
         # copy sqlite database to main output directory
         message(sprintf("- Finished building OrgDb for %s", entry$Species))
         file.copy(dbpath, outfile)
+
+        # remove intermediate package directory
+        dir_parts <- unlist(strsplit(dirname(dbpath), "/"))
+        build_dir <- paste0(dir_parts[1:(length(dir_parts) - 3)], collapse='/')
+
+        unlink(build_dir, recursive=TRUE)
     }
     gc()
 }
