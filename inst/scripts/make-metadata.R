@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript-devel
 #
 # EuPathDB metadata[i,] generation script
 #
@@ -8,6 +8,7 @@ library('httr')
 
 # Get EuPathDB version (same for all databases)
 dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
+
 message('===========================================')
 message(sprintf('EuPathDB version: %s', dbversion))
 message('===========================================')

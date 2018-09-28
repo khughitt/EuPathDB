@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript-devel
 ###############################################################################
 #
 # Functions for creating OrgDb objects from EuPathDB resources

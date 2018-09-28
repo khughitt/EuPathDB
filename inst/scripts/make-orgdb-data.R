@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript-devel
 ###############################################################################
 #
 # Functions for creating OrgDb objects from EuPathDB resources
@@ -26,8 +26,8 @@ library('RSQLite')
 library('jsonlite')
 library('rtracklayer')
 library('GenomicFeatures')
-library('doParallel')
-library('foreach')
+#library('doParallel')
+#library('foreach')
 library('httr')
 
 source('shared.R')
@@ -415,17 +415,27 @@ dat <- read.csv('../extdata/orgdb_metadata.csv')
 dat <- dat[sample(1:nrow(dat)),]
 
 # iterate over metadata entries and create OrgDb objects for each item
-cl <- makeCluster(max(1, min(12, detectCores() - 4)), outfile="")
+#cl <- makeCluster(max(1, min(12, detectCores()  - 2)), outfile="")
 
-registerDoParallel(cl)
+#registerDoParallel(cl)
 
 # packages needed during OrgDb construction
-dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
-                  'jsonlite', 'RSQLite', 'httr')
+#dependencies <- c('rtracklayer', 'AnnotationForge', 'GenomicFeatures',
+#                  'jsonlite', 'RSQLite', 'httr')
 
-foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+# exclude packages that already exist
+outfiles <- file.path(output_dir, sub('.rda', '.sqlite', dat$ResourceName))
+dat <- dat[!file.exists(outfiles),]
+
+# parallel jobs don't always finish, leading to freezing up of the processing
+# very quckly. Disablng for now until the underlying problem can be determined.
+#foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+
+for (i in 1:nrow(dat)) {
     # re-initialize options
     options(stringsAsFactors=FALSE)
+
+    message(sprintf("Starting %d", i))
 
     # get metadata entry for a single organism
     entry <- dat[i,]
@@ -433,28 +443,26 @@ foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
     # location to save orgdb to
     outfile <- file.path(output_dir, sub('.rda', '.sqlite', entry$ResourceName))
 
-    # if sqlite database already exists, skip entry
-    if (file.exists(outfile)) {
-        message(sprintf("- Skipping %s... (EXISTS)", entry$Species))
-        return
-    } else {
-        # create OrgDb object from metadata entry
-        message(sprintf("- Building OrgDb for %s.", entry$Species))
-        dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
+    # create OrgDb object from metadata entry
+    message(sprintf("- Building OrgDb for %s.", entry$Species))
+    dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
 
-        # copy sqlite database to main output directory
-        message(sprintf("- Finished building OrgDb for %s", entry$Species))
-        file.copy(dbpath, outfile)
+    # copy sqlite database to main output directory
+    message(sprintf("- Finished building OrgDb for %s", entry$Species))
+    file.copy(dbpath, outfile)
 
-        # remove intermediate package directory
-        dir_parts <- unlist(strsplit(dirname(dbpath), "/"))
-        build_dir <- paste0(dir_parts[1:(length(dir_parts) - 3)], collapse='/')
+    # remove intermediate package directory
+    dir_parts <- unlist(strsplit(dirname(dbpath), "/"))
+    build_dir <- paste0(dir_parts[1:(length(dir_parts) - 3)], collapse='/')
 
-        unlink(build_dir, recursive=TRUE)
-    }
+    unlink(build_dir, recursive=TRUE)
+
+    message(sprintf("Done with %d", i))
+
+    # free up memory
     gc()
 }
 
 # unregister cpus
-stopCluster(cl)
+#stopCluster(cl)
 

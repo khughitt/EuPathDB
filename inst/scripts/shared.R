@@ -72,6 +72,9 @@
         }
     }
 
+    message(sprintf(" - Finished parsing %d rows in %s table for %s.", 
+                    nrow(dat), table_name, organism))
+
     # set column names for result
     colnames(result) <- c('GID', dat$tables[[1]]$rows[[1]]$fields[[1]]$name)
     return(result)
@@ -230,7 +233,19 @@
 
     # construct API query
     api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
-    res <- POST(api_uri, body=toJSON(query_body), content_type('application/json'))
+
+    # logging
+    if (nchar(api_uri) > 200) {
+        log_url <- paste0(strtrim(api_uri, 160), '...')
+    } else {
+        log_url <- api_uri
+    }
+    message(sprintf("- Querying %s", log_url))
+
+    res <- POST(api_uri, config=list(timeout(10)), body=toJSON(query_body), 
+                content_type('application/json'), verbose())
+
+    message(sprintf("Finished POST query (%s)..", data_provider))
 
     # check status
     # if (res$status_code == 404) { ... }

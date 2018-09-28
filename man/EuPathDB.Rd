@@ -21,7 +21,7 @@ using the Bioconductor AnnotationHub framework.
 }
 \details{
 There are currently two types of Bioconductor resources which can be
-retrieved for 153 supported organisms from the various EuPathDB databases:
+retrieved for 172 supported organisms from the various EuPathDB databases:
 
 \itemize{
 \item OrgDB resources
