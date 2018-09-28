@@ -7,7 +7,7 @@ library('dplyr')
 library('httr')
 
 # Get EuPathDB version (same for all databases)
-dbversion <- readLines('https://tritrypdb.org/common/downloads/Current_Release/Build_number')
+dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
 
 message('===========================================')
 message(sprintf('EuPathDB version: %s', dbversion))
