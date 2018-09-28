@@ -162,7 +162,7 @@
 .query_eupathdb <- function(data_provider, organism, query_args,
                             wadl='GeneQuestions/GenesByTaxon', format='json') {
     # construct API query
-    base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
+    base_url <- sprintf('https://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
 
     # add organism to query arguments
@@ -232,7 +232,7 @@
     uri_prefix <- prefix_mapping[[tolower(data_provider)]]
 
     # construct API query
-    api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
+    api_uri <- sprintf('https://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
 
     # logging
     if (nchar(api_uri) > 200) {

@@ -7,7 +7,7 @@ library('dplyr')
 library('httr')
 
 # Get EuPathDB version (same for all databases)
-dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
+dbversion <- readLines('https://tritrypdb.org/common/downloads/Current_Release/Build_number')
 
 message('===========================================')
 message(sprintf('EuPathDB version: %s', dbversion))
@@ -30,7 +30,7 @@ tags <- list(
 tag_strings <- lapply(tags, function(x) { paste(x, collapse=',') })
 
 # construct API request URL
-base_url <- 'http://eupathdb.org/eupathdb/webservices/'
+base_url <- 'https://eupathdb.org/eupathdb/webservices/'
 query_string <- 'OrganismQuestions/GenomeDataTypes.json?o-fields=all' 
 request_url <- paste0(base_url, query_string)
 
