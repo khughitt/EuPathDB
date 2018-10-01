@@ -29,6 +29,7 @@ library('GenomicFeatures')
 #library('doParallel')
 #library('foreach')
 library('httr')
+library('purrr')
 
 source('shared.R')
 options(stringsAsFactors=FALSE)
@@ -141,7 +142,14 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     #}
 
     message(sprintf("- Calling makeOrgPackage for %s", entry$Species))
-    orgdb_path <- do.call('makeOrgPackage', orgdb_args)
+
+
+    # Note: this function throws a bunch of warnings along the lines of:
+    # Warning messages:
+    # 1: In result_fetch(res@ptr, n = n) :
+    #   Don't need to call dbFetch() for statements, only for queries                                           
+    # Calls: do.call ... .local -> dbFetch -> dbFetch -> .local -> result_fetch 
+    orgdb_path <- suppressWarnings(do.call('makeOrgPackage', orgdb_args))
 
     # Fix name in sqlite metadata table
     dbpath <- file.path(orgdb_path, 'inst/extdata', 
@@ -157,12 +165,17 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # update SPECIES field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";',
                      entry$Species)
-    dbSendQuery(conn=db, query)
+    rs <- dbSendQuery(conn=db, query)
+    dbClearResult(rs)
 
     # update ORGANISM field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="ORGANISM";',
                      entry$Species)
-    dbSendQuery(conn=db, query)
+    rs <- dbSendQuery(conn=db, query)
+    dbClearResult(rs)
+
+    # clean up
+    dbDisconnect(db)
 
     # lock it back down
     Sys.chmod(dbpath, mode='0444')
@@ -460,7 +473,7 @@ for (i in 1:nrow(dat)) {
     message(sprintf("Done with %d", i))
 
     # free up memory
-    gc()
+    suppressMessages(gc())
 }
 
 # unregister cpus

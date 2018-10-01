@@ -28,16 +28,21 @@
                                 `o-fields`='primary_key'), wadl)
     dat <- res$response$recordset$records
 
-    message(sprintf("- Parsing %s table for %s.", table_name, organism))
-
-    # drop genes with no associated table entries
-    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
-    dat <- dat[gene_mask,]
-
     # create empty data frame to store result in
     result <- data.frame(stringsAsFactors=FALSE)
 
-    # if no rows found, return empty data.frame
+    # if no rows found before filtering, return empty data.frame
+    if (nrow(dat) == 0) {
+        return(result)
+    }
+
+    message(sprintf("- Parsing %s table for %s.", table_name, organism))
+
+    # drop genes with no associated table entries
+    gene_mask <- sapply(dat[, 'tables'], function(x) { length(x$rows[[1]]) > 0})
+    dat <- dat[gene_mask, ]
+
+    # if no rows found after filtering, return empty data.frame
     if (nrow(dat) == 0) {
         return(result)
     }
@@ -79,7 +84,6 @@
     colnames(result) <- c('GID', dat$tables[[1]]$rows[[1]]$fields[[1]]$name)
     return(result)
 }
-
 
 #'
 #' Queries one of the EuPathDB APIs for table data.
@@ -160,9 +164,10 @@
 #' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
 #'
 .query_eupathdb <- function(data_provider, organism, query_args,
-                            wadl='GeneQuestions/GenesByTaxon', format='json') {
+                            wadl='GeneQuestions/GenesByTaxon', format='json',
+                            timeout_secs = 600) {
     # construct API query
-    base_url <- sprintf('https://%s.org/webservices/%s.%s?', 
+    base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
 
     # add organism to query arguments
@@ -184,8 +189,29 @@
 
     # query API for gene types
     if (format == 'json') {
-        # GET query
-        fromJSON(request_url)
+        # GET query (method 1)
+        #fromJSON(request_url)
+
+        # GET query (method 2)
+        #res <- GET(request_url, config=list(content_type('application/json'), verbose()))
+
+        # wrap GET to allow us to recover gracefully upon timing out
+        # https://stackoverflow.com/questions/37367918/how-to-refresh-or-retry-a-specific-web-page-using-httr-get-command
+        safe_GET <- safely(GET)
+
+        # GET query (method 3)
+        res <- safe_GET(request_url, config=list(content_type('application/json'), verbose()), 
+                           timeout(timeout_secs))
+
+        # check for timeout connections
+        if (!is.null(res$result)) {
+            fromJSON(content(res, as = "text"))
+        } else {
+            # if timed out, return an empty result structure
+            message(sprintf("Connection timed out after %d seconds.. returning empty result.", timeout_secs))
+            dat <- res$response$recordset$records
+            list(response = list(recordset = list(records = data.frame())))
+        }
     } else {
         stop("Invalid response type specified.")
     }
@@ -232,7 +258,7 @@
     uri_prefix <- prefix_mapping[[tolower(data_provider)]]
 
     # construct API query
-    api_uri <- sprintf('https://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
+    api_uri <- sprintf('http://%s.org/%s/service/answer', tolower(data_provider), uri_prefix)
 
     # logging
     if (nchar(api_uri) > 200) {
