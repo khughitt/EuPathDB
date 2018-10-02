@@ -3,7 +3,7 @@ import("AnnotationHubData")
 import("Biostrings")
 
 importFrom("Biobase", "addVigs2WinMenu")
-importFrom("BiocInstaller", "biocVersion")
+importFrom("BiocManager", "version")
 importFrom("GenomicRanges", "GRanges")
 importFrom("utils", "packageVersion", "packageDescription", "vignette", 
            "download.file")

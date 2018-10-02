@@ -59,11 +59,11 @@ For more information about working with Bioconductor annotation resources, see:
 # Installation
 
 If you don't already have AnnotationHub installed on your system, use
-`biocLite` to install the package:
+`BiocManager::install` to install the package:
 
 ```{r, eval=FALSE}
-source("http://bioconductor.org/biocLite.R")
-biocLite('AnnotationHub')
+install.packages("BiocManager")
+BiocManager::install("AnnotationHub")
 ```
 
 # Getting started
