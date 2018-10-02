@@ -1,0 +1,146 @@
+---
+title: "Accessing EuPathDB Resources using AnnotationHub"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Accessing EuPathDB Resources using AnnotationHub}
+  %\VignetteEngine{knitr::rmarkdown}
+  % \VignetteKeyword{eupathdb, annotations}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r style, echo=FALSE, results='asis', message=FALSE}
+BiocStyle::markdown()
+```
+
+**Authors**: [V. Keith Hughitt](mailto:keith.hughitt@nih.gov)<br />
+**Modified:** `r file.info("EuPathDB.Rmd")$mtime`<br />
+**Compiled**: `r date()`
+
+# Overview
+
+This tutorial describes how to query and make use of annotations retrieved from
+[EuPathDB : The Eukaryotic Pathogen Genomics Resource](http://eupathdb.org/eupathdb/)
+using [AnnotationHub](http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html).
+
+For more information on using AnnotationHub, check out the AnnotationHub
+vignettes:
+
+- [AnnotationHub: Access the AnnotationHub Web Service](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
+- [AnnotationHub How-To’s](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
+
+The resources described in this tutorial were generating using GFF files and
+web API requests made to the various EuPathDB databases (TriTrypDB, ToxoDB,
+etc.) Only organisms with annotated genomes (those for which GFF files are
+available) are accessible through AnnotationHub.
+
+The two main resources provided are:
+
+- [OrgDb](https://www.bioconductor.org/help/workflows/annotation/annotation/#OrgDb)
+- [GRanges](http://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+
+OrgDB objects for an organism include basic gene-level information such as:
+
+- Gene ID
+- Gene description
+- Chromosome number
+- GO terms assocated with gene
+- KEGG Pathways associated with gene
+- Etc.
+
+For some organisms, [InterPro](https://www.ebi.ac.uk/interpro/) protein domain
+information is also available (in some cases, however, even though InterPro domain
+information is available through EuPathDB, it is too large to be included in
+the current AnnotationHub resources).
+
+For more information about working with Bioconductor annotation resources, see:
+
+- [Genomic Annotation Resources in Bioconductor ](https://www.bioconductor.org/help/workflows/annotation/annotation/)
+
+# Installation
+
+If you don't already have AnnotationHub installed on your system, use
+`biocLite` to install the package:
+
+```{r, eval=FALSE}
+source("http://bioconductor.org/biocLite.R")
+biocLite('AnnotationHub')
+```
+
+# Getting started
+
+To begin, let's create a new `AnnotationHub` connection and use it to query
+AnnotationHub for all EuPathDB resources.
+
+```{r}
+library('AnnotationHub')
+
+# create an AnnotationHub connection
+ah = AnnotationHub()
+
+# search for all EuPathDB resources
+meta = query(ah, "EuPathDB")
+
+length(meta)
+head(meta)
+
+# types of EuPathDB data available
+table(meta$rdataclass)
+
+# distribution of resources by specific databases
+table(meta$dataprovider)
+
+# List of organisms for which resources are available
+length(unique(meta$species))
+head(unique(meta$species))
+```
+
+# Working with EuPathDB OrgDB resources
+
+Next, we will see how you can query AnnotationHub for EuPathDB OrgDB resources.
+
+To begin, create an AnnotationHub connection, if you have not already done so,
+as shown in the section above.
+
+Next, use the `query` function to search for your organism of interest, and
+store the result.
+
+```{r}
+res <- query(ah, 'Leishmania major strain Friedlin', 'OrgDb')
+res
+```
+
+The result includes a single record, "AH56967". The record can be accessed from
+the result variable using list-like indexing:
+
+```{r}
+orgdb <- res[['AH56967']]
+class(orgdb)
+```
+
+We can see that we now have an OrgDB instance, and as such, we can use the
+usual methods available for working this OrgDB objects, including:
+
+- `columns()`
+- `keys()`
+- `select()`
+
+
+```{r}
+columns(orgdb)
+
+gids <- keys(orgdb, keytype='GID')
+head(gids)
+
+dat <- select(orgdb, keys=gids, keytype='GID', columns=c('TYPE', 'CHR'))
+
+head(dat)
+
+table(dat$TYPE)
+table(dat$CHR)
+```
+
+# Working with EuPathDB GRanges resources
+
+```{r}
+res
+```
