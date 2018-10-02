@@ -1,17 +1,17 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
-Version: 1.0.0
-Authors@R: person("Keith", "Hughitt", email = "khughitt@umd.edu", role = c("aut", "cre"))
-Maintainer: Keith Hughitt <khughitt@umd.edu>
+Version: 0.99.0
+Authors@R: person("Keith", "Hughitt", email = "keith.hughitt@gmail.com", role = c("aut", "cre"))
+Maintainer: Keith Hughitt <keith.hughitt@gmail.com>
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
     available in R using the AnnotationHub framework.
 Depends:
-    R (>= 3.4),
+    R (>= 3.5),
     Biobase,
     GenomicRanges,
-    AnnotationHub (>= 2.4.2),
-Imports: AnnotationHubData, Biostrings, BiocInstaller, utils
+    AnnotationHub (>= 2.13.7),
+Imports: AnnotationHubData, Biostrings, BiocManager, utils
 Suggests:
     dplyr,
     knitr,

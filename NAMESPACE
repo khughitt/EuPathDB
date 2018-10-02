@@ -1,6 +1,7 @@
-import("AnnotationHub")
-import("AnnotationHubData")
-import("Biostrings")
+import(AnnotationHub)
+import(AnnotationHubData)
+import(Biostrings)
+import(BiocManager)
 
 importFrom("Biobase", "addVigs2WinMenu")
 importFrom("BiocManager", "version")
