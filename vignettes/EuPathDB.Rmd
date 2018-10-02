@@ -71,7 +71,7 @@ BiocManager::install("AnnotationHub")
 To begin, let's create a new `AnnotationHub` connection and use it to query
 AnnotationHub for all EuPathDB resources.
 
-```{r}
+```{r, eval=FALSE}
 library('AnnotationHub')
 
 # create an AnnotationHub connection
@@ -104,7 +104,7 @@ as shown in the section above.
 Next, use the `query` function to search for your organism of interest, and
 store the result.
 
-```{r}
+```{r, eval=FALSE}
 res <- query(ah, 'Leishmania major strain Friedlin', 'OrgDb')
 res
 ```
@@ -112,7 +112,7 @@ res
 The result includes a single record, "AH56967". The record can be accessed from
 the result variable using list-like indexing:
 
-```{r}
+```{r, eval=FALSE}
 orgdb <- res[['AH56967']]
 class(orgdb)
 ```
@@ -125,7 +125,7 @@ usual methods available for working this OrgDB objects, including:
 - `select()`
 
 
-```{r}
+```{r, eval=FALSE}
 columns(orgdb)
 
 gids <- keys(orgdb, keytype='GID')
@@ -139,8 +139,4 @@ table(dat$TYPE)
 table(dat$CHR)
 ```
 
-# Working with EuPathDB GRanges resources
 
-```{r}
-res
-```
