@@ -20,8 +20,8 @@ Suggests:
     jsonlite
 biocViews: DataImport
 License: Artistic-2.0
-URL: https://github.com/elsayed-lab/EuPathDB
-BugReports: https://github.com/elsayed-lab/EuPathDB/issues
+URL: https://github.com/khughitt/EuPathDB
+BugReports: https://github.com/khughitt/EuPathDB/issues
 LazyData: true
 RoxygenNote: 5.0.1
 VignetteBuilder: knitr

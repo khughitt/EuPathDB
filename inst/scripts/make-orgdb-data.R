@@ -5,7 +5,7 @@
 #
 # Note: Trichomonas vaginalis G3 genome contains significantly
 # more (about 4x) genes and orthologs compared to most other
-# EuPathDb organisms, and may require much more memory and time
+# EuPathDB organisms, and may require much more memory and time
 # to build.
 #
 # Most organisms should finish within several hours and use 10GB memory or
