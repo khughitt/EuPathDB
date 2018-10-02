@@ -61,7 +61,7 @@ For more information about working with Bioconductor annotation resources, see:
 If you don't already have AnnotationHub installed on your system, use
 `BiocManager::install` to install the package:
 
-```{r, eval=FALSE}
+```r
 install.packages("BiocManager")
 BiocManager::install("AnnotationHub")
 ```
@@ -71,7 +71,7 @@ BiocManager::install("AnnotationHub")
 To begin, let's create a new `AnnotationHub` connection and use it to query
 AnnotationHub for all EuPathDB resources.
 
-```{r, eval=FALSE}
+```r
 library('AnnotationHub')
 
 # create an AnnotationHub connection
@@ -104,7 +104,7 @@ as shown in the section above.
 Next, use the `query` function to search for your organism of interest, and
 store the result.
 
-```{r, eval=FALSE}
+```r
 res <- query(ah, 'Leishmania major strain Friedlin', 'OrgDb')
 res
 ```
@@ -112,7 +112,7 @@ res
 The result includes a single record, "AH56967". The record can be accessed from
 the result variable using list-like indexing:
 
-```{r, eval=FALSE}
+```r
 orgdb <- res[['AH56967']]
 class(orgdb)
 ```
@@ -125,7 +125,7 @@ usual methods available for working this OrgDB objects, including:
 - `select()`
 
 
-```{r, eval=FALSE}
+```r
 columns(orgdb)
 
 gids <- keys(orgdb, keytype='GID')
