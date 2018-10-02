@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript-devel
+#!/usr/bin/env Rscript
 #
 # EuPathDB metadata[i,] generation script
 #
@@ -48,7 +48,7 @@ message(sprintf("- Found metadata for %d organisms", nrow(dat)))
 
 # shared metadata
 shared_metadata <- dat %>% transmute(
-    BiocVersion=as.character(BiocInstaller::biocVersion()),
+    BiocVersion=as.character(BiocManager::version()),
     Genome=sub('.gff', '', basename(URLgff)),
     NumGenes=genecount,
     NumOrthologs=orthologcount,
@@ -80,8 +80,8 @@ known_taxon_ids <- data.frame(
 )
 
 taxon_mask <- shared_metadata$Species %in% known_taxon_ids$species
-ind <- match(shared_metadata[taxon_mask,'Species'], known_taxon_ids$species)
-shared_metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
+ind <- match(shared_metadata[taxon_mask, 'Species'], known_taxon_ids$species)
+shared_metadata[taxon_mask, ]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
 
 # exclude remaining species which are missing taxonomy information from
 # metadata; cannot construct GRanges/OrgDb instances for them since they are
@@ -89,7 +89,7 @@ shared_metadata[taxon_mask,]$TaxonomyId <- as.character(known_taxon_ids$taxonomy
 na_ind <- is.na(shared_metadata$TaxonomyId)
 message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
                 sum(na_ind), sum(!na_ind)))
-shared_metadata <- shared_metadata[!na_ind,]
+shared_metadata <- shared_metadata[!na_ind, ]
 
 # convert remaining taxonomy ids to numeric
 shared_metadata$TaxonomyId <- as.numeric(shared_metadata$TaxonomyId)
