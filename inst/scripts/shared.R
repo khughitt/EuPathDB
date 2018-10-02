@@ -205,7 +205,8 @@
 
         # check for timeout connections
         if (!is.null(res$result)) {
-            fromJSON(content(res, as = "text"))
+            #fromJSON(content(res, as = "text"))
+            fromJSON(content(res$result, as = "text"))
         } else {
             # if timed out, return an empty result structure
             message(sprintf("Connection timed out after %d seconds.. returning empty result.", timeout_secs))

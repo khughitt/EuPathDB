@@ -26,10 +26,10 @@ library('RSQLite')
 library('jsonlite')
 library('rtracklayer')
 library('GenomicFeatures')
-#library('doParallel')
-#library('foreach')
 library('httr')
 library('purrr')
+#library('doParallel')
+#library('foreach')
 
 source('shared.R')
 options(stringsAsFactors=FALSE)
@@ -439,6 +439,11 @@ dat <- dat[sample(1:nrow(dat)),]
 # exclude packages that already exist
 outfiles <- file.path(output_dir, sub('.rda', '.sqlite', dat$ResourceName))
 dat <- dat[!file.exists(outfiles),]
+
+# if all species have been processed, stop here
+if (nrow(dat) == 0) {
+    stop("There are no organisms left to process!")
+}
 
 # parallel jobs don't always finish, leading to freezing up of the processing
 # very quckly. Disablng for now until the underlying problem can be determined.
