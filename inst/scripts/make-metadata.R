@@ -87,6 +87,7 @@ shared_metadata[taxon_mask, ]$TaxonomyId <- as.character(known_taxon_ids$taxonom
 # metadata; cannot construct GRanges/OrgDb instances for them since they are
 # have no known taxonomy id, and are not in available.species()
 na_ind <- is.na(shared_metadata$TaxonomyId)
+
 message(sprintf("- Excluding %d organisms for which no taxonomy id could be assigned (%d remaining)",
                 sum(na_ind), sum(!na_ind)))
 shared_metadata <- shared_metadata[!na_ind, ]
