@@ -9,6 +9,7 @@ Depends:
     R (>= 3.5),
     Biobase,
     GenomicRanges,
+    GenomeInfoDbData,
     AnnotationHub (>= 2.13.7),
 Imports: AnnotationHubData, Biostrings, BiocManager, utils
 Suggests:

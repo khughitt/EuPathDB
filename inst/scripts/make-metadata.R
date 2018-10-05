@@ -2,9 +2,10 @@
 #
 # EuPathDB metadata[i,] generation script
 #
-library('jsonlite')
-library('dplyr')
-library('httr')
+library(jsonlite)
+library(dplyr)
+library(httr)
+library(GenomeInfoDbData)
 
 # Get EuPathDB version (same for all databases)
 dbversion <- readLines('http://tritrypdb.org/common/downloads/Current_Release/Build_number')
@@ -16,18 +17,18 @@ message('===========================================')
 # AnnotationHub tags
 shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite") 
 tags <- list(
-    "AmoebaDB"=c(shared_tags, 'Amoeba'),
-    "CryptoDB"=c(shared_tags, 'Cryptosporidium'),
-    "FungiDB"=c(shared_tags, 'Fungus', 'Fungi'),
-    "GiardiaDB"=c(shared_tags, 'Giardia'),
-    "MicrosporidiaDB"=c(shared_tags, 'Microsporidia'),
-    "PiroplasmaDB"=c(shared_tags, 'Piroplasma'),
-    "PlasmoDB"=c(shared_tags, 'Plasmodium'),
-    "ToxoDB"=c(shared_tags, 'Toxoplasmosis'),
-    "TrichDB"=c(shared_tags, 'Trichomonas'),
-    "TriTrypDB"=c(shared_tags, 'Trypanosome', 'Kinetoplastid', 'Leishmania')
+    "AmoebaDB" = c(shared_tags, 'Amoeba'),
+    "CryptoDB" = c(shared_tags, 'Cryptosporidium'),
+    "FungiDB" = c(shared_tags, 'Fungus', 'Fungi'),
+    "GiardiaDB" = c(shared_tags, 'Giardia'),
+    "MicrosporidiaDB" = c(shared_tags, 'Microsporidia'),
+    "PiroplasmaDB" = c(shared_tags, 'Piroplasma'),
+    "PlasmoDB" = c(shared_tags, 'Plasmodium'),
+    "ToxoDB" = c(shared_tags, 'Toxoplasmosis'),
+    "TrichDB" = c(shared_tags, 'Trichomonas'),
+    "TriTrypDB" = c(shared_tags, 'Trypanosome', 'Kinetoplastid', 'Leishmania')
 )
-tag_strings <- lapply(tags, function(x) { paste(x, collapse=',') })
+tag_strings <- lapply(tags, function(x) { paste(x, collapse = ',') })
 
 # construct API request URL
 base_url <- 'https://eupathdb.org/eupathdb/webservices/'
@@ -41,49 +42,60 @@ records <- result$response$recordset$records
 
 # convert to a dataframe
 dat <- data.frame(t(sapply(records$fields, function (x) x[,'value'])), 
-                  stringsAsFactors=FALSE)
+                  stringsAsFactors = FALSE)
 colnames(dat) <- records$fields[[1]]$name 
 
 message(sprintf("- Found metadata for %d organisms", nrow(dat)))
 
 # shared metadata
 shared_metadata <- dat %>% transmute(
-    BiocVersion=as.character(BiocManager::version()),
-    Genome=sub('.gff', '', basename(URLgff)),
-    NumGenes=genecount,
-    NumOrthologs=orthologcount,
-    SourceType='GFF',
-    SourceUrl=URLgff,
-    SourceVersion=dbversion,
-    Species=organism,
-    TaxonomyId=ncbi_tax_id,
-    Coordinate_1_based=TRUE,
-    DataProvider=project_id,
-    Maintainer='Keith Hughitt <khughitt@umd.edu>'
+    BiocVersion = as.character(BiocManager::version()),
+    Genome = sub('.gff', '', basename(URLgff)),
+    NumGenes = genecount,
+    NumOrthologs = orthologcount,
+    SourceType = 'GFF',
+    SourceUrl = URLgff,
+    SourceVersion = dbversion,
+    Species = organism,
+    TaxonomyId = ncbi_tax_id,
+    Coordinate_1_based = TRUE,
+    DataProvider = project_id,
+    Maintainer = 'Keith Hughitt <keith.hughitt@nih.gov>'
 )
 
 # Add project-specific tags for each entry
-shared_metadata$Tags <- sapply(shared_metadata$DataProvider, 
-                               function(x) { tag_strings[[x]] })
+shared_metadata$Tags <- sapply(shared_metadata$DataProvider, function(x) { tag_strings[[x]] })
 
-# replace missing taxonomy ids with NAs
-shared_metadata$TaxonomyId[shared_metadata$TaxonomyId == ''] <- NA
+# load species taxonomy mapping
+data(specData)
+specData$genus_species <- sprintf("%s %s", specData$genus, specData$species)
 
-# overide missing taxonomy ids for strains where it can be assigned; ideally
-# OrgDb and GRanges objects should not depend on taxonomy id information since
-# this precludes the inclusion of a lot of prokaryotic resources.
-known_taxon_ids <- data.frame(
-    species=c('Ordospora colligata OC4', 
-              'Trypanosoma cruzi CL Brener Esmeraldo-like',
-              'Trypanosoma cruzi CL Brener Non-Esmeraldo-like'),
-    taxonomy_id=c('1354746', '353153', '353153')
-)
+# separate out genus + species from strain, etc. information
+genus_species <- unlist(lapply(lapply(strsplit(shared_metadata$Species, ' '), '[', 1:2), paste, collapse = ' '))
 
-taxon_mask <- shared_metadata$Species %in% known_taxon_ids$species
-ind <- match(shared_metadata[taxon_mask, 'Species'], known_taxon_ids$species)
-shared_metadata[taxon_mask, ]$TaxonomyId <- as.character(known_taxon_ids$taxonomy_id[ind])
+# add a "SpeciesFull" column to keep track of full species information (including strain, etc.);
+# AH currently requires that only genus + species be included in the "Species" column
+shared_metadata <- shared_metadata %>%
+  mutate(SpeciesFull = Species,
+         Species = genus_species)
 
-# exclude remaining species which are missing taxonomy information from
+# entries missing taxonomy information
+missing_tax_inds <- is.na(shared_metadata$TaxonomyId)
+
+# for strains / isolates with no assigned taxonomy id, use their species-level taxonomy id
+genus_species_missing_tax <- genus_species[missing_tax_inds]
+
+# EuPathDB uses "sp" whereas mapping uses "sp."
+genus_species_missing_tax <- gsub(' sp$', ' sp.', genus_species_missing_tax)
+
+matched_tax_ids <- specData$tax_id[match(genus_species_missing_tax, specData$genus_species)]
+
+# manually fix problematic mapping entries, where possible
+matched_tax_ids[genus_species_missing_tax == 'Candida auris'] <- specData$tax_id[match('[Candida] auris', specData$genus_species)]
+
+shared_metadata$TaxonomyId[missing_tax_inds] <- matched_tax_ids
+
+# exclude remaining entries which are missing taxonomy information from
 # metadata; cannot construct GRanges/OrgDb instances for them since they are
 # have no known taxonomy id, and are not in available.species()
 na_ind <- is.na(shared_metadata$TaxonomyId)
@@ -100,32 +112,32 @@ gff_exists <- sapply(shared_metadata$SourceUrl, function(url) { HEAD(url)$status
 
 message(sprintf("- Excluding %d organisms for which no GFF file is available (%d remaining)",
         sum(!gff_exists), sum(gff_exists)))
-shared_metadata <- shared_metadata[gff_exists,]
+shared_metadata <- shared_metadata[gff_exists, ]
 
 # generate separate metadata table for OrgDB and GRanges targets
 granges_metadata <- shared_metadata %>% mutate(
-    Title=sprintf('Transcript information for %s', Species),
-    Description=sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Species),
-    RDataClass='GRanges',
-    DispatchClass='GRanges',
-    ResourceName=sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', Species), 
+    Title = sprintf('%s transcript information', SpeciesFull),
+    Description = sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, SpeciesFull),
+    RDataClass = 'GRanges',
+    DispatchClass = 'GRanges',
+    ResourceName = sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', SpeciesFull), 
                          tolower(DataProvider), SourceVersion, 'rda')
 ) %>% mutate(
-    RDataPath=file.path('EuPathDB', 'GRanges', BiocVersion, ResourceName)
+    RDataPath = file.path('EuPathDB', 'GRanges', BiocVersion, ResourceName)
 )
 
 orgdb_metadata <- shared_metadata %>% mutate(
-    Title=sprintf('Genome wide annotations for %s', Species),
-    Description=sprintf('%s %s annotations for %s', DataProvider, SourceVersion, Species),
-    RDataClass='OrgDb',
-    DispatchClass='SQLiteFile',
-    ResourceName=sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', Species), 
+    Title = sprintf('%s genome wide annotations', SpeciesFull),
+    Description = sprintf('%s %s genome annotations for %s', DataProvider, SourceVersion, SpeciesFull),
+    RDataClass = 'OrgDb',
+    DispatchClass = 'SQLiteFile',
+    ResourceName = sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', SpeciesFull), 
                          tolower(substring(DataProvider, 1, nchar(DataProvider) - 2)))
 ) %>% mutate(
-    RDataPath=file.path('EuPathDB', 'OrgDb', BiocVersion, ResourceName)
+    RDataPath = file.path('EuPathDB', 'OrgDb', BiocVersion, ResourceName)
 )
 
 # save to file
-write.csv(granges_metadata, row.names=FALSE, quote=TRUE, file='../extdata/granges_metadata.csv')
-write.csv(orgdb_metadata, row.names=FALSE, quote=TRUE, file='../extdata/orgdb_metadata.csv')
+write.csv(granges_metadata, row.names = FALSE, quote = TRUE, file = '../extdata/granges_metadata.csv')
+write.csv(orgdb_metadata, row.names = FALSE, quote = TRUE, file = '../extdata/orgdb_metadata.csv')
 
