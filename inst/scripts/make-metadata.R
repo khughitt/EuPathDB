@@ -74,6 +74,11 @@ shared_metadata$Tags <- sapply(shared_metadata$DataProvider, function(x) { tag_s
 data(specData)
 specData$genus_species <- sprintf("%s %s", specData$genus, specData$species)
 
+# Note (2018-10-06), there are currently a few EuPathDB entries where "Species" includes
+# some additional strain information where it is not expected.. to be safe, we will manually
+# parse out genus / species for the Organism field.
+shared_metadata$Species <- unlist(lapply(lapply(strsplit(shared_metadata$Organism, ' '), '[', 1:2), paste, collapse = ' '))
+
 # entries missing taxonomy information
 missing_tax_inds <- is.na(shared_metadata$TaxonomyId)
 
