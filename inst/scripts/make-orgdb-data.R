@@ -60,11 +60,14 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     message("GFF Entry types:")
     table(gff$type)
     
+    # chromosomes
     chr_mapping <- data.frame(
         'GID' = genes$ID,
         'CHR' = as.character(seqnames(genes)),
         stringsAsFactors = FALSE
     )
+
+    # transcripts
 
     # get basic gene-related fields
     gene_info <- .extract_gene_info(gff)
@@ -441,7 +444,7 @@ dat <- dat[sample(1:nrow(dat)), ]
 #                  'jsonlite', 'RSQLite', 'httr')
 
 # exclude packages that already exist
-outfiles <- file.path(output_dir, sub('.rda', '.sqlite', dat$ResourceName))
+outfiles <- file.path(output_dir, dat$ResourceName)
 dat <- dat[!file.exists(outfiles), ]
 
 # if all species have been processed, stop here
@@ -461,7 +464,7 @@ for (i in 1:nrow(dat)) {
     entry <- dat[i, ]
 
     # location to save orgdb to
-    outfile <- file.path(output_dir, sub('.rda', '.sqlite', entry$ResourceName))
+    outfile <- file.path(output_dir, entry$ResourceName)
 
     # create OrgDb object from metadata entry
     message(sprintf("- Building OrgDb for %s.", entry$Organism))
