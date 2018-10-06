@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 #
-# EuPathDB metadata[i,] generation script
+# EuPathDB AnnotationHub metadata generation script
 #
 library(jsonlite)
 library(dplyr)
@@ -16,6 +16,7 @@ message('===========================================')
 
 # AnnotationHub tags
 shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite") 
+
 tags <- list(
     "AmoebaDB" = c(shared_tags, 'Amoeba'),
     "CryptoDB" = c(shared_tags, 'Cryptosporidium'),
@@ -41,7 +42,7 @@ result <- fromJSON(request_url)
 records <- result$response$recordset$records
 
 # convert to a dataframe
-dat <- data.frame(t(sapply(records$fields, function (x) x[,'value'])), 
+dat <- data.frame(t(sapply(records$fields, function (x) x[, 'value'])), 
                   stringsAsFactors = FALSE)
 colnames(dat) <- records$fields[[1]]$name 
 
@@ -51,12 +52,15 @@ message(sprintf("- Found metadata for %d organisms", nrow(dat)))
 shared_metadata <- dat %>% transmute(
     BiocVersion = as.character(BiocManager::version()),
     Genome = sub('.gff', '', basename(URLgff)),
+    GenomeSizeMB = as.numeric(trimws(megabps)),
     NumGenes = genecount,
     NumOrthologs = orthologcount,
     SourceType = 'GFF',
     SourceUrl = URLgff,
     SourceVersion = dbversion,
-    Species = organism,
+    Species = species,
+    Organism = organism,
+    Strain = trimws(strain),
     TaxonomyId = ncbi_tax_id,
     Coordinate_1_based = TRUE,
     DataProvider = project_id,
@@ -70,28 +74,19 @@ shared_metadata$Tags <- sapply(shared_metadata$DataProvider, function(x) { tag_s
 data(specData)
 specData$genus_species <- sprintf("%s %s", specData$genus, specData$species)
 
-# separate out genus + species from strain, etc. information
-genus_species <- unlist(lapply(lapply(strsplit(shared_metadata$Species, ' '), '[', 1:2), paste, collapse = ' '))
-
-# add a "SpeciesFull" column to keep track of full species information (including strain, etc.);
-# AH currently requires that only genus + species be included in the "Species" column
-shared_metadata <- shared_metadata %>%
-  mutate(SpeciesFull = Species,
-         Species = genus_species)
-
 # entries missing taxonomy information
 missing_tax_inds <- is.na(shared_metadata$TaxonomyId)
 
 # for strains / isolates with no assigned taxonomy id, use their species-level taxonomy id
-genus_species_missing_tax <- genus_species[missing_tax_inds]
+missing_taxon_ids <- shared_metadata$Species[missing_tax_inds]
 
 # EuPathDB uses "sp" whereas mapping uses "sp."
-genus_species_missing_tax <- gsub(' sp$', ' sp.', genus_species_missing_tax)
+missing_taxon_ids <- gsub(' sp$', ' sp.', missing_taxon_ids)
 
-matched_tax_ids <- specData$tax_id[match(genus_species_missing_tax, specData$genus_species)]
+matched_tax_ids <- specData$tax_id[match(missing_taxon_ids, specData$genus_species)]
 
 # manually fix problematic mapping entries, where possible
-matched_tax_ids[genus_species_missing_tax == 'Candida auris'] <- specData$tax_id[match('[Candida] auris', specData$genus_species)]
+matched_tax_ids[missing_taxon_ids == 'Candida auris'] <- specData$tax_id[match('[Candida] auris', specData$genus_species)]
 
 shared_metadata$TaxonomyId[missing_tax_inds] <- matched_tax_ids
 
@@ -116,22 +111,22 @@ shared_metadata <- shared_metadata[gff_exists, ]
 
 # generate separate metadata table for OrgDB and GRanges targets
 granges_metadata <- shared_metadata %>% mutate(
-    Title = sprintf('%s transcript information', SpeciesFull),
-    Description = sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, SpeciesFull),
+    Title = sprintf('%s transcript information', Organism),
+    Description = sprintf('%s %s transcript information for %s', DataProvider, SourceVersion, Organism),
     RDataClass = 'GRanges',
     DispatchClass = 'GRanges',
-    ResourceName = sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', SpeciesFull), 
+    ResourceName = sprintf('GRanges.%s.%s%s.rda', gsub('[ /.]+', '_', Organism), 
                          tolower(DataProvider), SourceVersion, 'rda')
 ) %>% mutate(
     RDataPath = file.path('EuPathDB', 'GRanges', BiocVersion, ResourceName)
 )
 
 orgdb_metadata <- shared_metadata %>% mutate(
-    Title = sprintf('%s genome wide annotations', SpeciesFull),
-    Description = sprintf('%s %s genome annotations for %s', DataProvider, SourceVersion, SpeciesFull),
+    Title = sprintf('%s genome wide annotations', Organism),
+    Description = sprintf('%s %s genome annotations for %s', DataProvider, SourceVersion, Organism),
     RDataClass = 'OrgDb',
     DispatchClass = 'SQLiteFile',
-    ResourceName = sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', SpeciesFull), 
+    ResourceName = sprintf('org.%s.%s.db.sqlite', gsub('[ /.]+', '_', Organism), 
                          tolower(substring(DataProvider, 1, nchar(DataProvider) - 2)))
 ) %>% mutate(
     RDataPath = file.path('EuPathDB', 'OrgDb', BiocVersion, ResourceName)

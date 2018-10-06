@@ -22,7 +22,7 @@ EuPathDBGFFtoGRanges <- function(entry) {
     # save gff as tempfile
     input_gff <- tempfile(fileext = '.gff')
 
-    message(sprintf("- Generating GRanges object for %s", entry$SpeciesFull))
+    message(sprintf("- Generating GRanges object for %s", entry$Organism))
 
     # attempt to download file
     res <- tryCatch({
@@ -34,7 +34,7 @@ EuPathDBGFFtoGRanges <- function(entry) {
     # stop here if file not successfully downloaded
     if (res != 0) {
         warning("Unable to download annotations for %s; skipping...",
-                entry$SpeciesFull)
+                entry$Organism)
         return(NA)
     }
 
@@ -70,7 +70,7 @@ for (i in 1:nrow(dat)) {
     outfile <- file.path(output_dir, entry$ResourceName)
 
     if (file.exists(outfile)) {
-        message(sprintf("- Skipping %s (EXISTS)", entry$SpeciesFull))
+        message(sprintf("- Skipping %s (EXISTS)", entry$Organism))
         return
     } else {
         # create GRanges object from metadata entry

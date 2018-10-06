@@ -70,16 +70,16 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     gene_info <- .extract_gene_info(gff)
 
     # gene types
-    gene_types <- .get_gene_types(entry$DataProvider, entry$SpeciesFull)
+    gene_types <- .get_gene_types(entry$DataProvider, entry$Organism)
 
     # go terms
-    go_table <- .get_go_term_table(entry$DataProvider, entry$SpeciesFull)
+    go_table <- .get_go_term_table(entry$DataProvider, entry$Organism)
 
     # pathways
-    pathway_table <- .get_pathway_table(entry$DataProvider, entry$SpeciesFull)
+    pathway_table <- .get_pathway_table(entry$DataProvider, entry$Organism)
 
     # interpro domains
-    interpro_table <- .get_interpro_table(entry$DataProvider, entry$SpeciesFull)
+    interpro_table <- .get_interpro_table(entry$DataProvider, entry$Organism)
 
     # ortholog table
     #
@@ -93,10 +93,10 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     #if (entry$NumOrthologs < 20000) {
     if (entry$NumOrthologs < 3000) {
         message(sprintf('- Retrieving %d orthologs for %s', 
-                        entry$NumOrthologs, entry$SpeciesFull))
-        ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$SpeciesFull)
+                        entry$NumOrthologs, entry$Organism))
+        ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Organism)
     } else {
-        message(sprintf('- Skipping ortholog table for %s', entry$SpeciesFull))
+        message(sprintf('- Skipping ortholog table for %s', entry$Organism))
         ortholog_table <- data.frame()
     }
 
@@ -145,7 +145,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     #    orgdb_args[['kegg']] <- kegg_table
     #}
 
-    message(sprintf("- Calling makeOrgPackage for %s", entry$SpeciesFull))
+    message(sprintf("- Calling makeOrgPackage for %s", entry$Organism))
 
 
     # Note: this function throws a bunch of warnings along the lines of:
@@ -168,13 +168,13 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 
     # update SPECIES field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";',
-                     entry$SpeciesFull)
+                     entry$Organism)
     rs <- dbSendQuery(conn = db, query)
     dbClearResult(rs)
 
     # update ORGANISM field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="ORGANISM";',
-                     entry$SpeciesFull)
+                     entry$Organism)
     rs <- dbSendQuery(conn = db, query)
     dbClearResult(rs)
 
@@ -464,11 +464,11 @@ for (i in 1:nrow(dat)) {
     outfile <- file.path(output_dir, sub('.rda', '.sqlite', entry$ResourceName))
 
     # create OrgDb object from metadata entry
-    message(sprintf("- Building OrgDb for %s.", entry$SpeciesFull))
+    message(sprintf("- Building OrgDb for %s.", entry$Organism))
     dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
 
     # copy sqlite database to main output directory
-    message(sprintf("- Finished building OrgDb for %s", entry$SpeciesFull))
+    message(sprintf("- Finished building OrgDb for %s", entry$Organism))
     file.copy(dbpath, outfile)
 
     # remove intermediate package directory
