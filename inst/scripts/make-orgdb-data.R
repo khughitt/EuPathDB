@@ -32,7 +32,7 @@ library('purrr')
 #library('foreach')
 
 source('shared.R')
-options(stringsAsFactors=FALSE)
+options(stringsAsFactors = FALSE)
 
 #'
 #' Generate OrgDb for EuPathDB organism
@@ -47,7 +47,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     species <- species_parts[2]
 
     # save gff as tempfile
-    input_gff <- tempfile(fileext='.gff')
+    input_gff <- tempfile(fileext = '.gff')
     download.file(entry$SourceUrl, input_gff)
 
     # get chromosome information from GFF file
@@ -56,26 +56,30 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # gene/chr mapping
     genes <- gff[gff$type == 'gene']
 
+    # Question: How many of the EuPathDB organisms have transcript-level annotations?
+    message("GFF Entry types:")
+    table(gff$type)
+    
     chr_mapping <- data.frame(
         'GID' = genes$ID,
         'CHR' = as.character(seqnames(genes)),
-        stringsAsFactors=FALSE
+        stringsAsFactors = FALSE
     )
 
     # get basic gene-related fields
     gene_info <- .extract_gene_info(gff)
 
     # gene types
-    gene_types <- .get_gene_types(entry$DataProvider, entry$Species)
+    gene_types <- .get_gene_types(entry$DataProvider, entry$SpeciesFull)
 
     # go terms
-    go_table <- .get_go_term_table(entry$DataProvider, entry$Species)
+    go_table <- .get_go_term_table(entry$DataProvider, entry$SpeciesFull)
 
     # pathways
-    pathway_table <- .get_pathway_table(entry$DataProvider, entry$Species)
+    pathway_table <- .get_pathway_table(entry$DataProvider, entry$SpeciesFull)
 
     # interpro domains
-    interpro_table <- .get_interpro_table(entry$DataProvider, entry$Species)
+    interpro_table <- .get_interpro_table(entry$DataProvider, entry$SpeciesFull)
 
     # ortholog table
     #
@@ -84,23 +88,23 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # uses cURL under the hood.
     #
     # A possible work-around would be to manually download the results using
-    # wget, e.g.: download.file(url, 'out.json', method='wget')
+    # wget, e.g.: download.file(url, 'out.json', method = 'wget')
     #
     #if (entry$NumOrthologs < 20000) {
     if (entry$NumOrthologs < 3000) {
         message(sprintf('- Retrieving %d orthologs for %s', 
-                        entry$NumOrthologs, entry$Species))
-        ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$Species)
+                        entry$NumOrthologs, entry$SpeciesFull))
+        ortholog_table <- .get_ortholog_table(entry$DataProvider, entry$SpeciesFull)
     } else {
-        message(sprintf('- Skipping ortholog table for %s', entry$Species))
+        message(sprintf('- Skipping ortholog table for %s', entry$SpeciesFull))
         ortholog_table <- data.frame()
     }
 
     # create a randomly-named sub-directory to store orgdb output in; since
     # makeOrganismPackage doesn't incorporate strain information in the 
     # package name, this is necessary to avoid directory name collisions
-    build_dir <- file.path(output_dir, paste0(sample(c(0:9, letters), 10, replace=TRUE), collapse=''))
-    dir.create(build_dir, recursive=TRUE)
+    build_dir <- file.path(output_dir, paste0(sample(c(0:9, letters), 10, replace = TRUE), collapse = ''))
+    dir.create(build_dir, recursive = TRUE)
 
     # Version must be of the format xx.yy
     package_version <- paste0(as.character(entry$SourceVersion), ".0")
@@ -141,7 +145,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     #    orgdb_args[['kegg']] <- kegg_table
     #}
 
-    message(sprintf("- Calling makeOrgPackage for %s", entry$Species))
+    message(sprintf("- Calling makeOrgPackage for %s", entry$SpeciesFull))
 
 
     # Note: this function throws a bunch of warnings along the lines of:
@@ -158,27 +162,27 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     message(sprintf("- Fixing sqlite Orgdb sqlite database %s", dbpath))
 
     # make sqlite database editable
-    Sys.chmod(dbpath, mode='0644')
+    Sys.chmod(dbpath, mode = '0644')
 
-    db = dbConnect(SQLite(), dbname=dbpath)
+    db = dbConnect(SQLite(), dbname = dbpath)
 
     # update SPECIES field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";',
-                     entry$Species)
-    rs <- dbSendQuery(conn=db, query)
+                     entry$SpeciesFull)
+    rs <- dbSendQuery(conn = db, query)
     dbClearResult(rs)
 
     # update ORGANISM field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="ORGANISM";',
-                     entry$Species)
-    rs <- dbSendQuery(conn=db, query)
+                     entry$SpeciesFull)
+    rs <- dbSendQuery(conn = db, query)
     dbClearResult(rs)
 
     # clean up
     dbDisconnect(db)
 
     # lock it back down
-    Sys.chmod(dbpath, mode='0444')
+    Sys.chmod(dbpath, mode = '0444')
 
     # return the path to the sqlite database
     dbpath
@@ -199,7 +203,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # drop any empty and NA columns
     na_mask <- apply(gene_info, 2, function(x) { sum(!is.na(x)) > 0 })
     empty_mask <- apply(gene_info, 2, function(x) { length(unlist(x)) > 0 })
-    gene_info <- gene_info[,na_mask & empty_mask]
+    gene_info <- gene_info[ ,na_mask & empty_mask]
 
     # remove problematic GENECOLOUR field if it exists.
     # Found for "Leishmania braziliensis MHOM/BR/75/M2904" -- only one row
@@ -208,7 +212,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     # [[1]]
     # [1] "10"                  "LbrM15.0470"         "LbrM.15.0630"
     # "LbrM15_V2.0630"      "LbrM15_V2.0630:pep"  "LbrM15_V2.0630:mRNA"
-    gene_info <- gene_info[,colnames(gene_info) != 'GENECOLOUR']
+    gene_info <- gene_info[ ,colnames(gene_info) != 'GENECOLOUR']
 
     # Convert form-encoded description string to human-readable
     gene_info$description <- gsub("\\+", " ", gene_info$description)
@@ -219,7 +223,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 
     ## Move gid to the front of the line.
     gid_index <- grep("GID", colnames(gene_info))
-    gene_info <- gene_info[, c(gid_index, (1:ncol(gene_info))[-gid_index])]
+    gene_info <- gene_info[ , c(gid_index, (1:ncol(gene_info))[-gid_index])]
     colnames(gene_info) <- paste0("GENE", colnames(gene_info))
     colnames(gene_info)[1] <- "GID"
 
@@ -248,17 +252,17 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 .get_gene_types <- function(data_provider, organism) {
     # query EuPathDB API
     res <- .query_eupathdb(data_provider, organism, 
-                           list(`o-fields`='primary_key,gene_type'))
+                           list(`o-fields` = 'primary_key,gene_type'))
     dat <- res$response$recordset$records
 
     # get vector of types
-    ids <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
-    types <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[2] }))
+    ids <- unlist(sapply(dat$fields, function(x) { strsplit(x[ ,'value'], ',')[1] }))
+    types <- unlist(sapply(dat$fields, function(x) { strsplit(x[ ,'value'], ',')[2] }))
 
-    df <- data.frame(GID=ids, TYPE=types, stringsAsFactors=FALSE)
+    df <- data.frame(GID = ids, TYPE = types, stringsAsFactors = FALSE)
 
     # remove duplicated rows and return
-    df[!duplicated(df),]
+    df[!duplicated(df), ]
 }
 
 #'
@@ -282,17 +286,17 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     colnames(result) <- toupper(colnames(result))
 
     # drop uneeded columns
-    result <- result[,colnames(result) %in% c('GID', 'ONTOLOGY', 'GO_ID',
+    result <- result[ ,colnames(result) %in% c('GID', 'ONTOLOGY', 'GO_ID',
                                               'GO_TERM_NAME', 'SOURCE',
                                               'EVIDENCE_CODE')]
 
     # remove duplicated entries resulting from alternative sources / envidence
     # codes
-    result <- result[!duplicated(result),]
+    result <- result[!duplicated(result), ]
 
     # remove rows missing the ontology field (Bug in EuPathDB 33; affects only
     # a small number of entries)
-    result <- result[!is.na(result$ONTOLOGY),]
+    result <- result[!is.na(result$ONTOLOGY), ]
 
     return(result)
 }
@@ -310,19 +314,19 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 .get_pathway_table <- function(data_provider, organism) {
     # query body as a structured list
     query_body <- list(
-        answerSpec=list(
-            'questionName'=unbox("GeneQuestions.GenesByTaxonGene"),
-            parameters=list(organism=unbox(organism)),
-            viewFilters=list(),
-            filters=list()
+        answerSpec = list(
+            'questionName' = unbox("GeneQuestions.GenesByTaxonGene"),
+            parameters = list(organism = unbox(organism)),
+            viewFilters = list(),
+            filters = list()
         ),
-        formatting=list(
-            formatConfig=list(
-                tables="MetabolicPathways",
-                includeHeader=unbox("true"),
-                attachmentType=unbox("plain")
+        formatting = list(
+            formatConfig = list(
+                tables = "MetabolicPathways",
+                includeHeader = unbox("true"),
+                attachmentType = unbox("plain")
             ),
-            format=unbox("tableTabular")
+            format = unbox("tableTabular")
         )
     )
 
@@ -330,7 +334,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     res <- .post_eupathdb(data_provider, query_body)
 
     # parse response
-    dat <- read.delim(textConnection(res), sep='\t')
+    dat <- read.delim(textConnection(res), sep = '\t')
 
     # if no pathway information is available, return an empty dataframe
     if (nrow(dat) == 0) {
@@ -338,7 +342,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     }
 
     # drop empty column
-    dat <- dat[,1:7]
+    dat <- dat[ ,1:7]
 
     # simplify column names
     # > colnames(dat)                                                                                                                                                                                                     
@@ -350,10 +354,10 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
     colnames(dat)[1] <- 'GID'
 
     # drop unneeded columns
-    dat <- dat[,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
+    dat <- dat[ ,c('GID', 'PATHWAY', 'PATHWAY_SOURCE_ID', 'PATHWAY_SOURCE')]
 
     # remove duplicated rows
-    dat <- dat[!duplicated(dat),]
+    dat <- dat[!duplicated(dat), ]
 
     dat
 }
@@ -408,7 +412,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 ###############################################################################
 
 # parse command-line arguments
-args <- commandArgs(trailingOnly=TRUE)
+args <- commandArgs(trailingOnly = TRUE)
 
 # Create output directory if it doesn't already exist
 output_dir <- args[1]
@@ -418,17 +422,17 @@ if (is.na(output_dir)) {
 }
 
 if (!file.exists(output_dir)) {
-    dir.create(output_dir, recursive=TRUE)
+    dir.create(output_dir, recursive = TRUE)
 }
 
 # load metadata
-dat <- read.csv('../extdata/orgdb_metadata.csv')
+dat <- read.csv('../extdata/orgdb_metadata.csv', stringsAsFactors = FALSE)
 
 # randomize order of entries to spread out the requests to multiple databases
-dat <- dat[sample(1:nrow(dat)),]
+dat <- dat[sample(1:nrow(dat)), ]
 
 # iterate over metadata entries and create OrgDb objects for each item
-#cl <- makeCluster(max(1, min(12, detectCores()  - 2)), outfile="")
+#cl <- makeCluster(max(1, min(12, detectCores()  - 2)), outfile = "")
 
 #registerDoParallel(cl)
 
@@ -438,7 +442,7 @@ dat <- dat[sample(1:nrow(dat)),]
 
 # exclude packages that already exist
 outfiles <- file.path(output_dir, sub('.rda', '.sqlite', dat$ResourceName))
-dat <- dat[!file.exists(outfiles),]
+dat <- dat[!file.exists(outfiles), ]
 
 # if all species have been processed, stop here
 if (nrow(dat) == 0) {
@@ -447,33 +451,31 @@ if (nrow(dat) == 0) {
 
 # parallel jobs don't always finish, leading to freezing up of the processing
 # very quckly. Disablng for now until the underlying problem can be determined.
-#foreach(i=1:nrow(dat), .packages=dependencies, .verbose=TRUE) %dopar% {
+#foreach(i = 1:nrow(dat), .packages = dependencies, .verbose = TRUE) %dopar% {
 
 for (i in 1:nrow(dat)) {
-    # re-initialize options
-    options(stringsAsFactors=FALSE)
-
-    message(sprintf("Starting %d", i))
+    # re-initialize options (needed if parallelizing)
+    options(stringsAsFactors = FALSE)
 
     # get metadata entry for a single organism
-    entry <- dat[i,]
+    entry <- dat[i, ]
 
     # location to save orgdb to
     outfile <- file.path(output_dir, sub('.rda', '.sqlite', entry$ResourceName))
 
     # create OrgDb object from metadata entry
-    message(sprintf("- Building OrgDb for %s.", entry$Species))
+    message(sprintf("- Building OrgDb for %s.", entry$SpeciesFull))
     dbpath <- EuPathDBGFFtoOrgDb(entry, output_dir)
 
     # copy sqlite database to main output directory
-    message(sprintf("- Finished building OrgDb for %s", entry$Species))
+    message(sprintf("- Finished building OrgDb for %s", entry$SpeciesFull))
     file.copy(dbpath, outfile)
 
     # remove intermediate package directory
     dir_parts <- unlist(strsplit(dirname(dbpath), "/"))
-    build_dir <- paste0(dir_parts[1:(length(dir_parts) - 3)], collapse='/')
+    build_dir <- paste0(dir_parts[1:(length(dir_parts) - 3)], collapse = '/')
 
-    unlink(build_dir, recursive=TRUE)
+    unlink(build_dir, recursive = TRUE)
 
     message(sprintf("Done with %d", i))
 

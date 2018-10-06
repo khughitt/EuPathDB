@@ -20,16 +20,16 @@
 #'        is supported)
 #' @return list containing response from API request.
 .retrieve_eupathdb_attributes <- function(data_provider, organism, table_name,
-                                          wadl='GeneQuestions/GenesByTaxonGene',
-                                          format='json') {
+                                          wadl = 'GeneQuestions/GenesByTaxonGene',
+                                          format = 'json') {
     # query EuPathDB API
     res <- .query_eupathdb(data_provider, organism, 
-                           list(`o-tables`=table_name,
-                                `o-fields`='primary_key'), wadl)
+                           list(`o-tables` = table_name,
+                                `o-fields` = 'primary_key'), wadl)
     dat <- res$response$recordset$records
 
     # create empty data frame to store result in
-    result <- data.frame(stringsAsFactors=FALSE)
+    result <- data.frame(stringsAsFactors = FALSE)
 
     # if no rows found before filtering, return empty data.frame
     if (nrow(dat) == 0) {
@@ -39,7 +39,7 @@
     message(sprintf("- Parsing %s table for %s.", table_name, organism))
 
     # drop genes with no associated table entries
-    gene_mask <- sapply(dat[, 'tables'], function(x) { length(x$rows[[1]]) > 0})
+    gene_mask <- sapply(dat[ , 'tables'], function(x) { length(x$rows[[1]]) > 0})
     dat <- dat[gene_mask, ]
 
     # if no rows found after filtering, return empty data.frame
@@ -51,7 +51,7 @@
     # replaces <gene id>/<dbname> "id" field with the <gene id> only version
     # found in dat$fields, e.g.:
     # "EDEG_00003/MicrosporidiaDB" -> "EDEG_00003"
-    dat$id <- unlist(sapply(dat$fields, function(x) { strsplit(x[,'value'], ',')[1] }))
+    dat$id <- unlist(sapply(dat$fields, function(x) { strsplit(x[ ,'value'], ',')[1] }))
 
     message(sprintf("- Parsing %d rows in %s table for %s.", nrow(dat), table_name, organism))
 
@@ -97,21 +97,21 @@
 #'        is supported)
 #' @return list containing response from API request.
 .retrieve_eupathdb_table <- function(data_provider, organism, table_name,
-                                     wadl='GeneQuestions/GenesByTaxon',
-                                     format='json') {
+                                     wadl = 'GeneQuestions/GenesByTaxon',
+                                     format = 'json') {
     # query EuPathDB API
     res <- .query_eupathdb(data_provider, organism, 
-                           list(`o-tables`=table_name), wadl)
+                           list(`o-tables` = table_name), wadl)
     dat <- res$response$recordset$records
 
     message(sprintf("- Parsing %s table for %s.", table_name, organism))
 
     # drop genes with no associated table entries
-    gene_mask <- sapply(dat[,'tables'], function(x) { length(x$rows[[1]]) > 0})
-    dat <- dat[gene_mask,]
+    gene_mask <- sapply(dat[ ,'tables'], function(x) { length(x$rows[[1]]) > 0})
+    dat <- dat[gene_mask, ]
 
     # create empty data frame to store result in
-    result <- data.frame(stringsAsFactors=FALSE)
+    result <- data.frame(stringsAsFactors = FALSE)
 
     # if no GO terms found, return empty data.frame
     if (nrow(dat) == 0) {
@@ -164,15 +164,15 @@
 #' 1. http://tritrypdb.org/tritrypdb/serviceList.jsp
 #'
 .query_eupathdb <- function(data_provider, organism, query_args,
-                            wadl='GeneQuestions/GenesByTaxon', format='json',
+                            wadl = 'GeneQuestions/GenesByTaxon', format = 'json',
                             timeout_secs = 600) {
     # construct API query
     base_url <- sprintf('http://%s.org/webservices/%s.%s?', 
                         tolower(data_provider), wadl, format)
 
     # add organism to query arguments
-    query_args[['organism']] <- URLencode(organism, reserved=TRUE)
-    query_string <- paste(paste(names(query_args), query_args, sep='='), collapse='&')
+    query_args[['organism']] <- URLencode(organism, reserved = TRUE)
+    query_string <- paste(paste(names(query_args), query_args, sep = '='), collapse = '&')
 
     # GET query
     #query_string <- sprintf('?organism=%s&%s', 
@@ -193,14 +193,14 @@
         #fromJSON(request_url)
 
         # GET query (method 2)
-        #res <- GET(request_url, config=list(content_type('application/json'), verbose()))
+        #res <- GET(request_url, config = list(content_type('application/json'), verbose()))
 
         # wrap GET to allow us to recover gracefully upon timing out
         # https://stackoverflow.com/questions/37367918/how-to-refresh-or-retry-a-specific-web-page-using-httr-get-command
         safe_GET <- safely(GET)
 
         # GET query (method 3)
-        res <- safe_GET(request_url, config=list(content_type('application/json'), verbose()), 
+        res <- safe_GET(request_url, config = list(content_type('application/json'), verbose()), 
                            timeout(timeout_secs))
 
         # check for timeout connections
@@ -240,21 +240,21 @@
 .post_eupathdb <- function(data_provider, query_body) {
     # determine appropriate prefix to use
     prefix_mapping <- list(
-        amoebadb='amoeba',
-        cryptodb='cryptodb',
-        eupathdb='eupathdb',
-        fungidb='fungidb',
-        giardiadb='giardiadb',
-        hostdb='hostdb',
-        microbiomedb='mbio',
-        microsporidiadb='micro',
-        orthomcl='orthomcl',
-        piroplasmadb='piro',
-        plasmodb='plasmo',
-        schistodb='schisto',
-        toxodb='toxo',
-        trichdb='trichdb',
-        tritrypdb='tritrypdb'
+        amoebadb = 'amoeba',
+        cryptodb = 'cryptodb',
+        eupathdb = 'eupathdb',
+        fungidb = 'fungidb',
+        giardiadb = 'giardiadb',
+        hostdb = 'hostdb',
+        microbiomedb = 'mbio',
+        microsporidiadb = 'micro',
+        orthomcl = 'orthomcl',
+        piroplasmadb = 'piro',
+        plasmodb = 'plasmo',
+        schistodb = 'schisto',
+        toxodb = 'toxo',
+        trichdb = 'trichdb',
+        tritrypdb = 'tritrypdb'
     )
     uri_prefix <- prefix_mapping[[tolower(data_provider)]]
 
@@ -269,7 +269,7 @@
     }
     message(sprintf("- Querying %s", log_url))
 
-    res <- POST(api_uri, config=list(timeout(10)), body=toJSON(query_body), 
+    res <- POST(api_uri, config = list(timeout(10)), body = toJSON(query_body), 
                 content_type('application/json'), verbose())
 
     message(sprintf("Finished POST query (%s)..", data_provider))
@@ -297,14 +297,14 @@
         fp <- gzfile(filepath)
         open(fp)
     } else {
-        fp <- file(filepath, open='r')
+        fp <- file(filepath, open = 'r')
     }
 
     # create empty data frame to store result in
-    result <- data.frame(stringsAsFactors=FALSE)
+    result <- data.frame(stringsAsFactors = FALSE)
 
     # iterate over lines of file
-    while (length(aline <- readLines(fp, n=1, warn=FALSE)) > 0) {
+    while (length(aline <- readLines(fp, n = 1, warn = FALSE)) > 0) {
         # Gene ID
         if(grepl("^Gene ID", aline)) {
             gene_id <- .get_value(aline)
@@ -312,22 +312,22 @@
 
         # Parse table entries
         else if (grepl(sprintf("^TABLE: %s", table_name), aline)) {
-            aline <- readLines(fp, n=1, warn=FALSE)
+            aline <- readLines(fp, n = 1, warn = FALSE)
             table_text <- aline
 
             # read in table, one line at a time
             while (length(aline) != 0) {
-                aline <- readLines(fp, n=1, warn=FALSE)
-                table_text <- paste(c(table_text, aline), sep='\n')
+                aline <- readLines(fp, n = 1, warn = FALSE)
+                table_text <- paste(c(table_text, aline), sep = '\n')
             }
 
             # read into a data frame and fix column names
-            dat <- read.delim(text=table_text)
+            dat <- read.delim(text = table_text)
             colnames(dat) <- substr(colnames(dat), 3, nchar(colnames(dat)) - 1)
 
             # append to multigene result dataframe
             if (nrow(dat) > 0) {
-                result <- rbind(result, cbind(GID=gene_id, dat))
+                result <- rbind(result, cbind(GID = gene_id, dat))
             }
         }
     }
@@ -338,5 +338,5 @@
 # Parses a key: value string and returns the value
 #
 .get_value = function(x) {
-    return(gsub(" ","", tail(unlist(strsplit(x, ': ')), n=1), fixed=TRUE))
+    return(gsub(" ","", tail(unlist(strsplit(x, ': ')), n = 1), fixed = TRUE))
 }
