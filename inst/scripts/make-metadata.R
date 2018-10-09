@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
+###############################################################################
 #
 # EuPathDB AnnotationHub metadata generation script
 #
+# Author: Keith Hughitt (keith.hughitt@nih.gov)
+#
+###############################################################################
 library(jsonlite)
 library(dplyr)
 library(httr)

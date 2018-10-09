@@ -3,6 +3,8 @@
 #
 # Functions for creating OrgDb objects from EuPathDB resources
 #
+# Author: Keith Hughitt (keith.hughitt@nih.gov)
+#
 # Note: Trichomonas vaginalis G3 genome contains significantly
 # more (about 4x) genes and orthologs compared to most other
 # EuPathDB organisms, and may require much more memory and time
@@ -12,9 +14,6 @@
 # less. On the larger end, T. vaginalis G3 required 42GB memory and took over
 # 12 hours to complete on a PC workstation.
 # 
-# Author: Keith Hughitt (khughitt@umd.edu)
-# Last Update: July 13, 2017
-#
 # Usage: ./make-orgdb-data.R /path/to/eupathdb/orgdb/33
 #
 # Note: If the list of available organisms changes, the `availableEuPathDB`
@@ -66,8 +65,6 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
         'CHR' = as.character(seqnames(genes)),
         stringsAsFactors = FALSE
     )
-
-    # transcripts
 
     # get basic gene-related fields
     gene_info <- .extract_gene_info(gff)
@@ -171,7 +168,7 @@ EuPathDBGFFtoOrgDb <- function(entry, output_dir) {
 
     # update SPECIES field
     query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";',
-                     entry$Organism)
+                     entry$Species)
     rs <- dbSendQuery(conn = db, query)
     dbClearResult(rs)
 

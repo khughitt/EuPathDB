@@ -3,8 +3,7 @@
 #
 # Functions for creating OrgDb objects from EuPathDB resources
 # 
-# Author: Keith Hughitt (khughitt@umd.edu)
-# Last Update: Sept 01, 2016
+# Author: Keith Hughitt (keith.hughitt@nih.gov)
 #
 # Usage: ./make-granges-data.R /path/to/eupathdb/granges/32
 #
