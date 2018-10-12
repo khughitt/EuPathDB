@@ -83,6 +83,12 @@ specData$genus_species <- sprintf("%s %s", specData$genus, specData$species)
 # parse out genus / species for the Organism field.
 shared_metadata$Species <- unlist(lapply(lapply(strsplit(shared_metadata$Organism, ' '), '[', 1:2), paste, collapse = ' '))
 
+# remove invalid species
+mask <- shared_metadata$Species %in% specData$genus_species
+message(sprintf("- Excluding %d organisms found to have an invalid species designation (%d remaining)",
+                sum(!mask), sum(mask)))
+shared_metadata <- shared_metadata[mask, ]
+
 # entries missing taxonomy information
 missing_tax_inds <- is.na(shared_metadata$TaxonomyId)
 
