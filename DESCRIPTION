@@ -18,7 +18,7 @@ Suggests:
     BiocStyle,
     rmarkdown,
     jsonlite
-biocViews: DataImport, AnnotationData, EuPathDB
+biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
 License: Artistic-2.0
 URL: https://github.com/khughitt/EuPathDB
 BugReports: https://github.com/khughitt/EuPathDB/issues
