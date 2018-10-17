@@ -105,15 +105,36 @@ Next, use the `query` function to search for your organism of interest, and
 store the result.
 
 ```r
-res <- query(ah, 'Leishmania major strain Friedlin', 'OrgDb')
+res <- query(ah, c('Leishmania major strain Friedlin', 'OrgDb', 'EuPathDB'))
 res
+```
+
+```
+AnnotationHub with 1 record
+# snapshotDate(): 2018-10-15 
+# names(): AH65089
+# $dataprovider: TriTrypDB
+# $species: Leishmania major
+# $rdataclass: OrgDb
+# $rdatadateadded: 2018-10-15
+# $title: Leishmania major strain Friedlin genome wide annotations
+# $description: TriTrypDB 39 genome annotations for Leishmania major strain ...
+# $taxonomyid: 347515
+# $genome: TriTrypDB-39_LmajorFriedlin
+# $sourcetype: GFF
+# $sourceurl: http://TriTrypDB.org/common/downloads/Current_Release/LmajorFr...
+# $sourcesize: NA
+# $tags:
+#   c("Annotation,EuPathDB,Eukaryote,Pathogen,Parasite,Trypanosome,Kinetoplastid,Leishmania",
+#   "EuPathDB") 
+# retrieve record with 'object[["AH65089"]]' 
 ```
 
 The result includes a single record, "AH56967". The record can be accessed from
 the result variable using list-like indexing:
 
 ```r
-orgdb <- res[['AH56967']]
+orgdb <- res[['AH65089']]
 class(orgdb)
 ```
 
