@@ -1,6 +1,6 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: person("Keith", "Hughitt", email = "keith.hughitt@gmail.com", role = c("aut", "cre"))
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
@@ -10,7 +10,7 @@ Depends:
     Biobase,
     GenomicRanges,
     GenomeInfoDbData,
-    AnnotationHub (>= 2.13.7),
+    AnnotationHub (>= 2.13.8),
 Imports: AnnotationHubData, Biostrings, BiocManager, utils
 Suggests:
     dplyr,
