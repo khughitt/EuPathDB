@@ -22,16 +22,14 @@ This tutorial describes how to query and make use of annotations retrieved from
 [EuPathDB : The Eukaryotic Pathogen Genomics Resource](http://eupathdb.org/eupathdb/)
 using [AnnotationHub](http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html).
 
-For more information on using AnnotationHub, check out the AnnotationHub
-vignettes:
+For more information on using AnnotationHub, check out the AnnotationHub vignettes:
 
 - [AnnotationHub: Access the AnnotationHub Web Service](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
 - [AnnotationHub How-To’s](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
 
-The resources described in this tutorial were generating using GFF files and
-web API requests made to the various EuPathDB databases (TriTrypDB, ToxoDB,
-etc.) Only organisms with annotated genomes (those for which GFF files are
-available) are accessible through AnnotationHub.
+The resources described in this tutorial were generating using GFF files and web API requests made
+to the various EuPathDB databases (TriTrypDB, ToxoDB, etc.) Only organisms with annotated genomes
+(those for which GFF files are available) are accessible through AnnotationHub.
 
 The two main resources provided are:
 
@@ -47,10 +45,9 @@ OrgDB objects for an organism include basic gene-level information such as:
 - KEGG Pathways associated with gene
 - Etc.
 
-For some organisms, [InterPro](https://www.ebi.ac.uk/interpro/) protein domain
-information is also available (in some cases, however, even though InterPro domain
-information is available through EuPathDB, it is too large to be included in
-the current AnnotationHub resources).
+For some organisms, [InterPro](https://www.ebi.ac.uk/interpro/) protein domain information is also
+available (in some cases, however, even though InterPro domain information is available through
+EuPathDB, it is too large to be included in the current AnnotationHub resources).
 
 For more information about working with Bioconductor annotation resources, see:
 
@@ -61,7 +58,7 @@ For more information about working with Bioconductor annotation resources, see:
 If you don't already have AnnotationHub installed on your system, use
 `BiocManager::install` to install the package:
 
-```r
+```{r eval = FALSE}
 install.packages("BiocManager")
 BiocManager::install("AnnotationHub")
 ```
@@ -71,7 +68,7 @@ BiocManager::install("AnnotationHub")
 To begin, let's create a new `AnnotationHub` connection and use it to query
 AnnotationHub for all EuPathDB resources.
 
-```r
+```{r}
 library('AnnotationHub')
 
 # create an AnnotationHub connection
@@ -89,7 +86,7 @@ table(meta$rdataclass)
 # distribution of resources by specific databases
 table(meta$dataprovider)
 
-# List of organisms for which resources are available
+# list of organisms for which resources are available
 length(unique(meta$species))
 head(unique(meta$species))
 ```
@@ -98,66 +95,112 @@ head(unique(meta$species))
 
 Next, we will see how you can query AnnotationHub for EuPathDB OrgDB resources.
 
-To begin, create an AnnotationHub connection, if you have not already done so,
-as shown in the section above.
+To begin, create an AnnotationHub connection, if you have not already done so, as shown in the
+section above.
 
-Next, use the `query` function to search for your organism of interest, and
-store the result.
+You can now use the `query` function to search for your organism of interest and store the result
+as follows:
 
-```r
+```{r}
 res <- query(ah, c('Leishmania major strain Friedlin', 'OrgDb', 'EuPathDB'))
 res
 ```
 
-```
-AnnotationHub with 1 record
-# snapshotDate(): 2018-10-15 
-# names(): AH65089
-# $dataprovider: TriTrypDB
-# $species: Leishmania major
-# $rdataclass: OrgDb
-# $rdatadateadded: 2018-10-15
-# $title: Leishmania major strain Friedlin genome wide annotations
-# $description: TriTrypDB 39 genome annotations for Leishmania major strain ...
-# $taxonomyid: 347515
-# $genome: TriTrypDB-39_LmajorFriedlin
-# $sourcetype: GFF
-# $sourceurl: http://TriTrypDB.org/common/downloads/Current_Release/LmajorFr...
-# $sourcesize: NA
-# $tags:
-#   c("Annotation,EuPathDB,Eukaryote,Pathogen,Parasite,Trypanosome,Kinetoplastid,Leishmania",
-#   "EuPathDB") 
-# retrieve record with 'object[["AH65089"]]' 
-```
+The result includes a single record, "AH56967". The record can be accessed from the result variable
+using list-like indexing:
 
-The result includes a single record, "AH56967". The record can be accessed from
-the result variable using list-like indexing:
-
-```r
+```{r}
 orgdb <- res[['AH65089']]
 class(orgdb)
 ```
 
-We can see that we now have an OrgDB instance, and as such, we can use the
-usual methods available for working this OrgDB objects, including:
+We can see that we now have an OrgDB instance, and as such, we can use the usual methods available
+for working this OrgDB objects, including:
 
 - `columns()`
 - `keys()`
 - `select()`
 
-
-```r
+```{r}
+# list available fields to retrieve
 columns(orgdb)
 
+# create a vector containing all gene ids for the organism
 gids <- keys(orgdb, keytype='GID')
 head(gids)
 
-dat <- select(orgdb, keys=gids, keytype='GID', columns=c('TYPE', 'CHR'))
+# retrieve the chromosome, description, and biotype for each gene
+dat <- select(orgdb, keys=gids, keytype='GID', columns=c('CHR', 'TYPE', 'GENEDESCRIPTION'))
 
 head(dat)
 
 table(dat$TYPE)
 table(dat$CHR)
+
+# create a gene / GO term mapping 
+gene_go_mapping <- select(orgdb, keys=gids, keytype='GID', columns=c('GO_ID', 'GO_TERM_NAME', 'ONTOLOGY'))
+head(gene_go_mapping)
+
+# retrieve KEGG, etc. pathway annotations
+gene_pathway_mapping <- select(orgdb, keys=gids, keytype='GID', columns=c('PATHWAY', 'PATHWAY_SOURCE'))
+table(gene_pathway_mapping$PATHWAY_SOURCE)
+head(gene_pathway_mapping)
 ```
 
+# Working with EuPathDB GRanges resources
+
+In addition to retrieving gene annotations, AnnotationHub can also be used to query GenomicRange
+(GRange) objects containing information about gene and transcript structure.
+
+```{r}
+# query AnnotationHub
+res <- query(ah, c('Leishmania major strain Friedlin', 'GRanges', 'EuPathDB'))
+res
+
+# retrieve a GRanges instance associated with the result record
+gr <- res[['AH65354']]
+gr
+```
+
+The resulting `GRanges` object can then be interacted with using the [standard GRanges
+functions](https://bioconductor.org/packages/3.7/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf), 
+including:
+
+- seqnames
+- strand
+- width
+
+```{r}
+# chromosome names
+seqnames(gr)
+
+# strand information
+strand(gr)
+
+# feature widths
+width(gr)
+```
+
+Some information can be retrieve directly as object properties using the `$` operator:
+
+```{r}
+# list of location types in the resource
+table(gr$type)
+```
+
+To subset the GRanges instance, you can use the standard `[` operator:
+
+```{r}
+# get the first three ranges
+gr[1:3]
+
+# get all gene entries on chromosome 4
+gr[gr$type == 'gene' & seqnames(gr) == 'LmjF.04']
+```
+
+# Session Information
+
+```{r}
+sessionInfo()
+```
 
