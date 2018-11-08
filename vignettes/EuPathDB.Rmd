@@ -72,10 +72,10 @@ AnnotationHub for all EuPathDB resources.
 library('AnnotationHub')
 
 # create an AnnotationHub connection
-ah = AnnotationHub()
+ah <- AnnotationHub()
 
 # search for all EuPathDB resources
-meta = query(ah, "EuPathDB")
+meta <- query(ah, "EuPathDB")
 
 length(meta)
 head(meta)
