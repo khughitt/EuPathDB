@@ -36,12 +36,12 @@ The two main resources provided are:
 - [OrgDb](https://www.bioconductor.org/help/workflows/annotation/annotation/#OrgDb)
 - [GRanges](http://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
 
-OrgDB objects for an organism include basic gene-level information such as:
+OrgDb objects for an organism include basic gene-level information such as:
 
 - Gene ID
 - Gene description
 - Chromosome number
-- GO terms assocated with gene
+- GO terms associated with gene
 - KEGG Pathways associated with gene
 - Etc.
 
@@ -91,9 +91,9 @@ length(unique(meta$species))
 head(unique(meta$species))
 ```
 
-# Working with EuPathDB OrgDB resources
+# Working with EuPathDB OrgDb resources
 
-Next, we will see how you can query AnnotationHub for EuPathDB OrgDB resources.
+Next, we will see how you can query AnnotationHub for EuPathDB OrgDb resources.
 
 To begin, create an AnnotationHub connection, if you have not already done so, as shown in the
 section above.
@@ -114,8 +114,8 @@ orgdb <- res[['AH65089']]
 class(orgdb)
 ```
 
-We can see that we now have an OrgDB instance, and as such, we can use the usual methods available
-for working this OrgDB objects, including:
+We can see that we now have an OrgDb instance, and as such, we can use the usual methods available
+for working this OrgDb objects, including:
 
 - `columns()`
 - `keys()`

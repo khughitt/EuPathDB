@@ -1,6 +1,6 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: person("Keith", "Hughitt", email = "keith.hughitt@gmail.com", role = c("aut", "cre"))
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
