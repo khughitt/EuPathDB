@@ -31,6 +31,12 @@
 #'
 #' @docType package
 #' @name EuPathDB
+#' @import jsonlite
+#' @import dplyr
+#' @import httr
+#' @import GenomeInfoDbData
+#' @import rvest
+#' @import xml2
 #' @seealso \code{\link{AnnotationHub}}
 #' @seealso \code{\link{GRanges}}
 #' @seealso  \url{http://eupathdb.org/eupathdb/}
@@ -48,4 +54,16 @@ EuPathDB <- function() {
 
 availableEuPathDB <- sort(read.csv('inst/extdata/granges_metadata.csv',
                                    stringsAsFactors = FALSE)$SpeciesFull)
- 
+
+
+#' Pipe operator
+#'
+#' Shamelessly scabbed from Hadley: https://github.com/sckott/analogsea/issues/32
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+NULL

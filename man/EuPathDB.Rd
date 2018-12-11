@@ -21,7 +21,7 @@ using the Bioconductor AnnotationHub framework.
 }
 \details{
 There are currently two types of Bioconductor resources which can be
-retrieved for 172 supported organisms from the various EuPathDB databases:
+retrieved for 194 supported organisms from the various EuPathDB databases:
 
 \itemize{
 \item OrgDB resources
@@ -41,12 +41,11 @@ APIs.
 For examples of how EuPathDB can be used to query and interact with
 EuPathDB.org resources, take a look at the vignette:
 \code{browseVignettes(package="EuPathDB")}
+
+Use \code{availableEuPathDB()} to get a vector of available organisms.
 }
 \examples{
 availableEuPathDB
-}
-\author{
-Keith Hughitt
 }
 \seealso{
 \code{\link{AnnotationHub}}
@@ -55,4 +54,6 @@ Keith Hughitt
 
 \url{http://eupathdb.org/eupathdb/}
 }
-
+\author{
+Keith Hughitt
+}
