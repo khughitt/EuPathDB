@@ -4,7 +4,6 @@ library("EuPathDB")
 library("dplyr")
 library("glue")
 library("Biostrings")
-odevtools::load_all("~/scratch/git/eupathdb_forked")
 
 projects <- c("eupathdb", "amoebadb", "cryptodb", "fungidb",
               "giardiadb", "microsporidiadb", "piroplasmadb", "plasmodb",
