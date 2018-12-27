@@ -772,7 +772,10 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     go_table <- data.frame()
   }
 
-  ortholog_table <- try(get_orthologs_all_genes(species=chosen_species, entry=entry, dir=dir))
+  gene_ids <- gene_table[["GID"]]
+  ortholog_table <- try(get_orthologs_all_genes(species=chosen_species, entry=entry,
+                                                dir=dir, gene_ids=gene_ids))
+  ##ortholog_table <- try(post_eupath_ortholog_table(species=chosen_species, entry=entry, dir=dir))
   if (class(ortholog_table) == "try-error") {
     ortholog_table <- data.frame()
   }
@@ -787,14 +790,16 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     pathway_table <- data.frame()
   }
 
-  kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
-                                          flatten=FALSE, abbreviation=kegg_abbreviation))
-  if (class(kegg_table) == "try-error") {
-    kegg_table <- data.frame()
-  } else {
-    colnames(kegg_table) <- glue("KEGGREST_{toupper(colnames(kegg_table))}")
-    colnames(kegg_table)[[1]] <- "GID"
-  }
+  ## I need to pull this from hpgltools
+  kegg_table <- data.frame()
+  ##kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
+  ##                                        flatten=FALSE, abbreviation=kegg_abbreviation))
+  ##if (class(kegg_table) == "try-error") {
+  ##  kegg_table <- data.frame()
+  ##} else {
+  ##  colnames(kegg_table) <- glue("KEGGREST_{toupper(colnames(kegg_table))}")
+  ##  colnames(kegg_table)[[1]] <- "GID"
+  ##}
 
   if (nrow(gene_table) == 0) {
     warning("Unable to create an orgdb for this species.")
@@ -1152,5 +1157,25 @@ make_taxon_names <- function(entry) {
     "gsstrain" = gsstrain)
   return(taxa)
 }
+
+#' R CMD check is super annoying about :::.
+#'
+#' In a fit of pique, I did a google search to see if anyone else has been
+#' annoyed in the same was as I.  I was in no way surprised to see that Yihui
+#' Xie was, and in his email to r-devel in 2013 he proposed a game of
+#' hide-and-seek; a game which I am repeating here.
+#'
+#' This just implements ::: as an infix operator that will not trip check.
+#'
+#' @param pkg on the left hand side
+#' @param fun on the right hand side
+`%:::%` <- function(pkg, fun) {
+  get(fun, envir = asNamespace(pkg), inherits = FALSE)
+}
+
+getMaintainer <- "GenomicFeatures" %:::% ".getMaintainer"
+getMetaDataValue <- "GenomicFeatures" %:::% ".getMetaDataValue"
+getTxDbVersion <- "GenomicFeatures" %:::% ".getTxDbVersion"
+normAuthor <- "GenomicFeatures" %:::% ".normAuthor"
 
 ## EOF

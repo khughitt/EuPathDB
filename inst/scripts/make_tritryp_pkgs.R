@@ -4,6 +4,7 @@ library("EuPathDB")
 library("dplyr")
 library("glue")
 library("Biostrings")
+projects <- "tritrypdb"
 
 create_packages <- function(metadata, directory, cpus=2) {
   ## Increase cpus once I know this is working properly.
@@ -18,12 +19,11 @@ create_packages <- function(metadata, directory, cpus=2) {
     "orgdb" = list(),
     "txdb" = list(),
     "organismdbi" = list())
-
   pkgs <- c("EuPathDB", "glue", "dplyr", "Biostrings")
   ##res <- foreach(c=1:nrow(metadata), .packages=pkgs) %dopar% {
   for (c in 1:nrow(metadata)) {
     entry <- metadata[c, ]
-    species <- datum[["Species"]]
+    species <- entry[["Species"]]
     message(glue("species is {species} \n"))
     returns[["bsgenome"]][[species]] <- make_eupath_bsgenome(
       species=species,
@@ -31,27 +31,24 @@ create_packages <- function(metadata, directory, cpus=2) {
       dir=directory,
       entry=entry)
     returns[["orgdb"]][[species]] <- make_eupath_orgdb(
-      species=species,
+      species,
       metadata=metadata,
       entry=entry,
       dir=directory)
     returns[["txdb"]][[species]] <- make_eupath_txdb(
-      species=species,
+      species,
       metadata=metadata,
       entry=entry,
       dir=directory)
     returns[["organismdbi"]][[species]] <- make_eupath_organismdbi(
-      species=species,
+      species,
       metadata=metadata,
       entry=entry,
       dir=directory)
   }
 }
 
-## Start the main namespace here.
-projects <- c("eupathdb", "amoebadb", "cryptodb", "fungidb",
-              "giardiadb", "microsporidiadb", "piroplasmadb", "plasmodb",
-              "toxodb", "trichdb", "tritrypdb")
+## Start main here.
 
 for (p in 1:length(projects)) {
   project <- projects[p]
