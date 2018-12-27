@@ -40,21 +40,21 @@
 #' @seealso \code{\link{AnnotationHub}}
 #' @seealso \code{\link{GRanges}}
 #' @seealso  \url{http://eupathdb.org/eupathdb/}
+#' @author Keith Hughitt and Ashton Belew
 NULL
 
-##' @title Get started with EuPathDB
-##' @return Used for its side-effect of opening the package vignette. A
-##'         vector of experiment identifiers.
-##' @author Keith Hughitt
-##' @aliases availableEuPathDB
-##' @examples availableEuPathDB
+#' @title Get started with EuPathDB
+#' @return Used for its side-effect of opening the package vignette. A
+#'         vector of experiment identifiers.
+#' @author Keith Hughitt
+#' @aliases availableEuPathDB
+#' @examples availableEuPathDB
 EuPathDB <- function() {
     vignette("EuPathDB", package="EuPathDB")
 }
 
 availableEuPathDB <- sort(read.csv('inst/extdata/granges_metadata.csv',
                                    stringsAsFactors = FALSE)$SpeciesFull)
-
 
 #' Pipe operator
 #'

@@ -790,16 +790,14 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     pathway_table <- data.frame()
   }
 
-  ## I need to pull this from hpgltools
-  kegg_table <- data.frame()
-  ##kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
-  ##                                        flatten=FALSE, abbreviation=kegg_abbreviation))
-  ##if (class(kegg_table) == "try-error") {
-  ##  kegg_table <- data.frame()
-  ##} else {
-  ##  colnames(kegg_table) <- glue("KEGGREST_{toupper(colnames(kegg_table))}")
-  ##  colnames(kegg_table)[[1]] <- "GID"
-  ##}
+  kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
+                                          flatten=FALSE, abbreviation=kegg_abbreviation))
+  if (class(kegg_table) == "try-error") {
+    kegg_table <- data.frame()
+  } else {
+    colnames(kegg_table) <- glue("KEGGREST_{toupper(colnames(kegg_table))}")
+    colnames(kegg_table)[[1]] <- "GID"
+  }
 
   if (nrow(gene_table) == 0) {
     warning("Unable to create an orgdb for this species.")
@@ -854,7 +852,8 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
 
   ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
   ## Make sure that every GID field is character, too
-  ## -- otherwise you get 'The type of data in the 'GID' columns must be the same for all data.frames.'
+  ## -- otherwise you get 'The type of data in the 'GID'
+  ## columns must be the same for all data.frames.'
   used_columns <- c()
   for (i in 1:length(orgdb_args)) {
     argname <- names(orgdb_args)[i]
@@ -900,7 +899,6 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     ret <- file.rename(first_path, backup_path)
   }
 
-  ##tt <- require("AnnotationForge")
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent=TRUE)
   message(sprintf("- Calling makeOrgPackage for %s", entry[["Species"]]))
@@ -940,6 +938,8 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     }
   }
 
+  ## Probably should return something more useful/interesting than this, perhaps
+  ## the dimensions of the various tables in the orgdb?
   ## return the path to the sqlite database
   retlist <- list(
     "orgdb_name" = pkgname
@@ -1156,6 +1156,134 @@ make_taxon_names <- function(entry) {
     "gspecies" = gspecies,
     "gsstrain" = gsstrain)
   return(taxa)
+}
+
+#' Create a data frame of pathways to gene IDs from KEGGREST
+#'
+#' This seeks to take the peculiar format from KEGGREST for pathway<->genes and
+#' make it easier to deal with.
+#'
+#' @param species  String to use to query KEGG abbreviation.
+#' @param abbreviation  If you already know the abbreviation, use it.
+#' @param flatten  Flatten nested tables?
+#' @return  dataframe with rows of KEGG gene IDs and columns of NCBI gene IDs
+#'   and KEGG paths.
+#' @author atb
+#' @export
+load_kegg_annotations <- function(species="coli", abbreviation=NULL, flatten=TRUE) {
+  chosen <- NULL
+  if (!is.null(abbreviation)) {
+    species <- NULL
+  }
+  if (is.null(abbreviation) & is.null(species)) {
+    stop("This requires either a species or 3 letter kegg id.")
+  } else if (!is.null(abbreviation)) {
+    chosen <- abbreviation
+  } else {
+    ## Then the species was provided.
+    abbreviation <- get_kegg_orgn(species)
+    if (length(abbreviation) == 0) {
+      stop("Unable to find a matching abbreviation for the search: ", species, ".")
+    }
+    message("The possible abbreviations are: ", toString(abbreviation), ".")
+    message("Choosing the first one: ", abbreviation[[1]])
+    chosen <- abbreviation[[1]]
+  }
+
+  ## Getting a list of genes is easy, as they are unique.
+  genes_vector <- try(KEGGREST::keggConv("ncbi-geneid", chosen))
+  if (class(genes_vector) == "try-error") {
+    if (grepl(pattern="HTTP 400", x=genes_vector)) {
+      warning("KEGGREST returned bad request.")
+      return(data.frame())
+    }
+  }
+  genes_df <- kegg_vector_to_df(genes_vector, final_colname="ncbi_geneid", flatten=flatten)
+
+  prot_vector <- KEGGREST::keggConv("ncbi-proteinid", chosen)
+  prot_df <- kegg_vector_to_df(prot_vector, final_colname="ncbi_proteinid", flatten=flatten)
+
+  uniprot_vector <- KEGGREST::keggConv("uniprot", chosen)
+  uniprot_df <- kegg_vector_to_df(uniprot_vector, final_colname="uniprotid", flatten=flatten)
+
+  path_vector <- KEGGREST::keggLink("pathway", chosen)
+  path_df <- kegg_vector_to_df(path_vector, final_colname="pathways", flatten=flatten)
+
+  if (isTRUE(flatten)) {
+    result <- merge(genes_df, prot_df, by="GID", all=TRUE)
+    rownames(result) <- result[["ID"]]
+    result <- merge(result, uniprot_df, by="GID", all=TRUE)
+    rownames(result) <- result[["ID"]]
+    result <- merge(result, path_df, by="GID", all=TRUE)
+    rownames(result) <- result[["ID"]]
+  } else {
+    result <- merge(genes_df, prot_df, by="GID", all=TRUE)
+    result <- merge(result, uniprot_df, by="GID", all=TRUE)
+    result <- merge(result, path_df, by="GID", all=TRUE)
+  }
+
+  result[["ncbi_geneid"]] <- gsub(
+    pattern="ncbi-geneid:", replacement="", x=result[["ncbi_geneid"]])
+  result[["ncbi_proteinid"]] <- gsub(
+    pattern="ncbi-proteinid:", replacement="", x=result[["ncbi_proteinid"]])
+  result[["uniprotid"]] <- gsub(pattern="up:", replacement="", x=result[["uniprotid"]])
+  result[["pathways"]] <- gsub(pattern="path:", replacement="", x=result[["pathways"]])
+  result[["kegg_geneid"]] <- glue("{chosen}:{result[['GID']]}")
+  ## Now we have a data frame of all genes <-> ncbi-ids, pathways
+  result_nas <- is.na(result)
+  result[result_nas] <- ""
+  rownames(result) <- make.names(result[["GID"]], unique=TRUE)
+  return(result)
+}
+
+#' Convert a potentially non-unique vector from kegg into a normalized data
+#' frame.
+#'
+#' This function seeks to reformat data from KEGGREST into something which is
+#' rather easier to use.
+#'
+#' This could probably benefit from a tidyr-ish revisitation.
+#'
+#' @param vector  Information from KEGGREST
+#' @param final_colname  Column name for the new information
+#' @param flatten Flatten nested data?
+#' @return  A normalized data frame of gene IDs to whatever.
+#' @author atb
+kegg_vector_to_df <- function(vector, final_colname="first", flatten=TRUE) {
+  final_df <- data.frame(stringsAsFactors=FALSE)
+  if (isTRUE(flatten)) {
+    sorted <- order(names(vector))
+    sorted_vector <- vector[sorted]
+    sorted_names <- names(sorted_vector)
+    duplicated_names <- duplicated(sorted_names)
+    unique_vector <- sorted_vector[!duplicated_names]
+    unique_df <- as.data.frame(unique_vector, stringsAsFactors=FALSE)
+    colnames(unique_df) <- final_colname
+    ## Next line should not be needed with stringsAsFactors=FALSE
+    ##unique_df[[final_colname]] <- as.character(unique_df[[final_colname]])
+    duplicated_vector <- sorted_vector[duplicated_names]
+    ## Now append the duplicated entries to the existing data frame.
+    if (length(duplicated_vector) > 0) {
+      for (c in 1:length(duplicated_vector)) {
+        append_name <- names(duplicated_vector)[c]
+        append_entry <- as.character(duplicated_vector[c])
+        unique_df[append_name, final_colname] <- glue(
+          "{unique_df[append_name, final_colname]}, {append_entry}")
+      }
+    }
+    final_df <- unique_df
+    rm(unique_df)
+    final_df[["GID"]] <- rownames(final_df)
+    colnames(final_df) <- c(final_colname, "GID")
+  } else {
+    final_df <- as.data.frame(vector, stringsAsFactors=FALSE)
+    final_df[["GID"]] <- names(vector)
+    colnames(final_df) <- c(final_colname, "GID")
+    na_set <- is.na(final_df)
+    final_df[na_set] <- ""
+  }
+  final_df[["GID"]] <- gsub(pattern="^.*:", replacement="", x=final_df[["GID"]], perl=TRUE)
+  return(final_df)
 }
 
 #' R CMD check is super annoying about :::.
