@@ -19,7 +19,6 @@ env:
 
 install:
   - make prereq
-  - make deps
   - make install
 
 script:
