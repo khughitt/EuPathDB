@@ -37,6 +37,7 @@
 #' @import GenomeInfoDbData
 #' @import rvest
 #' @import xml2
+#' @import utils
 #' @seealso \code{\link{AnnotationHub}}
 #' @seealso \code{\link{GRanges}}
 #' @seealso  \url{http://eupathdb.org/eupathdb/}
@@ -49,10 +50,15 @@ NULL
 #' @author Keith Hughitt
 #' @aliases availableEuPathDB
 #' @examples availableEuPathDB
-EuPathDB <- function() {
-    vignette("EuPathDB", package="EuPathDB")
+#' @export
+start_eupathdb <- function() {
+  ## I renamed this function to handle an R check where it looks for man pages with mismatched case
+  ## with respect to the functions within it.  There is a roxygen clue for EuPathDb, so having
+  ## a function with the same name confuses R check.
+  utils::vignette("EuPathDB", package="EuPathDB")
 }
 
+#' @title List of available curated species.
 availableEuPathDB <- sort(read.csv('inst/extdata/granges_metadata.csv',
                                    stringsAsFactors = FALSE)$SpeciesFull)
 

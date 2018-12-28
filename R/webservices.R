@@ -206,6 +206,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
 #' acquireable elsewhere.
 #'
 #' @param webservice Eupathdb, tritrypdb, fungidb, etc...
+#' @param excludes List of fields to ignore.
 #' @return List of parameters.
 get_eupath_fields <- function(webservice, excludes=NULL) {
   if (is.null(excludes)) {
@@ -857,11 +858,12 @@ post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
 #' Querying the full ortholog table at eupathdb.org fails mysteriously.
 #' This is a horrible brute-force approach to get around this.
 #'
-#' @param species  What species to query
-#' @param dir  Directory to which to save intermediate data (currently unused)
-#' @param entry  An entry from the eupathdb metadata to use for other parameters.
-#' @param metadata  The set of eupathdb metadata from which to query.
-#' @param ...  Extra parameters for downloading eupathdb metadata.
+#' @param species What species to query?
+#' @param dir Directory to which to save intermediate data (currently unused).
+#' @param gene_ids List of gene IDs to query.
+#' @param entry An entry from the eupathdb metadata to use for other parameters.
+#' @param metadata The set of eupathdb metadata from which to query.
+#' @param ... Extra parameters for downloading eupathdb metadata.
 #' @export
 get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", gene_ids=NULL,
                                     entry=NULL, metadata=NULL, ...) {

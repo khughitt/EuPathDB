@@ -30,6 +30,13 @@ install:
 	@echo "Performing R CMD INSTALL ."
 	R CMD INSTALL .
 
+prereq:
+	@echo "Checking a few prerequisites."
+	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
+bioc_prereq <- c('R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
+for (req in bioc_prereq) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', req, ')')))))) == 'try-error') { biocManager(req) } } \
+## hahaha looks like lisp!"
+
 push:
 	echo "Pushing to github."
 	git commit -a && git push
