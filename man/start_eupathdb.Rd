@@ -15,7 +15,7 @@ Used for its side-effect of opening the package vignette. A
 Get started with EuPathDB
 }
 \examples{
-availableEuPathDB
+start_eupathdb()
 }
 \author{
 Keith Hughitt

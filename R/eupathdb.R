@@ -38,6 +38,10 @@
 #' @import rvest
 #' @import xml2
 #' @import utils
+#' @importFrom data.table data.table
+#' @importFrom dplyr filter group_by n summarise
+#' @importFrom foreach foreach
+#' @importFrom glue glue glue_data
 #' @seealso \code{\link{AnnotationHub}}
 #' @seealso \code{\link{GRanges}}
 #' @seealso  \url{http://eupathdb.org/eupathdb/}
@@ -71,4 +75,15 @@ start_eupathdb <- function() {
 #' @export
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
+NULL
+
+#' dopar
+#'
+#' Shamelessly scabbed from Hadley: https://github.com/sckott/analogsea/issues/32
+#'
+#' @name %dopar%
+#' @rdname dopar
+#' @keywords internal
+#' @export
+#' @importFrom foreach %dopar%
 NULL

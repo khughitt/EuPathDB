@@ -49,9 +49,9 @@ create_packages <- function(metadata, directory, cpus=2) {
 }
 
 ## Start main here.
+metadata <- download_eupath_metadata(webservice=project, dir=project)
 
 for (p in 1:length(projects)) {
   project <- projects[p]
-  metadata <- download_eupath_metadata(webservice=project, dir=project)
   project_result <- create_packages(metadata, project)
 }
