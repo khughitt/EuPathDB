@@ -22,7 +22,7 @@ clean_vignette:
 deps:
 	@echo "Invoking devtools::install_dev_deps()"
 	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { biocLite(t) }"
+all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { BiocManager::install(t, update=FALSE) }"
 
 document: roxygen vignette reference
 
@@ -33,7 +33,7 @@ install:
 prereq:
 	@echo "Checking a few prerequisites."
 	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-bioc_prereq <- c('GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
+bioc_prereq <- c('BiocStyle','GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
 for (req in bioc_prereq) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', req, ')')))))) == 'try-error') { BiocManager::install(req, update=FALSE) } } \
 ## hahaha looks like lisp!"
 
