@@ -16,9 +16,10 @@ env:
 
 install:
   - make prereq
+  - make install
 
 script:
-  - make prereq
+  - make test
 
 notifications:
   email: false

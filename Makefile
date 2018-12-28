@@ -22,7 +22,7 @@ clean_vignette:
 deps:
 	@echo "Invoking devtools::install_dev_deps()"
 	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { BiocManager::install(t, update=FALSE) }"
+all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', t, ')')))))) == 'try-error') { BiocManager::install(t, update=FALSE) } }"
 
 document: roxygen vignette reference
 
