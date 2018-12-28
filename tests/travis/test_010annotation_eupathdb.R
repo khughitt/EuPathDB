@@ -1,6 +1,6 @@
 start <- as.POSIXlt(Sys.time())
 library(testthat)
-library(hpgltools)
+library(EuPathDB)
 context("010annotation_eupathdb.R
   12\n")
 ## 2018-02: Hey, there is a new eupathdb release!  Some stuff has changed!
