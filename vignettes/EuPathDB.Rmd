@@ -4,7 +4,7 @@ output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Accessing EuPathDB Resources using AnnotationHub}
   %\VignetteEngine{knitr::rmarkdown}
-  % \VignetteKeyword{eupathdb, annotations}
+  %\VignetteKeyword{eupathdb, annotations}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -137,7 +137,7 @@ head(dat)
 table(dat$TYPE)
 table(dat$CHR)
 
-# create a gene / GO term mapping 
+# create a gene / GO term mapping
 gene_go_mapping <- select(orgdb, keys=gids, keytype='GID', columns=c('GO_ID', 'GO_TERM_NAME', 'ONTOLOGY'))
 head(gene_go_mapping)
 
@@ -163,7 +163,7 @@ gr
 ```
 
 The resulting `GRanges` object can then be interacted with using the [standard GRanges
-functions](https://bioconductor.org/packages/3.7/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf), 
+functions](https://bioconductor.org/packages/3.7/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf),
 including:
 
 - seqnames
@@ -203,4 +203,3 @@ gr[gr$type == 'gene' & seqnames(gr) == 'LmjF.04']
 ```{r}
 sessionInfo()
 ```
-

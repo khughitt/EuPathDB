@@ -1,7 +1,13 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
+
 Version: 1.0.1
-Authors@R: person("Keith", "Hughitt", email = "keith.hughitt@gmail.com", role = c("aut", "cre"))
+Author: Keith Hughitt, Ashton Trey Belew
+Authors@R: c(person("Keith", "Hughitt", email="khughitt@umd.edu", role=c("aut","cre")),
+             person("Ashton", "Belew", email="abelew@gmail.com", role=c("aut")))
+Maintainer: Keith Hughitt <khughitt@umd.edu>
+=======
+
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
     available in R using the AnnotationHub framework.
@@ -11,16 +17,20 @@ Depends:
     GenomicRanges,
     GenomeInfoDbData,
     AnnotationHub (>= 2.13.8),
-Imports: AnnotationHubData, Biostrings, BiocManager, utils
+Imports: AnnotationHubData, Biostrings, BiocManager, data.table, dplyr, foreach, glue,
+         httr, jsonlite, magrittr, rvest, utils, xml2
 Suggests:
-    dplyr,
-    knitr,
-    BiocStyle,
-    rmarkdown,
-    jsonlite
+    AnnotationDbi, AnnotationForge, BiocStyle, BSgenome, BiocInstaller, curl, desc, devtools,
+    GenomicFeatures, Go.db, KEGGREST, knitr, OrganismDbi, RCurl, reactome.db, RSQLite, S4Vectors,
+    stringr, testthat, tidyr
 biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
 License: Artistic-2.0
 URL: https://github.com/khughitt/EuPathDB
 BugReports: https://github.com/khughitt/EuPathDB/issues
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr
+Collate:
+ 'annotations.R'
+ 'eupathdb.R'
+ 'webservices.R'
+ 'zzz.R'

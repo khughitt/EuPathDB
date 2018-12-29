@@ -1,0 +1,26 @@
+language: r
+r: bioc-release
+sudo: false
+bioc_required: true
+warnings_are_errors: false
+
+cache:
+  timeout: 3000
+  packages: true
+
+env:
+  global:
+    - R_CHECK_ARGS="--no-build-vignettes --no-manual"
+    - _R_CHECK_TIMINGS_="0"
+    - R_MAX_NUM_DLLS=256
+
+install:
+  - make prereq
+  - make install
+
+script:
+  - make check
+  - make test
+
+notifications:
+  email: false
