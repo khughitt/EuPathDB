@@ -115,11 +115,6 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      replacement=glue::glue("DB-{db_version}_"),
                                      x=SourceUrl))
 
-    ##dplyr::mutate(is.character,
-    ##              stringr::str_replace_all,
-    ##              pattern="DB-(\\d\\d)_",
-    ##              replacement=glue("DB-{db_version}_"))
-
   ## Add project-specific tags for each entry
   shared_metadata[["Tags"]] <- sapply(shared_metadata[["DataProvider"]],
                                       function(x) {
@@ -414,8 +409,6 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 #' @param query_body String of additional query arguments
 #' @param species Species name if missing an entry
 #' @param entry The single metadatum containing the base url of the provider, species, etc.
-#' @param metadata  If no entry is provided, then it may be retrieved given a
-#'   species and this.
 #' @param table_name  The name of the table to extract, this is provided to make
 #'   for prettier labeling.
 #' @param minutes  A timeout when querying the eupathdb.
@@ -427,15 +420,13 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 #' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(query_body, species=NULL, entry=NULL, metadata=NULL,
+post_eupath_table <- function(query_body, species=NULL, entry=NULL,
                               table_name=NULL, minutes=30, ...) {
 
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
 
@@ -524,20 +515,16 @@ post_eupath_table <- function(query_body, species=NULL, entry=NULL, metadata=NUL
 #'
 #' @param species  guess.
 #' @param entry  The full annotation entry.
-#' @param metadata  A metadata table from which to get some annotation data.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
 #' @param ...  Used for downloading metadata.
 #' @return  A big honking table.
 post_eupath_annotations <- function(species="Leishmania major", entry=NULL,
-                                    metadata=NULL, dir="eupathdb", ...) {
+                                    dir="eupathdb", ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-      ## metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata, ...)
     species <- entry[["Species"]]
   }
@@ -617,20 +604,16 @@ post_eupath_annotations <- function(species="Leishmania major", entry=NULL,
 #'
 #' @param species  guess.
 #' @param entry  The full annotation entry.
-#' @param metadata  A metadata table from which to get some annotation data.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
 #' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
 post_eupath_go_table <- function(species="Leishmania major", entry=NULL,
-                                 metadata=NULL, dir="eupathdb", ...) {
+                                 dir="eupathdb", ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-      ## metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
   species <- entry[["Species"]]
@@ -675,20 +658,16 @@ post_eupath_go_table <- function(species="Leishmania major", entry=NULL,
 #'
 #' @param species  guess.
 #' @param entry  The full annotation entry.
-#' @param metadata  A metadata table from which to get some annotation data.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
 #' @param ... Extra options for downloading metadata.
 #' @return  A big honking table.
 post_eupath_ortholog_table <- function(species="Leishmania major", entry=NULL,
-                                       metadata=NULL, dir="eupathdb", ...) {
+                                       dir="eupathdb", ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      ## metadata <- download_eupath_metadata(dir=dir, ...)
-      metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
   species <- entry[["Species"]]
@@ -736,21 +715,17 @@ post_eupath_ortholog_table <- function(species="Leishmania major", entry=NULL,
 #'
 #' @param species  guess.
 #' @param entry  The full annotation entry.
-#' @param metadata  A metadata table from which to get some annotation data.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
 #' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
 post_eupath_interpro_table <- function(species="Leishmania major strain Friedlin",
-                                       entry=NULL, metadata=NULL, dir="eupathdb",
+                                       entry=NULL, dir="eupathdb",
                                        ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      ## metadata <- download_eupath_metadata(dir=dir, ...)
-      metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
 
@@ -798,20 +773,16 @@ post_eupath_interpro_table <- function(species="Leishmania major strain Friedlin
 #'
 #' @param species  guess.
 #' @param entry  The full annotation entry.
-#' @param metadata  A metadata table from which to get some annotation data.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
 #' @param ... Extra options when downloading metadata
 #' @return  A big honking table.
 post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
-                                      metadata=NULL, dir="eupathdb", ...) {
+                                      dir="eupathdb", ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-      ## metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
   species <- entry[["Species"]]
@@ -862,18 +833,14 @@ post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
 #' @param entry An entry from the eupathdb metadata to use for other parameters.
-#' @param metadata The set of eupathdb metadata from which to query.
 #' @param ... Extra parameters for downloading eupathdb metadata.
 #' @export
 get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", gene_ids=NULL,
-                                    entry=NULL, metadata=NULL, ...) {
+                                    entry=NULL, ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-      ## metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
     species <- entry[["Species"]]
   }
@@ -949,15 +916,23 @@ get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", 
   return(all_orthologs)
 }
 
+#' This peculiar and slow querying of orthologs is due to me crashing the
+#' eupathdb web servers.
+#'
+#' Therefore, I wrote this, which queries one gene at a time.  I think it would
+#' be nice to change this to query multiple genes at a time.
+#'
+#' @param species What species to query?
+#' @param gene What gene to query?
+#' @param dir Where to put the checkpoint file?
+#' @param entry Metadata entry.
+#' @return table of orthologs for our one gene.
 get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.0010",
-                                   dir="eupathdb", entry=NULL, metadata=NULL, ...) {
+                                   dir="eupathdb", entry=NULL, ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    if (is.null(metadata)) {
-      metadata <- download_eupath_metadata(dir=dir, ...)
-      ## metadata <- download_eupath_metadata(dir=dir)
-    }
+    metadata <- download_eupath_metadata(dir=dir, ...)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
   species <- entry[["Species"]]
