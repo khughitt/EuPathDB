@@ -6,7 +6,7 @@
 \usage{
 make_eupath_organismdbi(species = "Leishmania major strain Friedlin",
   entry = NULL, version = NULL, dir = "eupathdb",
-  reinstall = FALSE, metadata = NULL, kegg_abbreviation = NULL,
+  reinstall = FALSE, kegg_abbreviation = NULL,
   exclude_join = "ENTREZID", ...)
 }
 \arguments{
@@ -19,8 +19,6 @@ make_eupath_organismdbi(species = "Leishmania major strain Friedlin",
 \item{dir}{Directory in which to build the packages.}
 
 \item{reinstall}{Overwrite existing data files?}
-
-\item{metadata}{Use a pre-existing metadata table, or download a new one.}
 
 \item{kegg_abbreviation}{For when we cannot automagically find the kegg species id.}
 

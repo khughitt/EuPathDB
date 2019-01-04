@@ -14,6 +14,7 @@
 #'   download_eupath_metadata(), extra arguments for it go here.
 #' @return  A single row from the eupathdb metadata.
 #' @author atb
+#' @export
 check_eupath_species <- function(species="Leishmania major strain Friedlin",
                                  metadata=NULL, ...) {
   if (is.null(metadata)) {
@@ -70,12 +71,12 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
   dir <- basename(path)
   full_path <- file.path(basedir, dir)
   ## at_cmd <- paste0("perl -p -i -e 's/ at /\\@/g' ", full_path, "/DESCRIPTION")
-  at_cmd <- glue("perl -p -i -e 's/ at /\\@/g' {full_path}/DESCRIPTION")
+  at_cmd <- glue::glue("perl -p -i -e 's/ at /\\@/g' {full_path}/DESCRIPTION")
   message("Rewriting DESCRIPTION: ", at_cmd)
   system(command=at_cmd)
   ## Since I changed @ to at I figured . could be dot too
   ## dot_cmd <- paste0("perl -p -i -e 's/ dot /\\./g' ", full_path, "/DESCRIPTION")
-  dot_cmd <- glue("perl -p -i -e 's/ dot /\\./g' {full_path}/DESCRIPTION")
+  dot_cmd <- glue::glue("perl -p -i -e 's/ dot /\\./g' {full_path}/DESCRIPTION")
   message("Rewriting DESCRIPTION to remove ' dot ': ", dot_cmd)
   system(dot_cmd)
 
@@ -87,7 +88,7 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
     new_path <- file.path(basedir, new_dir)
     ## And rename the directory
     ## mv_cmd <- paste0("mv ", path, " ", new_path)
-    mv_cmd <- glue("mv {path} {new_path}")
+    mv_cmd <- glue::glue("mv {path} {new_path}")
     message("moving orgdb: ", mv_cmd)
     system(mv_cmd)
     ## Collect the text files in the new package and remove all -like instances in them
@@ -95,7 +96,7 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
     ##                    removal, "/", replace,
     ##                    "/g' $(find ", new_path,
     ##                    " -type f | grep -v 'sqlite' | grep -v 'zzz' | grep -v 'rda')")
-    find_cmd <- glue(
+    find_cmd <- glue::glue(
       "perl -p -i -e 's/{removal}/{replace}/g' \\
       $(find {new_path} -type f | grep -v 'sqlite' | grep -v 'zzz' | grep -v 'rda')")
     message("rewriting orgdb files: ", find_cmd)
@@ -107,12 +108,12 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
       old_sqlite_base <- gsub(pattern=".db", replacement="", x=dir)
       sqlite_basename <- basename(dir)
       sqlite_basename <- gsub(pattern=".sqlite", replacement="", x=sqlite_basename)
-      old_sqlite_file <- file.path(new_dir, "inst", "extdata", glue("{old_sqlite_base}.sqlite"))
+      old_sqlite_file <- file.path(new_dir, "inst", "extdata", glue::glue("{old_sqlite_base}.sqlite"))
       old_sqlite <- file.path(basedir, old_sqlite_file)
       new_sqlite_file <- gsub(pattern=removal, replacement=replace, x=old_sqlite_file)
       new_sqlite <- file.path(basedir, new_sqlite_file)
       ## sqlite_mv_cmd <- paste0("mv ", old_sqlite, " ", new_sqlite)
-      sqlite_mv_cmd <- glue("mv {old_sqlite} new_sqlite")
+      sqlite_mv_cmd <- glue::glue("mv {old_sqlite} new_sqlite")
       message("moving sqlite file: ", sqlite_mv_cmd)
       system(sqlite_mv_cmd)
       ## orgdb_dir <- new_dir
@@ -121,7 +122,7 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
       ## final_sqlite_cmd <- paste0("chmod +w ", new_sqlite, " ; sqlite3 ", new_sqlite,
       ##                            " \"UPDATE metadata SET value='", new_pkg_name,
       ##                            "' WHERE name='SPECIES';\" ; chmod -w ", new_sqlite)
-      final_sqlite_cmd <- glue(
+      final_sqlite_cmd <- glue::glue(
         "chmod +w {new_sqlite}; sqlite3 {new_sqlite} \\
         \"UPDATE metadata SET value='{new_pkg_name}' WHERE name='SPECIES';\";\\
         chmod -w {new_sqlite}")
@@ -351,7 +352,7 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
                         replacement="\\1",
                         x=fasta_start)
   ## genome_filename <- file.path(dir, paste0(pkgname, ".fasta"))
-  genome_filename <- file.path(dir, glue("{pkgname}.fasta"))
+  genome_filename <- file.path(dir, glue::glue("{pkgname}.fasta"))
 
   ## Find a spot to dump the fasta files
   bsgenome_base <- file.path(dir)
@@ -378,7 +379,7 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
     chr <- names(input)[index]
     chr_name <- strsplit(chr, split=" ")[[1]][1]
     ## chr_file <- file.path(bsgenome_dir, paste0(chr_name, ".fa"))
-    chr_file <- file.path(bsgenome_dir, glue("{chr_name}.fa"))
+    chr_file <- file.path(bsgenome_dir, glue::glue("{chr_name}.fa"))
     output <- Biostrings::writeXStringSet(input[index], chr_file, append=FALSE,
                                           compress=FALSE, format="fasta")
     output_list[[chr_name]] <- chr_file
@@ -396,7 +397,7 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
   author <- "Ashton Trey Belew <abelew@umd.edu>"
   ## title <- paste0(taxa[["genus"]], " ", taxa[["species"]], " strain ", taxa[["strain"]],
   ##                 " version ", db_version)
-  title <- glue("{taxa[['genus']]} {taxa[['species']]} strain {taxa[['strain']]} \\
+  title <- glue::glue("{taxa[['genus']]} {taxa[['species']]} strain {taxa[['strain']]} \\
                 version {db_version}")
 
   descript$set(Title=title)
@@ -404,7 +405,7 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
   version_string <- format(Sys.time(), "%Y.%m")
   descript$set(Version=version_string)
   descript$set(Maintainer=author)
-  descript$set(Description=glue("A full genome from the eupathdb for {title}."))
+  descript$set(Description=glue::glue("A full genome from the eupathdb for {title}."))
   descript$set(License="Artistic-2.0")
   descript$set(URL="https://eupathdb.org")
   descript$set(BugReports="https://github.com/elsayed-lab")
@@ -413,11 +414,11 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
   descript$set(organism=taxa[["taxon"]])
   descript$set(common_name=taxa[["genus_species"]])
   descript$set(provider=fasta_hostname)
-  descript$set(provider_version=glue("{fasta_hostname} {db_version}"))
+  descript$set(provider_version=glue::glue("{fasta_hostname} {db_version}"))
   descript$set(release_date=format(Sys.time(), "%Y%m%d"))
-  descript$set(BSgenomeObjname=glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
+  descript$set(BSgenomeObjname=glue::glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
   descript$set(release_name=db_version)
-  descript$set(organism_biocview=glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
+  descript$set(organism_biocview=glue::glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
   descript$del("LazyData")
   descript$del("Authors@R")
   descript$del("URL")
@@ -441,8 +442,8 @@ make_eupath_bsgenome <- function(species="Leishmania major strain Friedlin", ent
     deleted <- unlink(x=bsgenome_dir, recursive=TRUE, force=TRUE)
     built <- try(devtools::build(pkgname, quiet=TRUE))
     if (class(built) != "try-error") {
-      moved <- file.rename(glue("{pkgname}_{version_string}.tar.gz"),
-                           glue("{bsgenome_dir}_{version_string}.tar.gz"))
+      moved <- file.rename(glue::glue("{pkgname}_{version_string}.tar.gz"),
+                           glue::glue("{bsgenome_dir}_{version_string}.tar.gz"))
       final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
     }
   } else {
@@ -498,22 +499,22 @@ get_eupath_pkgnames <- function(species="Coprinosis.cinerea.okayama7#130", versi
     stop("Did not find your species.")
   }
 
-  version_string <- glue(".v{entry[['SourceVersion']]}")
+  version_string <- glue::glue(".v{entry[['SourceVersion']]}")
   if (!is.null(version)) {
-    version_string <- glue(".v{version}")
+    version_string <- glue::glue(".v{version}")
   }
 
   taxa <- make_taxon_names(entry)
   first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
   pkg_list <- list(
-    "bsgenome" = glue("BSGenome.{taxa[['taxon']]}{version_string}"),
+    "bsgenome" = glue::glue("BSGenome.{taxa[['taxon']]}{version_string}"),
     "bsgenome_installed" = FALSE,
     ## "organismdbi" = paste0("eupathdb.", taxa[["taxon"]], version_string),
-    "organismdbi" = glue("eupathdb.{taxa[['taxon']]}{version_string}"),
+    "organismdbi" = glue::glue("eupathdb.{taxa[['taxon']]}{version_string}"),
     "organismdbi_installed" = FALSE,
-    "orgdb" = glue("org.{first_char}{taxa[['species_strain']]}{version_string}.eg.db"),
+    "orgdb" = glue::glue("org.{first_char}{taxa[['species_strain']]}{version_string}.eg.db"),
     "orgdb_installed" = FALSE,
-    "txdb" = glue("TxDb.{taxa[['genus']]}.{taxa[['species_strain']]}.\\
+    "txdb" = glue::glue("TxDb.{taxa[['genus']]}.{taxa[['species_strain']]}.\\
                   {entry[['DataProvider']]}{version_string}"),
     "txdb_installed" = FALSE
   )
@@ -612,7 +613,7 @@ make_eupath_organismdbi <- function(species="Leishmania major strain Friedlin", 
     "GENEID" %in% AnnotationDbi::keytypes(get(txdb_name))
   if (isTRUE(geneids_found)) {
     count <- count + 1
-    name <- glue("join{count}")
+    name <- glue::glue("join{count}")
     graph_data[[name]] <- c(orgdb="GID",  txdb="GENEID")
     names(graph_data[[name]]) <- c(orgdb_name, txdb_name)
   }
@@ -625,7 +626,7 @@ make_eupath_organismdbi <- function(species="Leishmania major strain Friedlin", 
     orgdb_go_col %in% AnnotationDbi::keytypes(get(orgdb_name))
   if (isTRUE(goids_found)) {
     count <- count + 1
-    name <- glue("join{count}")
+    name <- glue::glue("join{count}")
     graph_data[[name]] <- c(GO.db="GOID", orgdb=orgdb_go_col)
     names(graph_data[[name]]) <- c("GO.db", orgdb_name)
   }
@@ -638,7 +639,7 @@ make_eupath_organismdbi <- function(species="Leishmania major strain Friedlin", 
     orgdb_path_col %in% AnnotationDbi::keytypes(get(orgdb_name))
   if (isTRUE(reactomeids_found)) {
     count <- count + 1
-    name <- glue("join{count}")
+    name <- glue::glue("join{count}")
     graph_data[[name]] <- c(reactome.db="REACTOMEID", orgdb=orgdb_path_col)
     names(graph_data[[name]]) <- c("reactome.db", orgdb_name)
   }
@@ -650,10 +651,10 @@ make_eupath_organismdbi <- function(species="Leishmania major strain Friedlin", 
     if (isTRUE(reinstall)) {
       unlinkret <- unlink(x=final_dir, recursive=TRUE)
     } else {
-      if (file.exists(glue("{final_dir}.bak"))) {
-        unlinkret <- unlink(x=glue("{final_dir}.bak"), recursive=TRUE)
+      if (file.exists(glue::glue("{final_dir}.bak"))) {
+        unlinkret <- unlink(x=glue::glue("{final_dir}.bak"), recursive=TRUE)
       }
-      renamed <- file.rename(from=final_dir, to=glue("{final_dir}.bak"))
+      renamed <- file.rename(from=final_dir, to=glue::glue("{final_dir}.bak"))
     }
   }
 
@@ -737,7 +738,7 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
 
   do_kegg <- TRUE
   if (is.null(kegg_abbreviation)) {
-    kegg_abbreviation <- get_kegg_orgn(glue("{taxa[['genus']]} {taxa[['species']]}"))
+    kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
     if (length(kegg_abbreviation) == 0) {
       do_kegg <- FALSE
     }
@@ -779,7 +780,7 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
   if (class(kegg_table) == "try-error") {
     kegg_table <- data.frame()
   } else {
-    colnames(kegg_table) <- glue("KEGGREST_{toupper(colnames(kegg_table))}")
+    colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
     colnames(kegg_table)[[1]] <- "GID"
   }
 
@@ -804,7 +805,7 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     "maintainer" = entry[["Maintainer"]],
     "tax_id" = as.character(entry[["TaxonomyId"]]),
     "genus" = taxa[["genus"]],
-    "species" = glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
+    "species" = glue::glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
     "outputDir" = dir)
 
   ## add non-empty tables
@@ -847,7 +848,7 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
       for (cn in 2:length(colnames(orgdb_args[[i]]))) {
         colname <- colnames(orgdb_args[[i]])[cn]
         if (colname %in% used_columns) {
-          new_colname <- glue("{toupper(argname)}_{colname}")
+          new_colname <- glue::glue("{toupper(argname)}_{colname}")
           colnames(orgdb_args[[i]])[cn] <- new_colname
           used_columns <- c(used_columns, new_colname)
         } else {
@@ -872,7 +873,7 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
   }
 
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
-  backup_path <- file.path(dir, glue("{pkgname}.bak"))
+  backup_path <- file.path(dir, glue::glue("{pkgname}.bak"))
   first_path <- file.path(dir, pkgname)
   if (file.exists(backup_path)) {
     message(backup_path, " already exists, deleting it.")
@@ -963,7 +964,7 @@ make_eupath_txdb <- function(species=NULL, entry=NULL, dir="eupathdb",
   }
 
   ## save gff as tempfile
-  input_gff <- file.path(dir, glue("{pkgname}.gff"))
+  input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
   tt <- download.file(url=entry[["SourceUrl"]], destfile=input_gff,
                          method="internal", quiet=FALSE)
 
@@ -986,7 +987,7 @@ make_eupath_txdb <- function(species=NULL, entry=NULL, dir="eupathdb",
                                     format="gff",
                                     chrominfo=chromosome_info,
                                     dataSource=entry[["SourceUrl"]],
-                                    organism=glue("{taxa[['genus']]} {taxa[['species']]}"),
+                                    organism=glue::glue("{taxa[['genus']]} {taxa[['species']]}"),
                                     ## metadata=t(entry))
                                     ))
   if (class(txdb) == "try-error") {
@@ -1003,8 +1004,8 @@ make_eupath_txdb <- function(species=NULL, entry=NULL, dir="eupathdb",
   version_string <- format(Sys.time(), "%Y.%m")
   data_source <- getMetaDataValue(txdb, "Data source")
   symvals <- list(
-    "PKGTITLE" = glue("Annotation package for {dbType} object(s)"),
-    "PKGDESCRIPTION" = glue("Exposes an annotation databases generated from \\
+    "PKGTITLE" = glue::glue("Annotation package for {dbType} object(s)"),
+    "PKGDESCRIPTION" = glue::glue("Exposes an annotation databases generated from \\
                              {data_source} by exposing these as {dbType} objects"),
     "PKGVERSION" = version_string,
     "AUTHOR" = paste(authors, collapse = ", "),
@@ -1085,7 +1086,7 @@ make_taxon_names <- function(entry) {
   strain <- ""
   if (length(species_parts) >= 3) {
     for (part in 3:length(species_parts)) {
-      strain <- glue("{strain}.{species_parts[part]}")
+      strain <- glue::glue("{strain}.{species_parts[part]}")
     }
   }
   strain <- gsub(pattern="^\\.", replacement="", x=strain)
@@ -1118,14 +1119,14 @@ make_taxon_names <- function(entry) {
   species <- gsub(pattern=silly_pattern, replacement="\\.", x=species)
   strain <- gsub(pattern=silly_pattern, replacement="\\.", x=strain)
 
-  species_strain <- glue("{species}.{strain}")
-  genus_species <- glue("{genus}.{species}")
+  species_strain <- glue::glue("{species}.{strain}")
+  genus_species <- glue::glue("{genus}.{species}")
 
   species_strain <- paste(unlist(strsplit(taxon, split="\\."))[-1], collapse=".")
-  genus_species <- glue("{genus}.{species}")
+  genus_species <- glue::glue("{genus}.{species}")
 
-  gspecies <- glue("{first}{species}")
-  gsstrain <- glue("{gspecies}{strain}")
+  gspecies <- glue::glue("{first}{species}")
+  gsstrain <- glue::glue("{gspecies}{strain}")
 
   taxa <- list(
     "taxon" = taxon,
@@ -1209,7 +1210,7 @@ load_kegg_annotations <- function(species="coli", abbreviation=NULL, flatten=TRU
     pattern="ncbi-proteinid:", replacement="", x=result[["ncbi_proteinid"]])
   result[["uniprotid"]] <- gsub(pattern="up:", replacement="", x=result[["uniprotid"]])
   result[["pathways"]] <- gsub(pattern="path:", replacement="", x=result[["pathways"]])
-  result[["kegg_geneid"]] <- glue("{chosen}:{result[['GID']]}")
+  result[["kegg_geneid"]] <- glue::glue("{chosen}:{result[['GID']]}")
   ## Now we have a data frame of all genes <-> ncbi-ids, pathways
   result_nas <- is.na(result)
   result[result_nas] <- ""
@@ -1248,7 +1249,7 @@ kegg_vector_to_df <- function(vector, final_colname="first", flatten=TRUE) {
       for (c in 1:length(duplicated_vector)) {
         append_name <- names(duplicated_vector)[c]
         append_entry <- as.character(duplicated_vector[c])
-        unique_df[append_name, final_colname] <- glue(
+        unique_df[append_name, final_colname] <- glue::glue(
           "{unique_df[append_name, final_colname]}, {append_entry}")
       }
     }
@@ -1302,7 +1303,7 @@ kegg_vector_to_df <- function(vector, final_colname="first", flatten=TRUE) {
 #' @author atb
 #' @export
 load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
-                                   keytype="ensembl", strand_column="cdsstrand",
+                                   keytype="gid", strand_column="cdsstrand",
                                    start_column="cdsstart", end_column="cdsend",
                                    chromosome_column="cdschrom",
                                    type_column="gene_type", name_column="cdsname",
@@ -1311,8 +1312,8 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
     message("Assuming Homo.sapiens.")
     org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
     eval(parse(text=org_pkgstring))
-  } else if (class(orgdb) == "character") {
-    org_pkgstring <- glue("library({orgdb}); orgdb <- {orgdb}")
+  } else if ("character" %in% class(orgdb)) {
+    org_pkgstring <- glue::glue("library({orgdb}); orgdb <- {orgdb}")
     eval(parse(text=org_pkgstring))
   }
   keytype <- toupper(keytype)
@@ -1478,11 +1479,11 @@ load_orgdb_go <- function(orgdb=NULL, gene_ids=NULL, keytype="ensembl",
     message("Assuming Homo.sapiens.")
     org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
     eval(parse(text=org_pkgstring))
-  } else if (class(orgdb) == "character") {
-    org_pkgstring <- glue("library({orgdb}); orgdb <- {orgdb}")
+  } else if ("character" %in% class(orgdb)) {
+    org_pkgstring <- glue::glue("library({orgdb}); orgdb <- {orgdb}")
     eval(parse(text=org_pkgstring))
   }
-  tt <- sm(requireNamespace("GO.db"))
+  tt <- requireNamespace("GO.db")
   keytype <- toupper(keytype)
   columns <- toupper(columns)
   if (is.null(gene_ids)) {
@@ -1519,10 +1520,10 @@ The available keytypes are: ", toString(avail_types), "choosing ", keytype, ".")
     stop("Did not find any of: ", toString(columns),
          " in the set of available columns: ", toString(available_columns))
   }
-  go_terms <- try(sm(AnnotationDbi::select(x=orgdb,
-                                           keys=gene_ids,
-                                           keytype=keytype,
-                                           columns=chosen_columns)))
+  go_terms <- try(AnnotationDbi::select(x=orgdb,
+                                        keys=gene_ids,
+                                        keytype=keytype,
+                                        columns=chosen_columns))
   if (class(go_terms) == "try-error") {
     if (grep(pattern="Invalid keytype", x=go_terms[[1]])) {
       message("Here are the possible keytypes:")
@@ -1534,9 +1535,9 @@ The available keytypes are: ", toString(avail_types), "choosing ", keytype, ".")
   go_terms <- go_terms[!duplicated(go_terms), ]
   if ("GO" %in% chosen_columns) {
     go_terms <- go_terms[!is.na(go_terms[["GO"]]), ]
-    go_term_names <- sm(AnnotationDbi::select(x=GO.db::GO.db,
-                                              keys=unique(go_terms[["GO"]]),
-                                              columns=c("TERM", "GOID", "ONTOLOGY")))
+    go_term_names <- AnnotationDbi::select(x=GO.db::GO.db,
+                                           keys=unique(go_terms[["GO"]]),
+                                           columns=c("TERM", "GOID", "ONTOLOGY"))
     go_terms <- merge(go_terms, go_term_names, by.x="GO", by.y="GOID")
   }
 
@@ -1567,8 +1568,8 @@ The available keytypes are: ", toString(avail_types), "choosing ", keytype, ".")
 #' @export
 orgdb_from_ah <- function(ahid=NULL, title=NULL, species=NULL, type="OrgDb") {
   ## Other available types:
-  tt <- sm(loadNamespace("AnnotationHub"))
-  ah <- sm(AnnotationHub::AnnotationHub())
+  tt <- loadNamespace("AnnotationHub")
+  ah <- AnnotationHub::AnnotationHub()
   message("Available types: \n", toString(levels(as.factor(ah$rdataclass))))
 
   if (!is.null(type)) {

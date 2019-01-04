@@ -69,6 +69,7 @@ To begin, let's create a new `AnnotationHub` connection and use it to query
 AnnotationHub for all EuPathDB resources.
 
 ```{r}
+library("EuPathDB")
 library('AnnotationHub')
 
 # create an AnnotationHub connection
@@ -196,6 +197,94 @@ gr[1:3]
 
 # get all gene entries on chromosome 4
 gr[gr$type == 'gene' & seqnames(gr) == 'LmjF.04']
+```
+
+# Installing a new species in your R session
+
+When AnnotationHub and the EupathDB web resources get out of sync, one might want to install
+and manipulate the newest version of the available Eupath data.  The following blocks demonstrate
+how one might do those tasks.
+
+## Getting a less popular TriTrypDB data set
+
+In some of my work, it is interesting to compare genes from species like
+Leishmania to Crithidia fasculata.  In order to get the newest version of that
+data, we need to query the TriTrypDB web resource rather than EupathDB.
+
+```{r example_install}
+## Note that some but not all web services have moved to https...
+tri_meta <- download_eupath_metadata(webservice="tritrypdb")
+
+crit_name <- check_eupath_species(species="Crith", metadata=tri_meta)
+crit_name
+```
+
+### Creating the package
+
+Now that we have the canonical name from the TriTrypDB for Crithidia, we can
+create a fresh orgdb package for it.  I will not actually run this because it
+takes a long time and prints a lot to screen.
+
+```{r pkg, eval=FALSE}
+orgdb_pkg <- make_eupath_orgdb(species=crit_name[["Species"]], entry=crit_name)
+txdb_pkg <- make_eupath_orgdb(species=crit_name[["Species"]], entry=crit_name)
+bsgenome_pkg <- make_eupath_bsgenome(species=crit_name[["Species"]], entry=crit_name)
+organ_pkg <- make_eupath_organismdbi(species=crit_name[["Species"]], entry=crit_name)
+```
+
+## Extracting annotation data
+
+```{r extract}
+orgdb_pkg <- get_eupath_pkgnames(crit_name[["Species"]])[["orgdb"]]
+## Get the name of the Crithidia package that got created by make_eupath_orgdb.
+orgdb_pkg
+
+## Now get the set of available columns from it:
+library(orgdb_pkg, character=TRUE)
+avail_columns <- AnnotationDbi::columns(get0(orgdb_pkg))
+avail_columns
+## The columns which begin with strings like 'PATHWAY' or 'INTERPRO' are actually separate
+## sql tables in the orgdb database, and as such will lead to a hugely redundant data table
+## if we select them.
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^ANNOT")
+chosen_columns <- avail_columns[chosen_columns_idx]
+
+## Now we have a set of columns of interest, let us get a data table/data frame.
+crit_annot <- load_orgdb_annotations(orgdb=orgdb_pkg, keytype="gid", fields=chosen_columns)
+## load_orgdb_annotations will fill out separate dataframes for each annotation type,
+## genes, exons, transcripts, etc.  In this case, we only want the genes
+## (The eupathdb does not provide much information for the others.)
+crit_genes <- crit_annot[["genes"]]
+
+head(crit_genes)
+## Yay! We have data about Crithidia!
+dim(crit_genes)
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^GO")
+chosen_columns <- avail_columns[chosen_columns_idx]
+crit_go <- load_orgdb_go(orgdb_pkg, keytype="gid", columns=chosen_columns)
+head(crit_go)
+## Yay Gene ontology data for Crithidia!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^INTERPRO")
+chosen_columns <- avail_columns[chosen_columns_idx]
+crit_interpro <- load_orgdb_go(orgdb_pkg, keytype="gid", columns=chosen_columns)
+head(crit_interpro)
+## Interpro data for Crithidia!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^PATHWAY")
+chosen_columns <- avail_columns[chosen_columns_idx]
+crit_path <- load_orgdb_go(orgdb_pkg, keytype="gid", columns=chosen_columns)
+head(crit_path)
+## Pathway data for Crithidia!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^ORTHOLOG")
+chosen_columns <- avail_columns[chosen_columns_idx]
+chosen_columns <- c(chosen_columns, "ORGANISM")
+crit_ortho <- load_orgdb_go(orgdb_pkg, keytype="gid", columns=chosen_columns)
+head(crit_ortho)
+## Orthologs!
 ```
 
 # Session Information

@@ -6,7 +6,7 @@
 \usage{
 make_eupath_bsgenome(species = "Leishmania major strain Friedlin",
   entry = NULL, version = NULL, dir = "eupathdb",
-  reinstall = FALSE, metadata = NULL, ...)
+  reinstall = FALSE, ...)
 }
 \arguments{
 \item{species}{Species to create.}
@@ -18,8 +18,6 @@ make_eupath_bsgenome(species = "Leishmania major strain Friedlin",
 \item{dir}{Working directory.}
 
 \item{reinstall}{Rewrite an existing package directory.}
-
-\item{metadata}{Eupathdb metadata dataframe.}
 
 \item{...}{Extra arguments for downloading metadata when not provided.}
 }
