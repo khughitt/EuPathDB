@@ -5,7 +5,7 @@
 \title{Query ortholog tables from the eupathdb one gene at a time.}
 \usage{
 get_orthologs_all_genes(species = "Leishmania major", dir = "eupathdb",
-  gene_ids = NULL, entry = NULL, metadata = NULL, ...)
+  gene_ids = NULL, entry = NULL, ...)
 }
 \arguments{
 \item{species}{What species to query?}
@@ -15,8 +15,6 @@ get_orthologs_all_genes(species = "Leishmania major", dir = "eupathdb",
 \item{gene_ids}{List of gene IDs to query.}
 
 \item{entry}{An entry from the eupathdb metadata to use for other parameters.}
-
-\item{metadata}{The set of eupathdb metadata from which to query.}
 
 \item{...}{Extra parameters for downloading eupathdb metadata.}
 }

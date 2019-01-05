@@ -5,14 +5,12 @@
 \title{Use the post interface to get interpro data.}
 \usage{
 post_eupath_interpro_table(species = "Leishmania major strain Friedlin",
-  entry = NULL, metadata = NULL, dir = "eupathdb", ...)
+  entry = NULL, dir = "eupathdb", ...)
 }
 \arguments{
 \item{species}{guess.}
 
 \item{entry}{The full annotation entry.}
-
-\item{metadata}{A metadata table from which to get some annotation data.}
 
 \item{dir}{FIXME: I want to write some intermediate data to dir in case of
 transient error.}

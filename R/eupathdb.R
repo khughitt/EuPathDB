@@ -60,7 +60,8 @@ start_eupathdb <- function() {
   ## with respect to the functions within it.  There is a roxygen clue for EuPathDb, so having
   ## a function with the same name confuses R check.
   utils::vignette("EuPathDB", package="EuPathDB")
-  ret <- sort(read.csv('inst/extdata/granges_metadata.csv',
+  metadata_file <- system.file("extdata/granges_metadata.csv", package="EuPathDB")
+  ret <- sort(read.csv(metadata_file,
                        stringsAsFactors = FALSE)[["SpeciesFull"]])
   return(ret)
 }

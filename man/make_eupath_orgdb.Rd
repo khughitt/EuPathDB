@@ -5,8 +5,7 @@
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
 make_eupath_orgdb(species = NULL, entry = NULL, dir = "eupathdb",
-  version = NULL, kegg_abbreviation = NULL, reinstall = FALSE,
-  metadata = NULL, ...)
+  version = NULL, kegg_abbreviation = NULL, reinstall = FALSE, ...)
 }
 \arguments{
 \item{species}{A specific species ID to query}
@@ -20,8 +19,6 @@ make_eupath_orgdb(species = NULL, entry = NULL, dir = "eupathdb",
 \item{kegg_abbreviation}{If known, provide the kegg abbreviation.}
 
 \item{reinstall}{Re-install an already existing orgdb?}
-
-\item{metadata}{Use an existing metadata table to get the entry?}
 
 \item{...}{Extra parameters when searching for metadata}
 }
