@@ -952,10 +952,6 @@ get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.001
   }
 
   question <- "GenesOrthologousToAGivenGene"
-  ## I am not sure what I was doing with the following 5 lines of code.
-  ## It looks like I was intending to gather the set of required parameters
-  ## programmatically.
-  ## However I did not finish the logic.
   params_uri <- glue::glue(
     "http://{provider}.org/{uri_prefix}/webservices/GeneQuestions/{question}.wadl")
   result <- xml2::read_html(params_uri)
