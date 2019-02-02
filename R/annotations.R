@@ -183,7 +183,7 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
                                      org_column="ORGANISM",
                                      url_column="ORTHOLOG_GROUP",
                                      count_column="ORTHOLOG_COUNT",
-                                     print_speciesnames=FALSE) {
+                                     print_speciesnames=FALSE, ...) {
 
   load_pkg <- function(name, ...) {
     metadata <- download_eupath_metadata(...)
@@ -231,10 +231,13 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
                                       keys=gene_set, columns=columns)
   all_orthos[["ORTHOLOG_GROUP_ID"]] <- gsub(pattern="^.*>(.*)<\\/a>$",
                                             replacement="\\1", x=all_orthos[[url_column]])
-
+  all_orthos[[org_column]] <- as.factor(all_orthos[[org_column]])
   num_possible <- 1
-  species_names <- unique(all_orthos[[org_column]])
+  species_names <- levels(all_orthos[[org_column]])
   if (is.null(query_species)) {
+    query_species <- species_names
+  } else if (! query_species %in% species_names) {
+    warning("Did not find the desired species in the set of all species.")
     query_species <- species_names
   }
   num_possible <- length(species_names)
