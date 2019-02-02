@@ -7,7 +7,7 @@
 extract_eupath_orthologs(db, master = "GID", query_species = NULL,
   id_column = "ORTHOLOG_ID", org_column = "ORGANISM",
   url_column = "ORTHOLOG_GROUP", count_column = "ORTHOLOG_COUNT",
-  print_speciesnames = FALSE)
+  print_speciesnames = FALSE, ...)
 }
 \arguments{
 \item{db}{Species name (subset) from one eupath database.}
