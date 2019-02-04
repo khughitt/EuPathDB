@@ -859,7 +859,7 @@ get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", 
                               question="GeneQuestions.GenesByMolecularWeight",
                               parameters=parameters,
                               columns=field_list)
-    gene_ids <- result[[1]]
+    ##gene_ids <- result[[1]]
   }
 
   savefile <- file.path(dir, glue::glue("{entry[['Genome']]}ortholog_table.rda"))
@@ -952,10 +952,6 @@ get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.001
   }
 
   question <- "GenesOrthologousToAGivenGene"
-  ## I am not sure what I was doing with the following 5 lines of code.
-  ## It looks like I was intending to gather the set of required parameters
-  ## programmatically.
-  ## However I did not finish the logic.
   params_uri <- glue::glue(
     "http://{provider}.org/{uri_prefix}/webservices/GeneQuestions/{question}.wadl")
   result <- xml2::read_html(params_uri)
@@ -963,7 +959,7 @@ get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.001
   param_string <- rvest::html_attr(x=test, name="default")[[1]]
 
   parameters <- list(
-    "organism" = jsonlite::unbox(species),
+    "organism" = jsonlite::unbox(param_string),
     "single_gene_id" = jsonlite::unbox(gene))
   columns <- c("primary_key", "organism", "orthomcl_link",
                "gene_ortholog_number", "gene_paralog_number")
