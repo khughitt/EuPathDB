@@ -5,7 +5,8 @@
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
 make_eupath_orgdb(species = NULL, entry = NULL, dir = "eupathdb",
-  version = NULL, kegg_abbreviation = NULL, reinstall = FALSE, ...)
+  version = NULL, kegg_abbreviation = NULL, reinstall = FALSE,
+  webservice = "eupathdb", do_kegg = TRUE, ...)
 }
 \arguments{
 \item{species}{A specific species ID to query}

@@ -4,18 +4,13 @@
 \alias{post_eupath_ortholog_table}
 \title{Use the post interface to get ortholog data.}
 \usage{
-post_eupath_ortholog_table(species = "Leishmania major", entry = NULL,
-  dir = "eupathdb", ...)
+post_eupath_ortholog_table(entry = NULL, dir = "eupathdb")
 }
 \arguments{
-\item{species}{guess.}
-
 \item{entry}{The full annotation entry.}
 
 \item{dir}{FIXME: I want to write some intermediate data to dir in case of
 transient error.}
-
-\item{...}{Extra options for downloading metadata.}
 }
 \value{
 A big honking table.

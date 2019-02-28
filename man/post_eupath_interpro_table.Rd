@@ -4,18 +4,13 @@
 \alias{post_eupath_interpro_table}
 \title{Use the post interface to get interpro data.}
 \usage{
-post_eupath_interpro_table(species = "Leishmania major strain Friedlin",
-  entry = NULL, dir = "eupathdb", ...)
+post_eupath_interpro_table(entry = NULL, dir = "eupathdb")
 }
 \arguments{
-\item{species}{guess.}
-
 \item{entry}{The full annotation entry.}
 
 \item{dir}{FIXME: I want to write some intermediate data to dir in case of
 transient error.}
-
-\item{...}{Extra options when downloading metadata.}
 }
 \value{
 A big honking table.

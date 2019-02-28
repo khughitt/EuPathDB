@@ -4,19 +4,15 @@
 \alias{get_orthologs_all_genes}
 \title{Query ortholog tables from the eupathdb one gene at a time.}
 \usage{
-get_orthologs_all_genes(species = "Leishmania major", dir = "eupathdb",
-  gene_ids = NULL, entry = NULL, ...)
+get_orthologs_all_genes(entry = NULL, dir = "eupathdb",
+  gene_ids = NULL)
 }
 \arguments{
-\item{species}{What species to query?}
+\item{entry}{An entry from the eupathdb metadata to use for other parameters.}
 
 \item{dir}{Directory to which to save intermediate data (currently unused).}
 
 \item{gene_ids}{List of gene IDs to query.}
-
-\item{entry}{An entry from the eupathdb metadata to use for other parameters.}
-
-\item{...}{Extra parameters for downloading eupathdb metadata.}
 }
 \description{
 Querying the full ortholog table at eupathdb.org fails mysteriously.

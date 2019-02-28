@@ -4,18 +4,13 @@
 \alias{post_eupath_pathway_table}
 \title{Use the post interface to get pathway data.}
 \usage{
-post_eupath_pathway_table(species = "Leishmania major", entry = NULL,
-  dir = "eupathdb", ...)
+post_eupath_pathway_table(entry = NULL, dir = "eupathdb")
 }
 \arguments{
-\item{species}{guess.}
-
 \item{entry}{The full annotation entry.}
 
 \item{dir}{FIXME: I want to write some intermediate data to dir in case of
 transient error.}
-
-\item{...}{Extra options when downloading metadata}
 }
 \value{
 A big honking table.

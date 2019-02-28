@@ -409,7 +409,6 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 #' Note: 2017/07/13 POST queries can only use the new API
 #'
 #' @param query_body String of additional query arguments
-#' @param species Species name if missing an entry
 #' @param entry The single metadatum containing the base url of the provider, species, etc.
 #' @param table_name  The name of the table to extract, this is provided to make
 #'   for prettier labeling.
@@ -510,13 +509,11 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=5) {
 #' automagically fill it in.  In addition, I am using GenesByMolecularWeight to
 #' get the data, which is a bit weird.
 #'
-#' @param species  guess.
 #' @param entry  The full annotation entry.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
-#' @param ...  Used for downloading metadata.
 #' @return  A big honking table.
-post_eupath_annotations <- function(entry=NULL, dir="eupathdb", ...) {
+post_eupath_annotations <- function(entry=NULL, dir="eupathdb") {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -594,13 +591,11 @@ post_eupath_annotations <- function(entry=NULL, dir="eupathdb", ...) {
 
 #'  Use the post interface to get GO data.
 #'
-#' @param species  guess.
 #' @param entry  The full annotation entry.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
-#' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
-post_eupath_go_table <- function(entry=NULL, dir="eupathdb", ...) {
+post_eupath_go_table <- function(entry=NULL, dir="eupathdb") {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -644,11 +639,9 @@ post_eupath_go_table <- function(entry=NULL, dir="eupathdb", ...) {
 
 #'  Use the post interface to get ortholog data.
 #'
-#' @param species  guess.
 #' @param entry  The full annotation entry.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
-#' @param ... Extra options for downloading metadata.
 #' @return  A big honking table.
 post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb") {
   if (is.null(entry)) {
@@ -696,13 +689,11 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb") {
 
 #'  Use the post interface to get interpro data.
 #'
-#' @param species  guess.
 #' @param entry  The full annotation entry.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
-#' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
-post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", ...) {
+post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb") {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -746,13 +737,11 @@ post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", ...) {
 
 #'  Use the post interface to get pathway data.
 #'
-#' @param species  guess.
 #' @param entry  The full annotation entry.
 #' @param dir  FIXME: I want to write some intermediate data to dir in case of
 #'   transient error.
-#' @param ... Extra options when downloading metadata
 #' @return  A big honking table.
-post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", ...) {
+post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb") {
   if (is.null(entry)) {
     stop("Need a eupathdb entry.")
   }
@@ -800,11 +789,9 @@ post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", ...) {
 #' Querying the full ortholog table at eupathdb.org fails mysteriously.
 #' This is a horrible brute-force approach to get around this.
 #'
-#' @param species What species to query?
+#' @param entry An entry from the eupathdb metadata to use for other parameters.
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
-#' @param entry An entry from the eupathdb metadata to use for other parameters.
-#' @param ... Extra parameters for downloading eupathdb metadata.
 #' @export
 get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
   if (is.null(entry)) {
@@ -890,13 +877,11 @@ get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
 #' Therefore, I wrote this, which queries one gene at a time.  I think it would
 #' be nice to change this to query multiple genes at a time.
 #'
-#' @param species What species to query?
+#' @param entry Metadata entry.
 #' @param gene What gene to query?
 #' @param dir Where to put the checkpoint file?
-#' @param entry Metadata entry.
 #' @return table of orthologs for our one gene.
-get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
-                                   dir="eupathdb", ...) {
+get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="eupathdb") {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }

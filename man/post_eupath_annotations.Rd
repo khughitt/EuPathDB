@@ -4,18 +4,13 @@
 \alias{post_eupath_annotations}
 \title{Gather all available annotation data for a given eupathdb species.}
 \usage{
-post_eupath_annotations(species = "Leishmania major", entry = NULL,
-  dir = "eupathdb", ...)
+post_eupath_annotations(entry = NULL, dir = "eupathdb")
 }
 \arguments{
-\item{species}{guess.}
-
 \item{entry}{The full annotation entry.}
 
 \item{dir}{FIXME: I want to write some intermediate data to dir in case of
 transient error.}
-
-\item{...}{Used for downloading metadata.}
 }
 \value{
 A big honking table.

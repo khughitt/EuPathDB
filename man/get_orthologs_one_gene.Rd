@@ -5,17 +5,15 @@
 \title{This peculiar and slow querying of orthologs is due to me crashing the
 eupathdb web servers.}
 \usage{
-get_orthologs_one_gene(species = "Leishmania major",
-  gene = "LmjF.01.0010", dir = "eupathdb", entry = NULL, ...)
+get_orthologs_one_gene(entry = NULL, gene = "LmjF.01.0010",
+  dir = "eupathdb")
 }
 \arguments{
-\item{species}{What species to query?}
+\item{entry}{Metadata entry.}
 
 \item{gene}{What gene to query?}
 
 \item{dir}{Where to put the checkpoint file?}
-
-\item{entry}{Metadata entry.}
 }
 \value{
 table of orthologs for our one gene.
