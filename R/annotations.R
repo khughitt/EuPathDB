@@ -756,11 +756,12 @@ make_eupath_organismdbi <- function(species="Leishmania major strain Friedlin", 
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
 make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=NULL,
-                              kegg_abbreviation=NULL, reinstall=FALSE, ...) {
+                              kegg_abbreviation=NULL, reinstall=FALSE, webservice="eupathdb",
+                              do_kegg=TRUE, ...) {
   if (is.null(entry) & is.null(species)) {
     stop("Need either an entry or species.")
   } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
+    metadata <- download_eupath_metadata(dir=dir, webservice=webservice)
     entry <- check_eupath_species(species=species, metadata=metadata)
   }
   taxa <- make_taxon_names(entry)
@@ -778,7 +779,6 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
     created <- dir.create(dir, recursive=TRUE)
   }
 
-  do_kegg <- TRUE
   if (is.null(kegg_abbreviation)) {
     kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
     if (length(kegg_abbreviation) == 0) {
@@ -801,13 +801,15 @@ make_eupath_orgdb <- function(species=NULL, entry=NULL, dir="eupathdb", version=
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- try(get_orthologs_all_genes(species=chosen_species, entry=entry,
+                                                webservice=webservice,
                                                 dir=dir, gene_ids=gene_ids))
   ##ortholog_table <- try(post_eupath_ortholog_table(species=chosen_species, entry=entry, dir=dir))
   if (class(ortholog_table) == "try-error") {
     ortholog_table <- data.frame()
   }
 
-  interpro_table <- try(post_eupath_interpro_table(species=chosen_species, entry=entry, dir=dir))
+  interpro_table <- try(post_eupath_interpro_table(species=chosen_species, entry=entry,
+                                                   webservice=webservice, dir=dir))
   if (class(interpro_table) == "try-error") {
     interpro_table <- data.frame()
   }

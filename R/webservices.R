@@ -65,6 +65,8 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   file <- try(download.file(url=request_url, destfile=metadata_json), silent=TRUE)
   if (class(file) == "try-error") {
     ## Try again without https?
+    message("Downloading the https file failed, not all eupathdb services have migrated to https,
+trying http next.")
     base_url <- glue::glue("http://{webservice}.org/{webservice}/webservices/")
     query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
     request_url <- glue::glue("{base_url}{query_string}")
@@ -420,14 +422,9 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 #' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(query_body, species=NULL, entry=NULL,
-                              table_name=NULL, minutes=30, ...) {
-
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=5) {
+  if (is.null(entry)) {
+    stop("This requires a eupathdb entry.")
   }
 
   ## determine appropriate prefix to use
@@ -519,16 +516,11 @@ post_eupath_table <- function(query_body, species=NULL, entry=NULL,
 #'   transient error.
 #' @param ...  Used for downloading metadata.
 #' @return  A big honking table.
-post_eupath_annotations <- function(species="Leishmania major", entry=NULL,
-                                    dir="eupathdb", ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata, ...)
-    species <- entry[["Species"]]
+post_eupath_annotations <- function(entry=NULL, dir="eupathdb", ...) {
+  if (is.null(entry)) {
+    stop("Need an entry from the eupathdb.")
   }
-
+  species <- entry[["Species"]]
   savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_annotations.rda"))
   if (file.exists(savefile)) {
     message("We can save some time by reading the savefile.")
@@ -608,13 +600,9 @@ post_eupath_annotations <- function(species="Leishmania major", entry=NULL,
 #'   transient error.
 #' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
-post_eupath_go_table <- function(species="Leishmania major", entry=NULL,
-                                 dir="eupathdb", ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+post_eupath_go_table <- function(entry=NULL, dir="eupathdb", ...) {
+  if (is.null(entry)) {
+    stop("Need an entry from the eupathdb.")
   }
   species <- entry[["Species"]]
   ## query body as a structured list
@@ -648,7 +636,7 @@ post_eupath_go_table <- function(species="Leishmania major", entry=NULL,
       "format" = jsonlite::unbox("tableTabular")
     ))
 
-  result <- post_eupath_table(query_body, species=species, entry=entry, table_name="go")
+  result <- post_eupath_table(query_body, entry, table_name="go")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
@@ -662,13 +650,9 @@ post_eupath_go_table <- function(species="Leishmania major", entry=NULL,
 #'   transient error.
 #' @param ... Extra options for downloading metadata.
 #' @return  A big honking table.
-post_eupath_ortholog_table <- function(species="Leishmania major", entry=NULL,
-                                       dir="eupathdb", ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb") {
+  if (is.null(entry)) {
+    stop("Need an entry from the eupathdb.")
   }
   species <- entry[["Species"]]
 
@@ -703,8 +687,7 @@ post_eupath_ortholog_table <- function(species="Leishmania major", entry=NULL,
     return(result)
   }
 
-  result <- post_eupath_table(query_body, species=species,
-                              entry=entry, table_name="orthologs")
+  result <- post_eupath_table(query_body, entry, table_name="orthologs")
 
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
@@ -719,14 +702,9 @@ post_eupath_ortholog_table <- function(species="Leishmania major", entry=NULL,
 #'   transient error.
 #' @param ... Extra options when downloading metadata.
 #' @return  A big honking table.
-post_eupath_interpro_table <- function(species="Leishmania major strain Friedlin",
-                                       entry=NULL, dir="eupathdb",
-                                       ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", ...) {
+  if (is.null(entry)) {
+    stop("Need an entry from the eupathdb.")
   }
 
   species <- entry[["Species"]]
@@ -760,10 +738,7 @@ post_eupath_interpro_table <- function(species="Leishmania major strain Friedlin
     return(result)
   }
 
-
-  result <- post_eupath_table(query_body, species=species,
-                              entry=entry, table_name="interpro")
-
+  result <- post_eupath_table(query_body, entry, table_name="interpro")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
@@ -777,14 +752,11 @@ post_eupath_interpro_table <- function(species="Leishmania major strain Friedlin
 #'   transient error.
 #' @param ... Extra options when downloading metadata
 #' @return  A big honking table.
-post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
-                                      dir="eupathdb", ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", ...) {
+  if (is.null(entry)) {
+    stop("Need a eupathdb entry.")
   }
+
   species <- entry[["Species"]]
   ## query body as a structured list
   ## Parameters taken from the pdf "Exporting Data - Web Services.pdf" received
@@ -816,8 +788,7 @@ post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
     return(result)
   }
 
-  result <- post_eupath_table(query_body, species=species,
-                              entry=entry, table_name="pathway")
+  result <- post_eupath_table(query_body, entry, table_name="pathway")
 
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
@@ -835,15 +806,11 @@ post_eupath_pathway_table <- function(species="Leishmania major", entry=NULL,
 #' @param entry An entry from the eupathdb metadata to use for other parameters.
 #' @param ... Extra parameters for downloading eupathdb metadata.
 #' @export
-get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", gene_ids=NULL,
-                                    entry=NULL, ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
-    species <- entry[["Species"]]
+get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
+  if (is.null(entry)) {
+    stop("Needs an entry from the eupathdb.")
   }
+  species <- entry[["Species"]]
 
   if (is.null(gene_ids)) {
     ## query body as a structured list
@@ -874,7 +841,7 @@ get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", 
 
   all_orthologs <- data.frame()
   message("Downloading orthologs one gene at a time. Checkpointing if it fails.")
-  ortho_savefile <- glue::glue("ortho_checkpoint_{entry[['Genome']]}.rda")
+  ortho_savefile <- file.path(dir, glue::glue("ortho_checkpoint_{entry[['Genome']]}.rda"))
   savelist <- list(
     "number_finished" = 0,
     "all_orthologs" = all_orthologs)
@@ -891,21 +858,22 @@ get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", 
   if (isTRUE(show_progress)) {
     bar <- utils::txtProgressBar(style=3)
   }
-  for (c in current_gene:length(gene_ids)) {
+  for (i in current_gene:length(gene_ids)) {
     if (isTRUE(show_progress)) {
-      pct_done <- c / length(gene_ids)
+      pct_done <- i / length(gene_ids)
       setTxtProgressBar(bar, pct_done)
     }
-    gene <- gene_ids[c]
+    gene <- gene_ids[i]
     ## I keep getting weird timeouts, so I figure I will give the eupath
     ## webservers a moment.
-    Sys.sleep(1.0)
-    orthos <- get_orthologs_one_gene(species=species, gene=gene, entry=entry)
+    Sys.sleep(0.3)
+    orthos <- get_orthologs_one_gene(entry=entry, gene=gene,
+                                     webservice=webservice)
     all_orthologs <- rbind(all_orthologs, orthos)
-    message("Downloading: ", gene, " ", c, "/", length(gene_ids),
+    message("Downloading: ", gene, " ", i, "/", length(gene_ids),
             ", and checkpointing to ", ortho_savefile)
     savelist[["all_orthologs"]] <- all_orthologs
-    savelist[["number_finished"]] <- c
+    savelist[["number_finished"]] <- i
     save(savelist, file=ortho_savefile)
   }
   if (isTRUE(show_progress)) {
@@ -927,13 +895,10 @@ get_orthologs_all_genes <- function(species="Leishmania major", dir="eupathdb", 
 #' @param dir Where to put the checkpoint file?
 #' @param entry Metadata entry.
 #' @return table of orthologs for our one gene.
-get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.0010",
-                                   dir="eupathdb", entry=NULL, ...) {
-  if (is.null(entry) & is.null(species)) {
-    stop("Need either an entry or species.")
-  } else if (is.null(entry)) {
-    metadata <- download_eupath_metadata(dir=dir, ...)
-    entry <- check_eupath_species(species=species, metadata=metadata)
+get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
+                                   dir="eupathdb", ...) {
+  if (is.null(entry)) {
+    stop("Need an entry from the eupathdb.")
   }
   species <- entry[["Species"]]
   provider <- tolower(entry[["DataProvider"]])
@@ -995,11 +960,12 @@ get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.001
   } else if (result[["status_code"]] != "200") {
     warning("An error status code was returned.")
     return(data.frame())
-  } else if (length(result[["content"]]) < 100) {
-    warning("A minimal amount of content was returned.")
   }
 
   cont <- httr::content(result, encoding="UTF-8")
+  if (is.null(cont)) {
+    return(data.frame())
+  }
   entries <- strsplit(
     x=cont, split="\n\n------------------------------------------------------------\n\n")[[1]]
   stuff <- read.delim(textConnection(entries[1]), sep="\n", header=FALSE)
@@ -1028,6 +994,7 @@ get_orthologs_one_gene <- function(species="Leishmania major", gene="LmjF.01.001
     material <- gsub(pattern="^(.+?)\\: (.+)?$", replacement="\\2", x=stuff[["V1"]])
     information[c, ] <- material
   }
+
   ## remove duplicated rows
   information <- information[!duplicated(information), ]
   ## Now fill in the original ID
