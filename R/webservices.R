@@ -853,9 +853,8 @@ get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
     gene <- gene_ids[i]
     ## I keep getting weird timeouts, so I figure I will give the eupath
     ## webservers a moment.
-    Sys.sleep(0.3)
-    orthos <- get_orthologs_one_gene(entry=entry, gene=gene,
-                                     webservice=webservice)
+    Sys.sleep(0.1)
+    orthos <- get_orthologs_one_gene(entry=entry, gene=gene)
     all_orthologs <- rbind(all_orthologs, orthos)
     message("Downloading: ", gene, " ", i, "/", length(gene_ids),
             ", and checkpointing to ", ortho_savefile)

@@ -4,14 +4,11 @@
 \alias{make_eupath_organismdbi}
 \title{Create an organismDbi instance for an eupathdb organism.}
 \usage{
-make_eupath_organismdbi(species = "Leishmania major strain Friedlin",
-  entry = NULL, version = NULL, dir = "eupathdb",
-  reinstall = FALSE, kegg_abbreviation = NULL,
-  exclude_join = "ENTREZID", ...)
+make_eupath_organismdbi(entry = NULL, version = NULL,
+  dir = "eupathdb", reinstall = FALSE, kegg_abbreviation = NULL,
+  exclude_join = "ENTREZID", webservice = "eupathdb")
 }
 \arguments{
-\item{species}{A species in the eupathDb metadata.}
-
 \item{entry}{A row from the eupathdb metadataframe.}
 
 \item{version}{Which version of the eupathdb to use for creating this package?}
@@ -28,7 +25,7 @@ variable is intended to exclude columns with common IDs that might
 multi-match spuriously -- I think in the end I killed the idea though,
 perhaps this should be removed or resurrected.}
 
-\item{...}{Extra arguments when downloading metadata.}
+\item{species}{A species in the eupathDb metadata.}
 }
 \value{
 The result of attempting to install the organismDbi package.

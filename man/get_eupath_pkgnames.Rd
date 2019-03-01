@@ -4,14 +4,13 @@
 \alias{get_eupath_pkgnames}
 \title{Generate standardized package names for the various eupathdb species.}
 \usage{
-get_eupath_pkgnames(species = "Coprinosis.cinerea.okayama7#130",
-  version = NULL, metadata = NULL, ...)
+get_eupath_pkgnames(entry, version = NULL)
 }
 \arguments{
-\item{species}{Species names taken from a metadata instance from a eupath project.}
-
 \item{version}{Choose a specific version of the eupathdb, only really useful
 when downloading files.}
+
+\item{species}{Species names taken from a metadata instance from a eupath project.}
 
 \item{metadata}{Eupathdb metadata.}
 

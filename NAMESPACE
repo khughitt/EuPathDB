@@ -2,11 +2,11 @@
 
 export("%>%")
 export("%dopar%")
-export(check_eupath_species)
 export(clean_pkg)
 export(download_eupath_metadata)
 export(extract_eupath_orthologs)
 export(extract_gene_locations)
+export(get_eupath_entry)
 export(get_eupath_pkgnames)
 export(get_kegg_orgn)
 export(get_orthologs_all_genes)

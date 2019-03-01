@@ -4,13 +4,10 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(species = NULL, entry = NULL, dir = "eupathdb",
-  version = NULL, kegg_abbreviation = NULL, reinstall = FALSE,
-  webservice = "eupathdb", do_kegg = TRUE, ...)
+make_eupath_orgdb(entry = NULL, dir = "eupathdb", version = NULL,
+  kegg_abbreviation = NULL, reinstall = FALSE, do_kegg = TRUE, ...)
 }
 \arguments{
-\item{species}{A specific species ID to query}
-
 \item{entry}{If not provided, then species will get this, it contains all the information.}
 
 \item{dir}{Where to put all the various temporary files.}
@@ -22,6 +19,8 @@ make_eupath_orgdb(species = NULL, entry = NULL, dir = "eupathdb",
 \item{reinstall}{Re-install an already existing orgdb?}
 
 \item{...}{Extra parameters when searching for metadata}
+
+\item{species}{A specific species ID to query}
 }
 \value{
 Currently only the name of the installed package.  This should
