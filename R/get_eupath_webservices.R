@@ -103,7 +103,7 @@ trying http next.")
     dplyr::transmute(
              "BiocVersion" = as.character(BiocInstaller::biocVersion()),
              "Genome" = sub(".gff", "", basename(.data[["URLgff"]])),
-             "NumGenes"=.data[["genecount"]],
+             "NumGenes"= .data[["genecount"]],
              "NumOrthologs" = .data[["orthologcount"]],
              "SourceType" = "GFF",
              "SourceUrl" = .data[["URLgff"]],
@@ -217,6 +217,7 @@ get_eupath_fields <- function(webservice, excludes=NULL) {
      "http://{webservice}.org/webservices/GeneQuestions/GenesByMolecularWeight.wadl")
   request <- curl::curl(request_url)
   result <- xml2::read_xml(request)
+  ##close(request)
   fields <- rvest::xml_nodes(result, xpath='//*[@name="o-fields"]')[[1]] %>%
     xml2::xml_children() %>%
     xml2::xml_attr("value")
@@ -386,7 +387,8 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="eupathd
   }
   entries <- strsplit(
     x=cont, split="\n\n------------------------------------------------------------\n\n")[[1]]
-  stuff <- read.delim(textConnection(entries[1]), sep="\n", header=FALSE)
+  connection <- textConnection(entries[1])
+  stuff <- read.delim(connection, sep="\n", header=FALSE)
   mypattern <- "^(.+?)\\: (.+)?$"
   ## If I am going to make column names, I need first to get the first part of
   ## stuff: otherstuff
@@ -424,7 +426,7 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="eupathd
     which(colnames(information) == "GID"), which(colnames(information) != "GID"))
   information <- information[, new_order]
   colnames(information) <- toupper(colnames(information))
-
+  close(connection)
   return(information)
 }
 
@@ -450,13 +452,13 @@ get_kegg_orgn <- function(species="Leishmania", short=TRUE) {
   all_organisms <- RCurl::getURL("http://rest.kegg.jp/list/organism")
   org_tsv <- textConnection(all_organisms)
   all <- read.table(org_tsv, sep="\t", quote="", fill=TRUE)
-  close(org_tsv)
   colnames(all) <- c("Tid", "orgid", "species", "phylogeny")
   ## Look for the search string in the species column
   candidates <- all[grepl(species, all[["species"]]), ]
   if (isTRUE(short)) {
     candidates <- as.character(candidates[["orgid"]])
   }
+  close(org_tsv)
   return(candidates)
 }
 

@@ -177,7 +177,8 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
   entries <- strsplit(
     x=cont, split="\n\n------------------------------------------------------------\n\n")[[1]]
   ## We will read the first entry in order to extract the column names.
-  entry <- read.delim(textConnection(entries[1]), sep="\n", header=FALSE)
+  connection <- textConnection(entries[1])
+  entry <- read.delim(connection, sep="\n", header=FALSE)
   entry[["V1"]] <- as.character(entry[["V1"]])
   ## My regular expression pattern needs to by greedy in the correct places
   ## because for reasons passing all understanding, some fields have colons inside them...
@@ -255,6 +256,7 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
       }
     }
   }
+  close(connection)
   return(information)
 }
 
@@ -303,7 +305,8 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
   }
 
   result <- httr::content(result, encoding="UTF-8")
-  result <- read.delim(textConnection(result), sep="\t")
+  connection <- textConnection(result)
+  result <- read.delim(connection, sep="\t")
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {
     return(data.frame())
@@ -338,6 +341,7 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
       colnames(result)[c] <- new_col
     }
   }
+  close(connection)
   return(result)
 }
 
