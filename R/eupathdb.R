@@ -78,13 +78,24 @@ start_eupathdb <- function() {
 #' @usage lhs \%>\% rhs
 NULL
 
-#' dopar
+#' R CMD check is super annoying about :::.
 #'
-#' Shamelessly scabbed from Hadley: https://github.com/sckott/analogsea/issues/32
+#' In a fit of pique, I did a google search to see if anyone else has been
+#' annoyed in the same was as I.  I was in no way surprised to see that Yihui
+#' Xie was, and in his email to r-devel in 2013 he proposed a game of
+#' hide-and-seek; a game which I am repeating here.
 #'
-#' @name %dopar%
-#' @rdname dopar
-#' @keywords internal
-#' @export
-#' @importFrom foreach %dopar%
-NULL
+#' This just implements ::: as an infix operator that will not trip check.
+#'
+#' @param pkg on the left hand side
+#' @param fun on the right hand side
+`%:::%` <- function(pkg, fun) {
+  get(fun, envir = asNamespace(pkg), inherits = FALSE)
+}
+
+getMaintainer <- "GenomicFeatures" %:::% ".getMaintainer"
+getMetaDataValue <- "GenomicFeatures" %:::% ".getMetaDataValue"
+getTxDbVersion <- "GenomicFeatures" %:::% ".getTxDbVersion"
+normAuthor <- "GenomicFeatures" %:::% ".normAuthor"
+
+## EOF

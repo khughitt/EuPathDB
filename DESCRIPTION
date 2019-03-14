@@ -13,7 +13,7 @@ Depends:
     Biobase,
     GenomicRanges,
     GenomeInfoDbData,
-    AnnotationHub 
+    AnnotationHub
 Imports: AnnotationHubData, Biostrings, BiocManager, data.table, dplyr, foreach, glue,
          httr, jsonlite, magrittr, rvest, utils, xml2
 Suggests:
@@ -27,7 +27,10 @@ BugReports: https://github.com/khughitt/EuPathDB/issues
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Collate:
- 'annotations.R'
+ 'access_tables.R'
+ 'create_tables.R'
  'eupathdb.R'
- 'webservices.R'
+ 'get_eupath_webservices.R'
+ 'pkg_creation.R'
+ 'post_eupath_webservices.R'
  'zzz.R'
