@@ -191,8 +191,8 @@ extract_gene_locations <- function(annot_df, location_column="annot_gene_locatio
 #' @export
 load_eupath_annotations <- function(species="Leishmania major", webservice="tritrypdb",
                                     version=NULL, wanted_fields=NULL) {
-  metadata <- download_eupath_metadata(webservice=webservice)
-  pkg_names <- get_eupath_pkgnames(species=species, metadata=metadata, version=version)
+  entry <- get_eupath_entry(species=species, webservice=webservice)
+  pkg_names <- get_eupath_pkgnames(entry=entry, version=version)
   pkg_installedp <- pkg_names[["orgdb_installed"]]
   if (isFALSE(pkg_installedp)) {
     stop("The required package is not installed.")

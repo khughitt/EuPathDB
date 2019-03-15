@@ -101,9 +101,9 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
 #' far thanks to the hash character in the strain definition.
 #'
 #' @param entry A metadatum entry.
-#' @param version  Choose a specific version of the eupathdb, only really useful
+#' @param version Choose a specific version of the eupathdb, only really useful
 #'   when downloading files.
-#' @return  List of package names and some booleans to see if they have already
+#' @return List of package names and some booleans to see if they have already
 #'   been installed.
 #' @author atb
 #' @export
@@ -806,7 +806,6 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
     "PROVIDER" = provider,
     "PROVIDERVERSION" = providerVersion,
     "RELEASEDATE" = getMetaDataValue(txdb, "Creation time"),
-    ## SOURCEURL = getMetaDataValue(txdb, "Resource URL"),
     "SOURCEURL" = entry[["SourceUrl"]],
     "ORGANISMBIOCVIEW" = gsub(" ", "_", getMetaDataValue(txdb, "Organism")),
     "TXDBOBJNAME" = pkgname)
@@ -857,8 +856,9 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
   granges_env <- new.env()
   granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
   granges_env[[granges_variable]] <- granges_result
+  granges_file <- file.path(dir, granges_name)
   save_result <- save(list=ls(envir=granges_env),
-                      file=granges_name,
+                      file=granges_file,
                       envir=granges_env)
   ## import.gff3 appears to be opening 2 connections to the gff file, both are read only.
   ## It is not entirely clear to me, given the semantics of import.gff3, how to close these

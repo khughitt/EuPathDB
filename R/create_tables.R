@@ -206,6 +206,10 @@ make_taxon_names <- function(entry) {
   }
   strain <- gsub(pattern="^\\.", replacement="", x=strain)
 
+  ## The following decisions, whether to remove a character or replace it with a '.' are
+  ## mostly arbitrary ones depending pretty much entirely on how annoyed I get when I see
+  ## a given special character in a species/strain.
+
   ## Start by getting rid of annoying text
   strain_pattern <- "(_| |\\.)strain(_| |\\.)"
   taxon <- gsub(pattern=strain_pattern, replacement="\\1", x=taxon)
@@ -221,7 +225,7 @@ make_taxon_names <- function(entry) {
   strain <- gsub(pattern=annoying_pattern, replacement="\\.", x=strain)
 
   ## Completely remove the truly stupid characters.
-  stupid_pattern <- "(\\,|\\/|\\?|\\|\\[|\\]|\\(|\\))"
+  stupid_pattern <- "(\\,|\\/|\\?|\\|\\[|\\]|\\(|\\)|\\:)"
   taxon <- gsub(pattern=stupid_pattern, replacement="", x=taxon)
   genus <- gsub(pattern=stupid_pattern, replacement="", x=genus)
   species <- gsub(pattern=stupid_pattern, replacement="", x=species)
