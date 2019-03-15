@@ -12,9 +12,9 @@
 #' automagically fill it in.  In addition, I am using GenesByMolecularWeight to
 #' get the data, which is a bit weird.
 #'
-#' @param entry  The full annotation entry.
-#' @param dir  FIXME: I want to write some intermediate data to dir in case of
-#'   transient error.
+#' @param entry The full annotation entry.
+#' @param dir A directory into which to write the intermediate savefile.
+#' @param overwrite If a partial table exists, overwrite it?
 #' @return  A big honking table.
 post_eupath_annotations <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
   if (is.null(entry)) {
@@ -42,7 +42,6 @@ post_eupath_annotations <- function(entry=NULL, dir="eupathdb", overwrite=FALSE)
   ## useful column names. These are written one per line in an attempt to make
   ## looking for new/changed columns from one eupathdb release to the next
   ## easier.
-
   parameters <- list(
     "organism" = jsonlite::unbox(species),
     "min_molecular_weight" = jsonlite::unbox("1"),
@@ -105,15 +104,15 @@ post_eupath_annotations <- function(entry=NULL, dir="eupathdb", overwrite=FALSE)
 #' given me by the eupathdb maintainers. So, I got mad and asked it for the raw
 #' format, and so this function was born.
 #'
-#' @param entry  Annotation entry for a given species
-#' @param question  Which query to try?  Molecular weight is the easiest, as it
+#' @param entry Annotation entry for a given species
+#' @param question Which query to try?  Molecular weight is the easiest, as it
 #'   was their example.
-#' @param parameters  Query parameters when posting
-#' @param table_name  Used to make sure all columns are unique by prefixing them
+#' @param parameters Query parameters when posting
+#' @param table_name Used to make sure all columns are unique by prefixing them
 #'   with the table name.
-#' @param columns  Columns for which to ask.
-#' @param minutes  How long to wait until giving up and throwing an error.
-#' @return  A hopefully huge table of eupath data.
+#' @param columns Columns for which to ask.
+#' @param minutes How long to wait until giving up and throwing an error.
+#' @return A hopefully huge table of eupath data.
 post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeight",
                             parameters=NULL, table_name=NULL, columns=NULL,
                             minutes=10) {
@@ -267,10 +266,9 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 #'
 #' @param query_body String of additional query arguments
 #' @param entry The single metadatum containing the base url of the provider, species, etc.
-#' @param table_name  The name of the table to extract, this is provided to make
+#' @param table_name The name of the table to extract, this is provided to make
 #'   for prettier labeling.
-#' @param minutes  A timeout when querying the eupathdb.
-#' @param ...  Extra arguments for stuff like download_metadtata()
+#' @param minutes A timeout when querying the eupathdb.
 #' @return list containing response from API request.
 #'
 #' More information
@@ -345,11 +343,11 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
   return(result)
 }
 
-#'  Use the post interface to get GO data.
+#' Use the POST interface to get GO data from the EuPathDB.
 #'
-#' @param entry  The full annotation entry.
-#' @param dir  FIXME: I want to write some intermediate data to dir in case of
-#'   transient error.
+#' @param entry The full annotation entry.
+#' @param dir Location to write savefiles.
+#' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return  A big honking table.
 post_eupath_go_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
   if (is.null(entry)) {
@@ -403,10 +401,12 @@ post_eupath_go_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
 #' eupathdb webservers.  As a result, I wrote a GET version of this which
 #' iterates one gene at a time.
 #'
-#' @param entry  The full annotation entry.
-#' @param dir  FIXME: I want to write some intermediate data to dir in case of
-#'   transient error.
-#' @return  A big honking table.
+#' @param entry The full annotation entry.
+#' @param dir Location to which to save an intermediate savefile.
+#' @param table This defaults to the 'OrthologsLite' table, but that does not
+#'   exist at all eupathdb subprojects.
+#' @param overwrite Overwrite incomplete savefiles?
+#' @return A big honking table.
 post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb", table="OrthologsLite",
                                        overwrite=FALSE) {
   if (is.null(entry)) {
@@ -454,11 +454,11 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb", table="Orthol
   return(result)
 }
 
-#'  Use the post interface to get interpro data.
+#' Use the post interface to get interpro data.
 #'
-#' @param entry  The full annotation entry.
-#' @param dir  FIXME: I want to write some intermediate data to dir in case of
-#'   transient error.
+#' @param entry The full annotation entry.
+#' @param dir Location to which to save intermediate savefile.
+#' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
 post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
   if (is.null(entry)) {
@@ -505,12 +505,12 @@ post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", overwrite=FAL
   return(result)
 }
 
-#'  Use the post interface to get pathway data.
+#' Use the post interface to get pathway data.
 #'
-#' @param entry  The full annotation entry.
-#' @param dir  FIXME: I want to write some intermediate data to dir in case of
-#'   transient error.
-#' @return  A big honking table.
+#' @param entry The full annotation entry.
+#' @param dir Location to which to save intermediate savefile.
+#' @param overwrite If trying again, overwrite the savefile?
+#' @return A big honking table.
 post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need a eupathdb entry.")
@@ -555,3 +555,5 @@ post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", overwrite=FALS
   save(result, file=savefile)
   return(result)
 }
+
+## EOF

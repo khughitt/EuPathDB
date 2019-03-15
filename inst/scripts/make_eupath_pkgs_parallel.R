@@ -1,7 +1,8 @@
+#!/usr/bin/env Rscript
 start <- as.POSIXlt(Sys.time())
 library(testthat)
 library(EuPathDB)
-context("test_001_anidulans.R
+context("test_999_all.R
   12\n")
 
 ## This test is intended to work through a query from cparsania
@@ -15,13 +16,32 @@ returns <- list(
   "txdb" = list(),
   "organismdbi" = list(),
   "granges" = list())
-fungi_metadata <- download_eupath_metadata(webservice="fungidb")
 
-end <- nrow(fungi_metadata)
-for (it in 1:nrow(fungi_metadata)) {
-  entry <- fungi_metadata[it, ]
+projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
+              "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
+              "trichdb", "tritrypdb")
+all_metadata <- data.frame()
+for (p in projects) {
+  project_metadata <- download_eupath_metadata(webservice=p)
+  all_metadata <- rbind(all_metadata, project_metadata)
+}
+
+end <- nrow(all_metadata)
+
+cl <- parallel::makeCluster(4)
+doParallel::registerDoParallel(cl)
+library(doParallel)
+library(iterators)
+library(foreach)
+tt <- sm(requireNamespace("parallel"))
+tt <- sm(requireNamespace("doParallel"))
+tt <- sm(requireNamespace("iterators"))
+tt <- sm(requireNamespace("foreach"))
+res <- foreach(it=1:nrow(all_metadata), .packages=c("AnnotationHub", "testthat", "EuPathDB")) %dopar% {
+  entry <- all_metadata[it, ]
   species <- entry[["Species"]]
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
+  Sys.sleep(1)
   pkgnames <- get_eupath_pkgnames(entry)
   expected <- c("BiocVersion", "Genome", "NumGenes", "NumOrthologs",
                 "SourceType", "SourceUrl", "SourceVersion", "Species",
@@ -36,11 +56,10 @@ for (it in 1:nrow(fungi_metadata)) {
   bsgenome_result <- make_eupath_bsgenome(entry)
   expected <- "bsgenome_name"
   actual <- names(bsgenome_result)
-  test_that("Does make_eupath_bsgenome return something sensible?", {
+  testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
     expect_equal(expected, actual)
   })
   returns[["bsgenome"]][[species]] <- bsgenome_result
-  ## orgdb_result <- make_eupath_orgdb(entry, reinstall=TRUE)
   orgdb_result <- make_eupath_orgdb(entry)
   if (is.null(orgdb_result)) {
     next
@@ -72,9 +91,6 @@ for (it in 1:nrow(fungi_metadata)) {
   })
   returns[["organismdbi"]] <- organ_result
 } ## End iterating over every entry in the eupathdb metadata.
-
-savefile <- "fungidb_result.rda"
-save(returns, file=savefile)
 
 end <- as.POSIXlt(Sys.time())
 elapsed <- round(x=as.numeric(end) - as.numeric(start))

@@ -10,8 +10,12 @@ post_eupath_ortholog_table(entry = NULL, dir = "eupathdb",
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{dir}{FIXME: I want to write some intermediate data to dir in case of
-transient error.}
+\item{dir}{Location to which to save an intermediate savefile.}
+
+\item{table}{This defaults to the 'OrthologsLite' table, but that does not
+exist at all eupathdb subprojects.}
+
+\item{overwrite}{Overwrite incomplete savefiles?}
 }
 \value{
 A big honking table.

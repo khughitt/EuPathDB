@@ -5,12 +5,14 @@
 \title{Returns metadata for all eupathdb organisms.}
 \usage{
 download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
-  dir = "eupathdb", use_savefile = TRUE, ...)
+  bioc_version = NULL, dir = "eupathdb", use_savefile = TRUE, ...)
 }
 \arguments{
 \item{overwrite}{Overwrite existing data?}
 
 \item{webservice}{Optional alternative webservice for hard-to-find species.}
+
+\item{bioc_version}{Manually set the bioconductor release if desired.}
 
 \item{dir}{Where to put the json.}
 

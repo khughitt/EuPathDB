@@ -2,10 +2,10 @@
 % Please edit documentation in R/pkg_creation.R
 \name{make_eupath_txdb}
 \alias{make_eupath_txdb}
-\title{Generate TxDb for EuPathDB organism}
+\title{Generate an EuPathDB organism TxDb package.}
 \usage{
 make_eupath_txdb(entry = NULL, dir = "eupathdb", version = NULL,
-  reinstall = FALSE, ...)
+  reinstall = FALSE)
 }
 \arguments{
 \item{entry}{One row from the organism metadata.}
@@ -15,16 +15,14 @@ make_eupath_txdb(entry = NULL, dir = "eupathdb", version = NULL,
 \item{version}{Which version of the eupathdb to use for creating this package?}
 
 \item{reinstall}{Overwrite an existing installed package?}
-
-\item{...}{Extra arguments for getting metadata.}
-
-\item{species}{Species name from the eupathdb metadata.}
 }
 \value{
 TxDb instance name.
 }
 \description{
-Generate TxDb for EuPathDB organism
+This will hopefully create a txdb package and granges savefile for a single
+species in the eupathdb.  This depends pretty much entirely on the successful
+download of a gff file from the eupathdb.
 }
 \author{
 Keith Hughitt with significant modifications by atb.

@@ -2,7 +2,7 @@
 start <- as.POSIXlt(Sys.time())
 library(testthat)
 library(EuPathDB)
-context("test_999_all.R
+context("test_001_anidulans.R
   12\n")
 
 ## This test is intended to work through a query from cparsania
@@ -16,22 +16,13 @@ returns <- list(
   "txdb" = list(),
   "organismdbi" = list(),
   "granges" = list())
+fungi_metadata <- download_eupath_metadata(webservice="fungidb")
 
-projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
-              "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
-              "trichdb", "tritrypdb")
-all_metadata <- data.frame()
-for (p in projects) {
-  project_metadata <- download_eupath_metadata(webservice=p)
-  all_metadata <- rbind(all_metadata, project_metadata)
-}
-
-end <- nrow(all_metadata)
-for (it in 1:end) {
-  entry <- all_metadata[it, ]
+end <- nrow(fungi_metadata)
+for (it in 1:nrow(fungi_metadata)) {
+  entry <- fungi_metadata[it, ]
   species <- entry[["Species"]]
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
-  Sys.sleep(1)
   pkgnames <- get_eupath_pkgnames(entry)
   expected <- c("BiocVersion", "Genome", "NumGenes", "NumOrthologs",
                 "SourceType", "SourceUrl", "SourceVersion", "Species",
@@ -46,10 +37,11 @@ for (it in 1:end) {
   bsgenome_result <- make_eupath_bsgenome(entry)
   expected <- "bsgenome_name"
   actual <- names(bsgenome_result)
-  testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
+  test_that("Does make_eupath_bsgenome return something sensible?", {
     expect_equal(expected, actual)
   })
   returns[["bsgenome"]][[species]] <- bsgenome_result
+  ## orgdb_result <- make_eupath_orgdb(entry, reinstall=TRUE)
   orgdb_result <- make_eupath_orgdb(entry)
   if (is.null(orgdb_result)) {
     next
@@ -80,8 +72,10 @@ for (it in 1:end) {
     expect_equal(expected, actual)
   })
   returns[["organismdbi"]] <- organ_result
-  print(showConnections())
 } ## End iterating over every entry in the eupathdb metadata.
+
+savefile <- "fungidb_result.rda"
+save(returns, file=savefile)
 
 end <- as.POSIXlt(Sys.time())
 elapsed <- round(x=as.numeric(end) - as.numeric(start))

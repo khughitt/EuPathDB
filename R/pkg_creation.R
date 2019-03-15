@@ -100,11 +100,9 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
 #' The default argument for this function shows the funniest one I have found so
 #' far thanks to the hash character in the strain definition.
 #'
-#' @param species  Species names taken from a metadata instance from a eupath project.
+#' @param entry A metadatum entry.
 #' @param version  Choose a specific version of the eupathdb, only really useful
 #'   when downloading files.
-#' @param metadata  Eupathdb metadata.
-#' @param ...  Further arguments to pass to download_eupath_metadata()
 #' @return  List of package names and some booleans to see if they have already
 #'   been installed.
 #' @author atb
@@ -115,15 +113,14 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
   if (!is.null(version)) {
     version_string <- glue::glue(".v{version}")
   }
-
+  provider <- tolower(entry[["DataProvider"]])
   taxa <- make_taxon_names(entry)
   first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
   pkg_list <- list(
     "bsgenome" = glue::glue("BSGenome.{taxa[['taxon']]}{version_string}"),
     "bsgenome_installed" = FALSE,
-    ## "organismdbi" = paste0("eupathdb.", taxa[["taxon"]], version_string),
     "granges" = glue::glue("GRanges.{taxa[['taxon']]}{version_string}.rda"),
-    "organismdbi" = glue::glue("eupathdb.{taxa[['taxon']]}{version_string}"),
+    "organismdbi" = glue::glue("{provider}.{taxa[['taxon']]}{version_string}"),
     "organismdbi_installed" = FALSE,
     "orgdb" = glue::glue("org.{first_char}{taxa[['species_strain']]}{version_string}.eg.db"),
     "orgdb_installed" = FALSE,
@@ -131,7 +128,6 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
                   {entry[['DataProvider']]}{version_string}"),
     "txdb_installed" = FALSE
   )
-
   inst <- as.data.frame(installed.packages())
   if (pkg_list[["bsgenome"]] %in% inst[["Package"]]) {
     pkg_list[["bsgenome_installed"]] <- TRUE
@@ -145,7 +141,6 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
   if (pkg_list[["txdb"]] %in% inst[["Package"]]) {
     pkg_list[["txdb_installed"]] <- TRUE
   }
-
   return(pkg_list)
 }
 
@@ -308,13 +303,12 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
 #' (reactome/go/etc).  In its current iteration, this function brings together a
 #' couple columns from the orgdb, txdb, GO.db, and reactome.db.
 #'
-#' @param species  A species in the eupathDb metadata.
-#' @param entry  A row from the eupathdb metadataframe.
-#' @param version  Which version of the eupathdb to use for creating this package?
-#' @param dir  Directory in which to build the packages.
-#' @param reinstall  Overwrite existing data files?
+#' @param entry A row from the eupathdb metadataframe.
+#' @param version Which version of the eupathdb to use for creating this package?
+#' @param dir Directory in which to build the packages.
+#' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation  For when we cannot automagically find the kegg species id.
-#' @param exclude_join  I had a harebrained idea to automatically set up the
+#' @param exclude_join I had a harebrained idea to automatically set up the
 #'   joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 #'   variable is intended to exclude columns with common IDs that might
 #'   multi-match spuriously -- I think in the end I killed the idea though,
@@ -323,8 +317,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
 #' @author  Keith Hughitt, modified by atb.
 #' @export
 make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", reinstall=FALSE,
-                                    kegg_abbreviation=NULL, exclude_join="ENTREZID",
-                                    webservice="eupathdb") {
+                                    kegg_abbreviation=NULL, exclude_join="ENTREZID") {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -452,13 +445,18 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", re
 #' queries.  Check through eupath_webservices.r for some amusing examples of how
 #' I have gotten around the idiosyncrasies in the eupathdb.
 #'
-#' @param species  A specific species ID to query
-#' @param entry  If not provided, then species will get this, it contains all the information.
-#' @param dir  Where to put all the various temporary files.
-#' @param version  Which version of the eupathdb to use for creating this package?
-#' @param kegg_abbreviation  If known, provide the kegg abbreviation.
-#' @param reinstall  Re-install an already existing orgdb?
-#' @return  Currently only the name of the installed package.  This should
+#' @param entry If not provided, then species will get this, it contains all the information.
+#' @param dir Where to put all the various temporary files.
+#' @param version Which version of the eupathdb to use for creating this package?
+#' @param kegg_abbreviation If known, provide the kegg abbreviation.
+#' @param reinstall Re-install an already existing orgdb?
+#' @param overwrite Overwrite a partial installation?
+#' @param do_go Create the gene ontology table?
+#' @param do_orthologs Create the gene ortholog table?
+#' @param do_interpro Create the interpro table?
+#' @param do_pathway Create the pathway table?
+#' @param do_kegg Attempt to create the kegg table?
+#' @return Currently only the name of the installed package.  This should
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
@@ -707,9 +705,12 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
   return(retlist)
 }
 
-#' Generate TxDb for EuPathDB organism
+#' Generate an EuPathDB organism TxDb package.
 #'
-#' @param species  Species name from the eupathdb metadata.
+#' This will hopefully create a txdb package and granges savefile for a single
+#' species in the eupathdb.  This depends pretty much entirely on the successful
+#' download of a gff file from the eupathdb.
+#'
 #' @param entry  One row from the organism metadata.
 #' @param version  Which version of the eupathdb to use for creating this package?
 #' @param dir  Base directory for building the package.
@@ -876,3 +877,5 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
 
   return(retlist)
 }
+
+## EOF

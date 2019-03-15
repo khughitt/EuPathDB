@@ -3,16 +3,17 @@
 
 #' Returns metadata for all eupathdb organisms.
 #'
-#' @param overwrite  Overwrite existing data?
-#' @param webservice  Optional alternative webservice for hard-to-find species.
-#' @param dir  Where to put the json.
-#' @param use_savefile  Make a savefile of the data for future reference.
-#' @param ...  Catch any extra arguments passed here, currently unused.
-#' @return  Dataframe with lots of rows for the various species in eupathdb.
-#' @author  Keith Hughitt
+#' @param overwrite Overwrite existing data?
+#' @param webservice Optional alternative webservice for hard-to-find species.
+#' @param bioc_version Manually set the bioconductor release if desired.
+#' @param dir Where to put the json.
+#' @param use_savefile Make a savefile of the data for future reference.
+#' @param ... Catch any extra arguments passed here, currently unused.
+#' @return Dataframe with lots of rows for the various species in eupathdb.
+#' @author Keith Hughitt
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
-                                     dir="eupathdb", use_savefile=TRUE, ...) {
+                                     bioc_version=NULL, dir="eupathdb", use_savefile=TRUE, ...) {
   ## Get EuPathDB version (same for all databases)
   arglist <- list(...)
   savefile <- glue::glue("{webservice}_metadata-v{format(Sys.time(), '%Y%m')}.rda")
@@ -92,6 +93,11 @@ trying http next.")
     stringsAsFactors=FALSE)
   colnames(dat) <- records[["fields"]][[1]][["name"]]
 
+  ## For when releasing a new bioconductor release which I don't yet have.
+  if (is.null(bioc_version)) {
+    bioc_version <- BiocInstaller::biocVersion()
+  }
+
   ## shared metadata
   ## I wish I were this confident with %>% and transmute, I always get confused by them
   ## A funny little oddity in the TriTrypdb (20181103)
@@ -101,7 +107,7 @@ trying http next.")
   SourceUrl <- NULL  ## Because I still don't get NSE/SE semantics with mutate()!!
   shared_metadata <- dat %>%
     dplyr::transmute(
-             "BiocVersion" = as.character(BiocInstaller::biocVersion()),
+             "BiocVersion" = as.character(bioc_version),
              "Genome" = sub(".gff", "", basename(.data[["URLgff"]])),
              "NumGenes"= .data[["genecount"]],
              "NumOrthologs" = .data[["orthologcount"]],

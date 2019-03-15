@@ -6,7 +6,7 @@
 \usage{
 make_eupath_organismdbi(entry = NULL, version = NULL,
   dir = "eupathdb", reinstall = FALSE, kegg_abbreviation = NULL,
-  exclude_join = "ENTREZID", webservice = "eupathdb")
+  exclude_join = "ENTREZID")
 }
 \arguments{
 \item{entry}{A row from the eupathdb metadataframe.}
@@ -24,8 +24,6 @@ joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 variable is intended to exclude columns with common IDs that might
 multi-match spuriously -- I think in the end I killed the idea though,
 perhaps this should be removed or resurrected.}
-
-\item{species}{A species in the eupathDb metadata.}
 }
 \value{
 The result of attempting to install the organismDbi package.

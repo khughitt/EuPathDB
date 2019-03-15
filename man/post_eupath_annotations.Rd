@@ -10,8 +10,9 @@ post_eupath_annotations(entry = NULL, dir = "eupathdb",
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{dir}{FIXME: I want to write some intermediate data to dir in case of
-transient error.}
+\item{dir}{A directory into which to write the intermediate savefile.}
+
+\item{overwrite}{If a partial table exists, overwrite it?}
 }
 \value{
 A big honking table.

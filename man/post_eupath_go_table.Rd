@@ -2,7 +2,7 @@
 % Please edit documentation in R/post_eupath_webservices.R
 \name{post_eupath_go_table}
 \alias{post_eupath_go_table}
-\title{Use the post interface to get GO data.}
+\title{Use the POST interface to get GO data from the EuPathDB.}
 \usage{
 post_eupath_go_table(entry = NULL, dir = "eupathdb",
   overwrite = FALSE)
@@ -10,12 +10,13 @@ post_eupath_go_table(entry = NULL, dir = "eupathdb",
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{dir}{FIXME: I want to write some intermediate data to dir in case of
-transient error.}
+\item{dir}{Location to write savefiles.}
+
+\item{overwrite}{Overwrite intermediate savefiles in case of incomplete install?}
 }
 \value{
 A big honking table.
 }
 \description{
-Use the post interface to get GO data.
+Use the POST interface to get GO data from the EuPathDB.
 }
