@@ -213,9 +213,10 @@ data, we need to query the TriTrypDB web resource rather than EupathDB.
 
 ```{r example_install}
 ## Note that some but not all web services have moved to https...
-tri_meta <- download_eupath_metadata(webservice="tritrypdb")
+## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
 
-crit_name <- check_eupath_species(species="Crith", metadata=tri_meta)
+crit_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
+crit_name <- crit_entry[["Species"]]
 crit_name
 ```
 
@@ -226,10 +227,10 @@ create a fresh orgdb package for it.  I will not actually run this because it
 takes a long time and prints a lot to screen.
 
 ```{r pkg, eval=FALSE}
-orgdb_pkg <- make_eupath_orgdb(species=crit_name[["Species"]], entry=crit_name, reinstall=TRUE)
-txdb_pkg <- make_eupath_txdb(species=crit_name[["Species"]], entry=crit_name)
-bsgenome_pkg <- make_eupath_bsgenome(species=crit_name[["Species"]], entry=crit_name)
-organ_pkg <- make_eupath_organismdbi(species=crit_name[["Species"]], entry=crit_name)
+orgdb_pkg <- make_eupath_orgdb(crit_entry, reinstall=TRUE)
+txdb_pkg <- make_eupath_txdb(crit_entry, entry=crit_name)
+bsgenome_pkg <- make_eupath_bsgenome(crit_entry)
+organ_pkg <- make_eupath_organismdbi(crit_entry)
 ```
 
 ## Extracting annotation data
@@ -243,15 +244,15 @@ the metadata generated in download_eupath_metadata() in order to provide a diffe
 names package for each eupathdb revision.
 
 ```{r extract}
-orgdb_pkg <- get_eupath_pkgnames(crit_name[["Species"]])[["orgdb"]]
+orgdb_pkg <- get_eupath_pkgnames(crit_entry)
 ## Get the name of the Crithidia package that got created by make_eupath_orgdb.
-orgdb_pkg
+orgdb_pkg$orgdb
 ## Thus we see the v41 (as of late 2018), a number which presumably will continue increasing.
 ## We can set the version parameter to change this if we have a previous version installed.
 
 ## Now get the set of available columns from it:
-library(orgdb_pkg, character=TRUE)
-avail_columns <- AnnotationDbi::columns(get0(orgdb_pkg))
+library(orgdb_pkg$orgdb, character=TRUE)
+avail_columns <- AnnotationDbi::columns(get0(orgdb_pkg$orgdb))
 avail_columns
 ```
 
@@ -271,7 +272,7 @@ chosen_columns_idx <- grepl(x=avail_columns, pattern="^ANNOT")
 chosen_columns <- avail_columns[chosen_columns_idx]
 
 ## Now we have a set of columns of interest, let us get a data table/data frame.
-crit_annot <- load_orgdb_annotations(orgdb=orgdb_pkg, keytype="gid", fields=chosen_columns)
+crit_annot <- load_orgdb_annotations(orgdb=orgdb_pkg$orgdb, keytype="gid", fields=chosen_columns)
 ## load_orgdb_annotations will fill out separate dataframes for each annotation type,
 ## genes, exons, transcripts, etc.  In this case, we only want the genes
 ## (The eupathdb does not provide much information for the others.)

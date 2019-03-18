@@ -247,6 +247,12 @@ make_taxon_names <- function(entry) {
   gspecies <- glue::glue("{first}{species}")
   gsstrain <- glue::glue("{gspecies}{strain}")
 
+  ## I need a final removal of .. in case there is no strain or somesuch.
+  species_strain <- gsub(pattern=silly_pattern, replacement="\\.", x=species_strain)
+  genus_species <- gsub(pattern=silly_pattern, replacement="\\.", x=genus_species)
+  gspecies <- gsub(pattern=silly_pattern, replacement="\\.", x=gspecies)
+  gsstrain <- gsub(pattern=silly_pattern, replacement="\\.", x=gsstrain)
+
   taxa <- list(
     "taxon" = taxon,
     "genus" = genus,
