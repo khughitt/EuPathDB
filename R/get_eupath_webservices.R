@@ -13,7 +13,7 @@
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      bioc_version=NULL, dir="eupathdb",
-                                     version=NULL) {
+                                     version=NULL, write_csv=FALSE) {
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
@@ -23,7 +23,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     for (p in projects) {
       project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
                                                    bioc_version=bioc_version, dir=dir,
-                                                   version=version)
+                                                   version=version, write_csv=write_csv)
       all_metadata <- rbind(all_metadata, project_metadata)
     }
     return(all_metadata)
@@ -97,14 +97,11 @@ trying http next.")
     bioc_version <- BiocInstaller::biocVersion()
   }
 
-  ## shared metadata
-  ## I wish I were this confident with %>% and transmute, I always get confused by them
-  ## A funny little oddity in the TriTrypdb (20181103)
   ## The current version of the database remains 39; but the sourceUrl returned
   ## by the above json query is 40.  As a result, attempted downloads fail due
   ## to the mismatch in filenames/directories.
   SourceUrl <- NULL  ## Because I still don't get NSE/SE semantics with mutate()!!
-  shared_metadata <- dat %>%
+  metadata <- dat %>%
     dplyr::transmute(
              "BiocVersion" = as.character(bioc_version),
              "Genome" = sub(".gff", "", basename(.data[["URLgff"]])),
@@ -127,12 +124,12 @@ trying http next.")
                                      x=SourceUrl))
 
   ## Add project-specific tags for each entry
-  shared_metadata[["Tags"]] <- sapply(shared_metadata[["DataProvider"]],
-                                      function(x) {
-                                        tag_strings[[x]] })
+  metadata[["Tags"]] <- sapply(metadata[["DataProvider"]],
+                               function(x) {
+                                 tag_strings[[x]] })
 
   ## replace missing taxonomy ids with NAs
-  shared_metadata[["TaxonomyId"]][shared_metadata[["TaxonomyId"]] == ""] <- NA
+  metadata[["TaxonomyId"]][metadata[["TaxonomyId"]] == ""] <- NA
 
   ## overide missing taxonomy ids for strains where it can be assigned; ideally
   ## OrgDb and GRanges objects should not depend on taxonomy id information since
@@ -144,61 +141,128 @@ trying http next.")
     taxonomy_id=c("1354746", "353153", "353153"),
     stringsAsFactors=FALSE)
 
-  taxon_mask <- shared_metadata[["Species"]] %in% known_taxon_ids[["species"]]
-  ind <- match(shared_metadata[taxon_mask, "Species"], known_taxon_ids[["species"]])
-  shared_metadata[taxon_mask, ][["TaxonomyId"]] <- as.character(
+  taxon_mask <- metadata[["Species"]] %in% known_taxon_ids[["species"]]
+  ind <- match(metadata[taxon_mask, "Species"], known_taxon_ids[["species"]])
+  metadata[taxon_mask, ][["TaxonomyId"]] <- as.character(
     known_taxon_ids[["taxonomy_id"]][ind])
 
   ## exclude remaining species which are missing taxonomy information from
   ## metadata; cannot construct GRanges/OrgDb instances for them since they are
   ## have no known taxonomy id, and are not in available.species()
-  na_ind <- is.na(shared_metadata[["TaxonomyId"]])
+  na_ind <- is.na(metadata[["TaxonomyId"]])
   ## I think I will try to hack around this problem.
-  shared_metadata[["TaxonomyId"]] <- as.numeric(shared_metadata[["TaxonomyId"]])
-
-  ## remove any organisms for which no GFF is available
-  ## gff_exists <- sapply(shared_metadata[["SourceUrl"]],
-  ##                      function(url) { httr::HEAD(url)[["status_code"]] == 200 })
-  ## remove any organisms for which no GFF is available
-  ## Once again, I will attempt a workaround, probably via bioconductor.
-  ## gff_exists <- sapply(shared_metadata$SourceUrl,
-  ##                      function(url) { HEAD(url)$status_code == 200 })
-  ##shared_metadata <- shared_metadata[gff_exists,]
+  metadata[["TaxonomyId"]] <- as.numeric(metadata[["TaxonomyId"]])
 
   ## generate separate metadata table for OrgDB and GRanges targets
-  granges_metadata <- shared_metadata %>%
-    dplyr::mutate(
-             Title=glue::glue("Transcript information for {.data[['Species']]}"),
-             Description=glue::glue("{.data[['DataProvider']]} \\
-{.data[['SourceVersion']]} transcript information for {.data[['Species']]}}"),
-             RDataClass="GRanges",
-             DispatchClass="GRanges",
-             ResourceName=sprintf("GRanges.%s.%s%s.rda", gsub("[ /.]+", "_", .data[["Species"]]),
-                                  tolower(.data[["DataProvider"]]),
-                                  .data[["SourceVersion"]], "rda")) %>%
-    dplyr::mutate(DataPath=file.path("EuPathDB", "GRanges",
-                                     .data[["BiocVersion"]], .data[["ResourceName"]]))
+  version_string <- format(Sys.time(), "%Y.%m")
+  ## I am going to try to simplify the above and make sure that all filenames actually work.
+  ## If my queries to Lori turn out acceptable, then I will delete a bunch of the stuff above.
+  ## But for the moment, it will be a bit redundant.
+  metadata[["BsgenomePkg"]] <- ""
+  metadata[["GrangesPkg"]] <- ""
+  metadata[["OrganismdbiPkg"]] <- ""
+  metadata[["OrgdbPkg"]] <- ""
+  metadata[["TxdbPkg"]] <- ""
+  for (it in 1:nrow(metadata)) {
+    metadatum <- metadata[it, ]
+    pkg_names <- get_eupath_pkgnames(metadatum)
+    metadata[it, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
+    metadata[it, "GrangesPkg"] <- pkg_names[["granges"]]
+    metadata[it, "OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
+    metadata[it, "OrgdbPkg"] <- pkg_names[["orgdb"]]
+    metadata[it, "TxdbPkg"] <- pkg_names[["txdb"]]
+  }
 
-  metadata <- shared_metadata %>%
-    dplyr::mutate(
-             "Title"=sprintf("Genome wide annotations for %s", .data[["Species"]]),
-             "Description"=sprintf("%s %s annotations for %s",
-                                   .data[["DataProvider"]],
-                                   .data[["SourceVersion"]],
-                                   .data[["Species"]]),
-             "RDataClass"="OrgDb",
-             "DispatchClass"="SQLiteFile",
-             "ResourceName"=sprintf(
-               "org.%s.%s.db.sqlite", gsub("[ /.]+", "_", .data[["Species"]]),
-               tolower(substring(.data[["DataProvider"]], 1, nchar(.data[["DataProvider"]]) - 2)))
-           ) %>%
-    dplyr::mutate("RDataPath"=file.path("EuPathDB", "OrgDb",
-                                        .data[["BiocVersion"]],
-                                        .data[["ResourceName"]]))
+  if (isTRUE(write_csv)) {
+    granges_metadata <- metadata %>%
+      dplyr::mutate(
+               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
+transcript information for {.data[['Species']]}"),
+               RDataClass="GRanges",
+               DispatchClass="GRanges",
+               ResourceName=.data[["GrangesPkg"]],
+               RDataPath=file.path(
+                 dir, "granges", .data[["BiocVersion"]],
+                 glue::glue(".{.data[['GrangesPkg']]}")))
+    if (file.exists("granges_metadata.csv")) {
+      readr::write_excel_csv2(x=granges_metadata, path="granges_metadata.csv", append=TRUE)
+    } else {
+      readr::write_excel_csv2(x=granges_metadata, path="granges_metadata.csv")
+    }
 
-  if (isTRUE(use_savefile)) {
-    if (isTRUE(overwrite) | !file.exists(savefile)) {
-      saved <- save(list="metadata", file=savefile)
+    orgdb_metadata <- metadata %>%
+      dplyr::mutate(
+               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
+annotations for {.data[['Species']]}"),
+               RDataClass="OrgDb",
+               DispatchClass="SQLiteFile",
+               ResourceName=.data[["OrgdbPkg"]],
+               RDataPath=file.path(
+                 dir, "orgdb", .data[["BiocVersion"]],
+                 glue::glue("{.data[['OrgdbPkg']]}"),
+                 "inst", "extdata",
+                 glue::glue("{.data[['OrgdbPkg']]}.eg.sqlite")))
+    if (file.exists("orgdb_metadata.csv")) {
+      readr::write_excel_csv2(x=orgdb_metadata, path="orgdb_metadata.csv", append=TRUE)
+    } else {
+      readr::write_excel_csv2(x=orgdb_metadata, path="orgdb_metadata.csv")
+    }
+
+    txdb_metadata <- metadata %>%
+      dplyr::mutate(
+               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
+Transcript information for {.data[['Species']]}"),
+               RDataClass="TxDb",
+               DispatchClass="SQLiteFile",
+               ResourceName=.data[["TxdbPkg"]],
+               RDataPath=file.path(
+                 dir, "txdb", .data[["BiocVersion"]],
+                 glue::glue("{.data[['TxdbPkg']]}"),
+                 "inst", "extdata",
+                 glue::glue("{.data[['TxdbPkg']]}.sqlite")))
+    if (file.exists("txdb_metadata.csv")) {
+      readr::write_excel_csv2(x=txdb_metadata, path="txdb_metadata.csv", append=TRUE)
+    } else {
+      readr::write_excel_csv2(x=txdb_metadata, path="txdb_metadata.csv")
+    }
+
+    organismdbi_metadata <- metadata %>%
+      dplyr::mutate(
+               Title=glue::glue("Combined information for {.data[['Species']]}"),
+               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
+Combined information for {.data[['Species']]}"),
+               RDataClass="OrganismDBI",
+               DispatchClass="SQLiteFile",
+               ResourceName=.data[["OrganismdbiPkg"]],
+               RDataPath=file.path(
+                 dir, "organismdbi", .data[["BiocVersion"]],
+                 glue::glue("{.data[['OrganismdbiPkg']]}"),
+                 "inst", "data", "graphInfo.rda"))
+    if (file.exists("organismdbi_metadata.csv")) {
+      readr::write_excel_csv2(x=organismdbi_metadata, path="organismdbi_metadata.csv", append=TRUE)
+    } else {
+      readr::write_excel_csv2(x=organismdbi_metadata, path="organismdbi_metadata.csv")
+    }
+
+    bsgenome_metadata <- metadata %>%
+      dplyr::mutate(
+               Title=glue::glue("Genome for {.data[['Species']]}"),
+               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
+Genome for {.data[['Species']]}"),
+               RDataClass="BSGenome",
+               DispatchClass="2bit",
+               ResourceName=.data[["BsgenomePkg"]],
+               RDataPath=file.path(
+                 dir, "bsgenome", .data[["BiocVersion"]],
+                 glue::glue("{.data[['BsgenomePkg']]}"),
+                 "inst", "extdata", "single_sequences.2bit"))
+    if (file.exists("bsgenome_metadata.csv")) {
+      readr::write_excel_csv2(x=bsgenome_metadata, path="bsgenome_metadata.csv", append=TRUE)
+    } else {
+      readr::write_excel_csv2(x=bsgenome_metadata, path="bsgenome_metadata.csv")
     }
   }
 
