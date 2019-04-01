@@ -7,39 +7,38 @@
 #' @param webservice Optional alternative webservice for hard-to-find species.
 #' @param bioc_version Manually set the bioconductor release if desired.
 #' @param dir Where to put the json.
-#' @param use_savefile Make a savefile of the data for future reference.
-#' @param ... Catch any extra arguments passed here, currently unused.
+#' @param version Choose a specific eupathdb version?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
-                                     bioc_version=NULL, dir="eupathdb", use_savefile=TRUE, ...) {
+                                     bioc_version=NULL, dir="eupathdb",
+                                     version=NULL) {
   ## Get EuPathDB version (same for all databases)
-  arglist <- list(...)
-  savefile <- glue::glue("{webservice}_metadata-v{format(Sys.time(), '%Y%m')}.rda")
+  if (webservice == "eupathdb") {
+    projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
+                  "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
+                  "trichdb", "tritrypdb")
+    all_metadata <- data.frame()
+    for (p in projects) {
+      project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
+                                                   bioc_version=bioc_version, dir=dir,
+                                                   version=version)
+      all_metadata <- rbind(all_metadata, project_metadata)
+    }
+    return(all_metadata)
+  }
 
   if (!file.exists(dir)) {
     dir.create(dir, recursive=TRUE)
   }
-  if (isTRUE(use_savefile)) {
-    savefile <- file.path(dir, savefile)
-    if (isTRUE(overwrite)) {
-      file.remove(savefile)
-    }
-    if (file.exists(savefile)) {
-      metadata <- new.env()
-      loaded <- load(savefile, envir=metadata)
-      metadata <- metadata[["metadata"]]
-      return(metadata)
-    }
-  }
 
   db_version <- NULL
-  if (is.null(arglist[["version"]])) {
+  if (is.null(version)) {
     ## One could just as easily choose any of the other eupathdb hosts.
     db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
   } else {
-    db_version <- arglist[["version"]]
+    db_version <- version
   }
   .data <- NULL  ## To satisfy R CMD CHECK
   shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
