@@ -194,6 +194,7 @@ load_kegg_annotations <- function(species="coli", abbreviation=NULL, flatten=TRU
 #' @author atb
 make_taxon_names <- function(entry) {
   taxon <- entry[["Species"]]
+  unmodified <- taxon
   species_parts <- unlist(strsplit(taxon, " "))
   genus <- species_parts[1]
   first <- toupper(substring(genus, 1, 1))
@@ -254,6 +255,7 @@ make_taxon_names <- function(entry) {
   gsstrain <- gsub(pattern=silly_pattern, replacement="\\.", x=gsstrain)
 
   taxa <- list(
+    "unmodified" = unmodified,
     "taxon" = taxon,
     "genus" = genus,
     "species" = species,

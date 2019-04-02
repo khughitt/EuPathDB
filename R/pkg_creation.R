@@ -159,7 +159,7 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
 #' @return  List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
+make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
                                  reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -329,7 +329,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
 #' @return  The result of attempting to install the organismDbi package.
 #' @author  Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", reinstall=FALSE,
+make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", reinstall=FALSE,
                                     kegg_abbreviation=NULL, exclude_join="ENTREZID") {
   if (is.null(entry)) {
     stop("Need an entry.")
@@ -475,7 +475,7 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", re
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
+make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
                               do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
                               do_pathway=TRUE, do_kegg=TRUE) {
@@ -733,7 +733,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall=FALSE) {
+make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -894,7 +894,7 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
 #' @param entry Metadatum entry.
 #' @param dir Place to put the resulting file(s).
 #' @param version Optionally request a specific version of the gff file.
-make_eupath_granges <- function(entry=NULL, dir="eupathdb", version=NULL) {
+make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -931,7 +931,7 @@ make_eupath_granges <- function(entry=NULL, dir="eupathdb", version=NULL) {
   return(granges_name)
 }
 
-move_final_package <- function(pkgname, type="orgdb", dir="eupathdb") {
+move_final_package <- function(pkgname, type="orgdb", dir="EuPathDB") {
   final_dir <- file.path(dir, type)
   if (!file.exists(final_dir)) {
     dir.create(final_dir, recursive=TRUE)

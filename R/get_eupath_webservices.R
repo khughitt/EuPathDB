@@ -12,7 +12,7 @@
 #' @author Keith Hughitt
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
-                                     bioc_version=NULL, dir="eupathdb",
+                                     bioc_version=NULL, dir="EuPathDB",
                                      version=NULL, write_csv=FALSE) {
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
@@ -31,6 +31,11 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
 
   if (!file.exists(dir)) {
     dir.create(dir, recursive=TRUE)
+  }
+
+  ## For when releasing a new bioconductor release which I don't yet have.
+  if (is.null(bioc_version)) {
+    bioc_version <- BiocInstaller::biocVersion()
   }
 
   db_version <- NULL
@@ -54,7 +59,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     "TrichDB" = c(shared_tags, "Trichomonas"),
     "TriTrypDB" = c(shared_tags, "Trypanosome", "Kinetoplastid", "Leishmania"))
   tag_strings <- lapply(tags, function(x) {
-    paste(x, collapse=",")
+    paste(x, collapse=":")
   })
 
   service_directory <- prefix_map(webservice)
@@ -91,11 +96,6 @@ trying http next.")
     x[, "value"] })),
     stringsAsFactors=FALSE)
   colnames(dat) <- records[["fields"]][[1]][["name"]]
-
-  ## For when releasing a new bioconductor release which I don't yet have.
-  if (is.null(bioc_version)) {
-    bioc_version <- BiocInstaller::biocVersion()
-  }
 
   ## The current version of the database remains 39; but the sourceUrl returned
   ## by the above json query is 40.  As a result, attempted downloads fail due
@@ -163,106 +163,154 @@ trying http next.")
   metadata[["OrganismdbiPkg"]] <- ""
   metadata[["OrgdbPkg"]] <- ""
   metadata[["TxdbPkg"]] <- ""
+  metadata[["Strain"]] <- ""
+  metadata[["Taxon"]] <- ""
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
     pkg_names <- get_eupath_pkgnames(metadatum)
+    species_info <- make_taxon_names(metadatum)
     metadata[it, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
     metadata[it, "GrangesPkg"] <- pkg_names[["granges"]]
     metadata[it, "OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
     metadata[it, "OrgdbPkg"] <- pkg_names[["orgdb"]]
     metadata[it, "TxdbPkg"] <- pkg_names[["txdb"]]
+    metadata[it, "Species"] <- gsub(x=species_info[["genus_species"]],
+                                    pattern="\\.", replacement=" ")
+    metadata[it, "Strain"] <- species_info[["strain"]]
+    metadata[it, "Taxon"] <- gsub(x=species_info[["taxon"]],
+                                  pattern="\\.", replacement=" ")
+    metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
   }
+  eupathdb_version <- metadata[1, "SourceVersion"]
+
+  ## A couple changes to try to make the metadata I generate pass
+  ## AnnotationHubData::makeAnnotationHubMetadata()
+  ## AnnotationHubData expects species suffixes to be 'sp.'
+  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
+                                pattern=" sp $",
+                                replacement=" sp",
+                                perl=TRUE)
+  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
+                                pattern=" sp$",
+                                replacement=" sp\\.",
+                                perl=TRUE)
+  ## Having a 'Assemblage' is verboten.
+  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
+                                pattern=" Assemblage",
+                                replacement="",
+                                perl=TRUE)
+  ## Having some species 'like x' is also verboten.
+  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
+                                pattern=" like",
+                                replacement="",
+                                perl=TRUE)
 
   if (isTRUE(write_csv)) {
     granges_metadata <- metadata %>%
       dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-transcript information for {.data[['Species']]}"),
+transcript information for {.data[['Taxon']]}"),
                RDataClass="GRanges",
                DispatchClass="GRanges",
                ResourceName=.data[["GrangesPkg"]],
                RDataPath=file.path(
-                 dir, "granges", .data[["BiocVersion"]],
-                 glue::glue(".{.data[['GrangesPkg']]}")))
-    if (file.exists("granges_metadata.csv")) {
-      readr::write_excel_csv2(x=granges_metadata, path="granges_metadata.csv", append=TRUE)
+                 dir, "GRanges", .data[["BiocVersion"]],
+                 glue::glue("{.data[['GrangesPkg']]}")))
+    csv_file <- file.path(
+      path.package("EuPathDB"),
+      "inst", "extdata",
+      glue::glue("GRanges_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+    if (file.exists(csv_file)) {
+      readr::write_csv(x=granges_metadata, path=csv_file, append=TRUE)
     } else {
-      readr::write_excel_csv2(x=granges_metadata, path="granges_metadata.csv")
+      readr::write_csv(x=granges_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
     orgdb_metadata <- metadata %>%
       dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-annotations for {.data[['Species']]}"),
+annotations for {.data[['Taxon']]}"),
                RDataClass="OrgDb",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["OrgdbPkg"]],
                RDataPath=file.path(
-                 dir, "orgdb", .data[["BiocVersion"]],
-                 glue::glue("{.data[['OrgdbPkg']]}"),
-                 "inst", "extdata",
+                 dir, "OrgDb", .data[["BiocVersion"]],
                  glue::glue("{.data[['OrgdbPkg']]}.eg.sqlite")))
-    if (file.exists("orgdb_metadata.csv")) {
-      readr::write_excel_csv2(x=orgdb_metadata, path="orgdb_metadata.csv", append=TRUE)
+    csv_file <- file.path(
+      path.package("EuPathDB"),
+      "inst", "extdata",
+      glue::glue("OrgDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+    if (file.exists(csv_file)) {
+      readr::write_csv(x=orgdb_metadata, path=csv_file, append=TRUE)
     } else {
-      readr::write_excel_csv2(x=orgdb_metadata, path="orgdb_metadata.csv")
+      readr::write_csv(x=orgdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
     txdb_metadata <- metadata %>%
       dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Species']]}"),
+               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Transcript information for {.data[['Species']]}"),
+Transcript information for {.data[['Taxon']]}"),
                RDataClass="TxDb",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["TxdbPkg"]],
                RDataPath=file.path(
-                 dir, "txdb", .data[["BiocVersion"]],
-                 glue::glue("{.data[['TxdbPkg']]}"),
-                 "inst", "extdata",
+                 dir, "TxDb", .data[["BiocVersion"]],
                  glue::glue("{.data[['TxdbPkg']]}.sqlite")))
-    if (file.exists("txdb_metadata.csv")) {
-      readr::write_excel_csv2(x=txdb_metadata, path="txdb_metadata.csv", append=TRUE)
+    csv_file <- file.path(
+      path.package("EuPathDB"),
+      "inst", "extdata",
+      glue::glue("TxDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+    if (file.exists(csv_file)) {
+      readr::write_csv(x=txdb_metadata, path=csv_file, append=TRUE)
     } else {
-      readr::write_excel_csv2(x=txdb_metadata, path="txdb_metadata.csv")
+      readr::write_csv(x=txdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
     organismdbi_metadata <- metadata %>%
       dplyr::mutate(
-               Title=glue::glue("Combined information for {.data[['Species']]}"),
+               Title=glue::glue("Combined information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Combined information for {.data[['Species']]}"),
+Combined information for {.data[['Taxon']]}"),
                RDataClass="OrganismDBI",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["OrganismdbiPkg"]],
                RDataPath=file.path(
-                 dir, "organismdbi", .data[["BiocVersion"]],
+                 dir, "OrganismDbi", .data[["BiocVersion"]],
                  glue::glue("{.data[['OrganismdbiPkg']]}"),
-                 "inst", "data", "graphInfo.rda"))
-    if (file.exists("organismdbi_metadata.csv")) {
-      readr::write_excel_csv2(x=organismdbi_metadata, path="organismdbi_metadata.csv", append=TRUE)
+                 "graphInfo.rda"))
+    csv_file <- file.path(
+      path.package("EuPathDB"),
+      "inst", "extdata",
+      glue::glue("OrganismDbi_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+    if (file.exists(csv_file)) {
+      readr::write_csv(x=organismdbi_metadata, path=csv_file, append=TRUE)
     } else {
-      readr::write_excel_csv2(x=organismdbi_metadata, path="organismdbi_metadata.csv")
+      readr::write_csv(x=organismdbi_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
     bsgenome_metadata <- metadata %>%
       dplyr::mutate(
-               Title=glue::glue("Genome for {.data[['Species']]}"),
+               Title=glue::glue("Genome for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Genome for {.data[['Species']]}"),
+Genome for {.data[['Taxon']]}"),
                RDataClass="BSGenome",
                DispatchClass="2bit",
                ResourceName=.data[["BsgenomePkg"]],
                RDataPath=file.path(
-                 dir, "bsgenome", .data[["BiocVersion"]],
+                 dir, "BSgenome", .data[["BiocVersion"]],
                  glue::glue("{.data[['BsgenomePkg']]}"),
-                 "inst", "extdata", "single_sequences.2bit"))
-    if (file.exists("bsgenome_metadata.csv")) {
-      readr::write_excel_csv2(x=bsgenome_metadata, path="bsgenome_metadata.csv", append=TRUE)
+                 "single_sequences.2bit"))
+    csv_file <- file.path(
+      path.package("EuPathDB"),
+      "inst", "extdata",
+      glue::glue("BSgenome_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+    if (file.exists(csv_file)) {
+      readr::write_csv(x=bsgenome_metadata, path=csv_file, append=TRUE)
     } else {
-      readr::write_excel_csv2(x=bsgenome_metadata, path="bsgenome_metadata.csv")
+      readr::write_csv(x=bsgenome_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
   }
 
@@ -310,7 +358,7 @@ get_eupath_fields <- function(webservice, excludes=NULL) {
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
 #' @export
-get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
+get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL) {
   if (is.null(entry)) {
     stop("Needs an entry from the eupathdb.")
   }
@@ -397,7 +445,7 @@ get_orthologs_all_genes <- function(entry=NULL, dir="eupathdb", gene_ids=NULL) {
 #' @param gene What gene to query?
 #' @param dir Where to put the checkpoint file?
 #' @return table of orthologs for our one gene.
-get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="eupathdb") {
+get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="EuPathDB") {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
