@@ -19,14 +19,16 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
                   "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
                   "trichdb", "tritrypdb")
-    all_metadata <- data.frame()
+    valid_metadata <- data.frame()
+    invalid_metadata <- data.frame()
     for (p in projects) {
       project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
                                                    bioc_version=bioc_version, dir=dir,
                                                    version=version, write_csv=write_csv)
-      all_metadata <- rbind(all_metadata, project_metadata)
+      valid_metadata <- rbind(valid_metadata, project_metadata[["valid"]])
+      invalid_metadata <- rbind(invalid_metadata, project_metadata[["invalid"]])
     }
-    return(all_metadata)
+    return(list("valid" = valid_metadata, "invalid" = invalid_metadata))
   }
 
   if (!file.exists(dir)) {
@@ -182,7 +184,6 @@ trying http next.")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
   }
   eupathdb_version <- metadata[1, "SourceVersion"]
-
   ## A couple changes to try to make the metadata I generate pass
   ## AnnotationHubData::makeAnnotationHubMetadata()
   ## AnnotationHubData expects species suffixes to be 'sp.'
@@ -204,6 +205,38 @@ trying http next.")
                                 pattern=" like",
                                 replacement="",
                                 perl=TRUE)
+
+  ## An attempt to get as many species from AnnotationHub as possible.
+  testing_metadata <- metadata
+  invalid_metadata <- data.frame()
+  all_valid_species <- AnnotationHubData::getSpeciesList()
+  first_valid_idx <- testing_metadata[["TaxonUnmodified"]] %in% all_valid_species
+  message("Added ", sum(first_valid_idx), " species without changing anything out of ",
+          nrow(testing_metadata), ".")
+  if (sum(first_valid_idx) > 0) {
+    valid_metadata <- testing_metadata[which(first_valid_idx), ]
+    testing_metadata <- testing_metadata[which(!first_valid_idx), ]
+  }
+  message("Now there are: ", nrow(testing_metadata), " rows left.")
+  second_valid_idx <- testing_metadata[["Taxon"]] %in% all_valid_species
+  message("Added ", sum(second_valid_idx), " species after sanitizing the metadata.")
+  if (sum(second_valid_idx) > 0) {
+    new_metadata <- testing_metadata[which(second_valid_idx), ]
+    valid_metadata <- rbind(testing_metadata, new_metadata)
+    testing_metadata <- testing_metadata[which(!second_valid_idx), ]
+  }
+  message("Now there are: ", nrow(testing_metadata), " rows left.")
+  third_valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
+  message("Added ", sum(third_valid_idx), " species after using only the genus species.")
+  if (sum(third_valid_idx) > 0) {
+    new_metadata <- testing_metadata[which(third_valid_idx), ]
+    valid_metadata <- rbind(testing_metadata, new_metadata)
+    invalid_metadata <- testing_metadata[which(!third_valid_idx), ]
+  }
+  if (nrow(invalid_metadata) > 0) {
+    message("Unable to find species names for ", nrow(invalid_metadata), " species.")
+  }
+  metadata <- valid_metadata
 
   if (isTRUE(write_csv)) {
     granges_metadata <- metadata %>%
@@ -314,7 +347,11 @@ Genome for {.data[['Taxon']]}"),
     }
   }
 
-  return(metadata)
+  retlist <- list(
+    "valid" = metadata,
+    "invalid" = invalid_metadata)
+  return(retlist)
+
 }
 
 #' Extract query-able fields from the EupathDb.

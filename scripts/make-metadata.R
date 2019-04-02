@@ -15,14 +15,16 @@ returns <- list(
 all_metadata <- download_eupath_metadata(bioc_version="3.9",
                                          write_csv=TRUE,
                                          overwrite=TRUE)
+valid_metadata <- all_metadata[["valid"]]
+invalid_metadata <- all_metadata[["invalid"]]
 
 ## Lets take a moment to check the csv files.
 ## I am not certain that the RDataFiles exist, lets see if that is true.
-bioc_version <- all_metadata[1, "BiocVersion"]
-eupath_version <- all_metadata[1, "SourceVersion"]
+bioc_version <- valid_metadata[1, "BiocVersion"]
+eupath_version <- valid_metadata[1, "SourceVersion"]
 types <- c("BSgenome", "GRanges", "OrganismDbi", "OrgDb", "TxDb")
 for (type in types) {
   meta <- glue::glue("{type}_bioc_v{bioc_version}_eupathdb_v{eupath_version}_metadata.csv")
-  test_metadata <- AnnotationHubData::makeAnnotationHubMetadata(
-                                        path.package("EuPathDB", fileName=meta)
+  path <- path.package("EuPathDB")
+  test_metadata <- AnnotationHubData::makeAnnotationHubMetadata(path, fileName=meta)
 }
