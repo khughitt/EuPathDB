@@ -100,12 +100,10 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
 #' The default argument for this function shows the funniest one I have found so
 #' far thanks to the hash character in the strain definition.
 #'
-#' @param species  Species names taken from a metadata instance from a eupath project.
-#' @param version  Choose a specific version of the eupathdb, only really useful
+#' @param entry A metadatum entry.
+#' @param version Choose a specific version of the eupathdb, only really useful
 #'   when downloading files.
-#' @param metadata  Eupathdb metadata.
-#' @param ...  Further arguments to pass to download_eupath_metadata()
-#' @return  List of package names and some booleans to see if they have already
+#' @return List of package names and some booleans to see if they have already
 #'   been installed.
 #' @author atb
 #' @export
@@ -115,15 +113,14 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
   if (!is.null(version)) {
     version_string <- glue::glue(".v{version}")
   }
-
+  provider <- tolower(entry[["DataProvider"]])
   taxa <- make_taxon_names(entry)
   first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
   pkg_list <- list(
     "bsgenome" = glue::glue("BSGenome.{taxa[['taxon']]}{version_string}"),
     "bsgenome_installed" = FALSE,
-    ## "organismdbi" = paste0("eupathdb.", taxa[["taxon"]], version_string),
     "granges" = glue::glue("GRanges.{taxa[['taxon']]}{version_string}.rda"),
-    "organismdbi" = glue::glue("eupathdb.{taxa[['taxon']]}{version_string}"),
+    "organismdbi" = glue::glue("{provider}.{taxa[['taxon']]}{version_string}"),
     "organismdbi_installed" = FALSE,
     "orgdb" = glue::glue("org.{first_char}{taxa[['species_strain']]}{version_string}.eg.db"),
     "orgdb_installed" = FALSE,
@@ -131,7 +128,6 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
                   {entry[['DataProvider']]}{version_string}"),
     "txdb_installed" = FALSE
   )
-
   inst <- as.data.frame(installed.packages())
   if (pkg_list[["bsgenome"]] %in% inst[["Package"]]) {
     pkg_list[["bsgenome_installed"]] <- TRUE
@@ -145,7 +141,6 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
   if (pkg_list[["txdb"]] %in% inst[["Package"]]) {
     pkg_list[["txdb_installed"]] <- TRUE
   }
-
   return(pkg_list)
 }
 
@@ -166,6 +161,11 @@ get_eupath_pkgnames <- function(entry, version=NULL) {
 #' @export
 make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
                                  reinstall=FALSE, ...) {
+  arglist <- list(...)
+  author <- "Ashton Trey Belew <abelew@umd.edu>"
+  if (!is.null(arglist[["author"]])) {
+    author <- arglist[["author"]]
+  }
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -179,6 +179,16 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
       "bsgenome_name" = pkgname
     )
     return(retlist)
+  }
+
+  ## Check that a directory exists to leave the final package
+  dir <- file.path(dir)
+  if (!file.exists(dir)) {
+    tt <- dir.create(dir, recursive=TRUE)
+  }
+  ## Check for an incomplete installation directory and clear it out.
+  if (file.exists(pkgname)) {
+    final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
   }
 
   ## Figure out the version numbers and download urls.
@@ -200,8 +210,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
   genome_filename <- file.path(dir, glue::glue("{pkgname}.fasta"))
 
   ## Find a spot to dump the fasta files
-  bsgenome_base <- file.path(dir)
-  bsgenome_dir <- file.path(bsgenome_base, pkgname)
+  bsgenome_dir <- file.path(dir, pkgname)
   if (!file.exists(bsgenome_dir)) {
     created <- dir.create(bsgenome_dir, recursive=TRUE)
   }
@@ -239,7 +248,6 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
   desc_file <- file.path(bsgenome_dir, "DESCRIPTION")
   descript <- desc::description$new("!new")
   descript$set(Package=pkgname)
-  author <- "Ashton Trey Belew <abelew@umd.edu>"
   ## title <- paste0(taxa[["genus"]], " ", taxa[["species"]], " strain ", taxa[["strain"]],
   ##                 " version ", db_version)
   title <- glue::glue("{taxa[['genus']]} {taxa[['species']]} strain {taxa[['strain']]} \\
@@ -262,7 +270,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
   descript$set(provider_version=glue::glue("{fasta_hostname} {db_version}"))
   descript$set(release_date=format(Sys.time(), "%Y%m%d"))
   descript$set(BSgenomeObjname=glue::glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
-  descript$set(release_name=db_version)
+  descript$set(release_name=as.character(db_version))
   descript$set(organism_biocview=glue::glue("{taxa[['genus_species']]}_{taxa[['strain']]}"))
   descript$del("LazyData")
   descript$del("Authors@R")
@@ -291,13 +299,13 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
     deleted <- unlink(x=bsgenome_dir, recursive=TRUE, force=TRUE)
     built <- try(devtools::build(pkgname, quiet=TRUE))
     if (class(built) != "try-error") {
-      moved <- file.rename(glue::glue("{pkgname}_{version_string}.tar.gz"),
-                           glue::glue("{bsgenome_dir}_{version_string}.tar.gz"))
+      final_path <- move_final_package(bsgenome_dir, type="bsgenome", dir=dir)
       final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
     }
   } else {
     retlist <- inst
   }
+
   return(retlist)
 }
 
@@ -308,13 +316,12 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
 #' (reactome/go/etc).  In its current iteration, this function brings together a
 #' couple columns from the orgdb, txdb, GO.db, and reactome.db.
 #'
-#' @param species  A species in the eupathDb metadata.
-#' @param entry  A row from the eupathdb metadataframe.
-#' @param version  Which version of the eupathdb to use for creating this package?
-#' @param dir  Directory in which to build the packages.
-#' @param reinstall  Overwrite existing data files?
+#' @param entry A row from the eupathdb metadataframe.
+#' @param version Which version of the eupathdb to use for creating this package?
+#' @param dir Directory in which to build the packages.
+#' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation  For when we cannot automagically find the kegg species id.
-#' @param exclude_join  I had a harebrained idea to automatically set up the
+#' @param exclude_join I had a harebrained idea to automatically set up the
 #'   joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 #'   variable is intended to exclude columns with common IDs that might
 #'   multi-match spuriously -- I think in the end I killed the idea though,
@@ -323,8 +330,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="eupathdb",
 #' @author  Keith Hughitt, modified by atb.
 #' @export
 make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", reinstall=FALSE,
-                                    kegg_abbreviation=NULL, exclude_join="ENTREZID",
-                                    webservice="eupathdb") {
+                                    kegg_abbreviation=NULL, exclude_join="ENTREZID") {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -396,7 +402,7 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", re
 
   author <- as.character(entry[["Maintainer"]])
   maintainer <- as.character(entry[["Maintainer"]])
-  final_dir <- file.path(dir, pkgname)
+  final_dir <- file.path(dir, "organismdbi", pkgname)
   if (file.exists(final_dir)) {
     if (isTRUE(reinstall)) {
       unlinkret <- unlink(x=final_dir, recursive=TRUE)
@@ -435,11 +441,13 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", re
     }
   }
   final_organdb_name <- basename(organdb_path)
+  final_organdb_path <- move_final_package(organdb_path, type="organismdbi", dir=dir)
   retlist <- list(
     "orgdb_name" = orgdb_name,
     "txdb_name" = txdb_name,
-    "organdb_name" = final_organdb_name
-  )
+    "organdb_name" = final_organdb_name)
+  tt <- unloadNamespace(orgdb_name)
+  tt <- unloadNamespace(txdb_name)
   return(retlist)
 }
 
@@ -452,13 +460,18 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="eupathdb", re
 #' queries.  Check through eupath_webservices.r for some amusing examples of how
 #' I have gotten around the idiosyncrasies in the eupathdb.
 #'
-#' @param species  A specific species ID to query
-#' @param entry  If not provided, then species will get this, it contains all the information.
-#' @param dir  Where to put all the various temporary files.
-#' @param version  Which version of the eupathdb to use for creating this package?
-#' @param kegg_abbreviation  If known, provide the kegg abbreviation.
-#' @param reinstall  Re-install an already existing orgdb?
-#' @return  Currently only the name of the installed package.  This should
+#' @param entry If not provided, then species will get this, it contains all the information.
+#' @param dir Where to put all the various temporary files.
+#' @param version Which version of the eupathdb to use for creating this package?
+#' @param kegg_abbreviation If known, provide the kegg abbreviation.
+#' @param reinstall Re-install an already existing orgdb?
+#' @param overwrite Overwrite a partial installation?
+#' @param do_go Create the gene ontology table?
+#' @param do_orthologs Create the gene ortholog table?
+#' @param do_interpro Create the interpro table?
+#' @param do_pathway Create the pathway table?
+#' @param do_kegg Attempt to create the kegg table?
+#' @return Currently only the name of the installed package.  This should
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
@@ -505,7 +518,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
   }
 
   gene_ids <- gene_table[["GID"]]
-
   go_table <- data.frame()
   if (isTRUE(do_go)) {
     go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
@@ -682,6 +694,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
   Sys.chmod(dbpath, mode="0444")
+  closed <- RSQLite::dbDisconnect(db)
 
   ## Clean up any strangeness in the DESCRIPTION file
   orgdb_path <- clean_pkg(orgdb_path)
@@ -693,6 +706,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
   if (class(inst) != "try-error") {
     built <- try(devtools::build(orgdb_path, quiet=TRUE))
     if (class(built) != "try-error") {
+      final_path <- move_final_package(orgdb_path, type="orgdb", dir=dir)
       final_deleted <- unlink(x=orgdb_path, recursive=TRUE, force=TRUE)
     }
   }
@@ -706,18 +720,20 @@ make_eupath_orgdb <- function(entry=NULL, dir="eupathdb", version=NULL,
   return(retlist)
 }
 
-#' Generate TxDb for EuPathDB organism
+#' Generate an EuPathDB organism TxDb package.
 #'
-#' @param species  Species name from the eupathdb metadata.
+#' This will hopefully create a txdb package and granges savefile for a single
+#' species in the eupathdb.  This depends pretty much entirely on the successful
+#' download of a gff file from the eupathdb.
+#'
 #' @param entry  One row from the organism metadata.
 #' @param version  Which version of the eupathdb to use for creating this package?
 #' @param dir  Base directory for building the package.
 #' @param reinstall  Overwrite an existing installed package?
-#' @param ...  Extra arguments for getting metadata.
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall=FALSE, ...) {
+make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -732,6 +748,14 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
     tt <- download.file(url=gff_url, destfile=input_gff,
                         method="curl", quiet=FALSE)
   }
+  if (!isTRUE(tt)) {
+    stop("Failed to download the gff file from: ", gff_url, ".")
+  }
+  ## It appears that sometimes I get weird results from this download.file()
+  ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
+  granges_name <- make_eupath_granges(entry=entry, dir=dir)
+  final_granges_path <- move_final_package(granges_name, type="granges", dir=dir)
+  granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
 
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
     message(pkgname, " is already installed, set reinstall=TRUE if you wish to reinstall.")
@@ -805,7 +829,6 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
     "PROVIDER" = provider,
     "PROVIDERVERSION" = providerVersion,
     "RELEASEDATE" = getMetaDataValue(txdb, "Creation time"),
-    ## SOURCEURL = getMetaDataValue(txdb, "Resource URL"),
     "SOURCEURL" = entry[["SourceUrl"]],
     "ORGANISMBIOCVIEW" = gsub(" ", "_", getMetaDataValue(txdb, "Organism")),
     "TXDBOBJNAME" = pkgname)
@@ -835,6 +858,7 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
   if (class(obj) == "try-error") {
     warning("Failed to save the txdb object.")
   }
+  closed <- try(RSQLite::dbDisconnect(dbconn(obj)), silent=TRUE)
 
   install_dir <- file.path(dir, pkgname)
   install_dir <- clean_pkg(install_dir)
@@ -845,8 +869,45 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
   if (class(inst) != "try-error") {
     built <- try(devtools::build(install_dir, quiet=TRUE))
     if (class(built) != "try-error") {
+      final_path <- move_final_package(pkgname, type="txdb", dir=dir)
       final_deleted <- unlink(x=install_dir, recursive=TRUE, force=TRUE)
     }
+  }
+
+  retlist <- list(
+    "object" = txdb,
+    "gff" = input_gff,
+    "txdb_name" = pkgname,
+    "granges_file" = granges_name,
+    "granges_variable" = granges_variable)
+
+  return(retlist)
+}
+
+#' Generate a GRanges rda savefile from a gff file.
+#'
+#' There is not too much else to say. This uses import.gff from rtracklayer.
+#' I should probably steal my code from hpgltools to make this work for any
+#' version of a gff file, but the eupathdb is good about keeping consistent on
+#' this front.
+#'
+#' @param entry Metadatum entry.
+#' @param dir Place to put the resulting file(s).
+#' @param version Optionally request a specific version of the gff file.
+make_eupath_granges <- function(entry=NULL, dir="eupathdb", version=NULL) {
+  if (is.null(entry)) {
+    stop("Need an entry.")
+  }
+
+  taxa <- make_taxon_names(entry)
+  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgname <- pkgnames[["txdb"]]
+
+  input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
+  if (!file.exists(input_gff)) {
+    gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
+    tt <- download.file(url=gff_url, destfile=input_gff,
+                        method="curl", quiet=FALSE)
   }
 
   ## Dump a granges object and save it as an rda file.
@@ -855,15 +916,37 @@ make_eupath_txdb <- function(entry=NULL, dir="eupathdb", version=NULL, reinstall
   granges_env <- new.env()
   granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
   granges_env[[granges_variable]] <- granges_result
+  granges_file <- file.path(dir, granges_name)
   save_result <- save(list=ls(envir=granges_env),
-                      file=granges_name,
+                      file=granges_file,
                       envir=granges_env)
+  ## import.gff3 appears to be opening 2 connections to the gff file, both are read only.
+  ## It is not entirely clear to me, given the semantics of import.gff3, how to close these
+  ## connections cleanly, ergo the following.
+  extra_connections <- rownames(showConnections())
+  for (con in extra_connections) {
+    closed <- try(close(getConnection(con)), silent=TRUE)
+  }
 
-  retlist <- list(
-    "object" = txdb,
-    "gff" = input_gff,
-    "txdb_name" = pkgname,
-    "granges_file" = granges_name,
-    "granges_variable" = granges_variable)
-  return(retlist)
+  return(granges_name)
 }
+
+move_final_package <- function(pkgname, type="orgdb", dir="eupathdb") {
+  final_dir <- file.path(dir, type)
+  if (!file.exists(final_dir)) {
+    dir.create(final_dir, recursive=TRUE)
+  }
+  pkgname <- basename(pkgname)
+  version_string <- format(Sys.time(), "%Y.%m")
+  final_filename <- glue::glue("{pkgname}_{version_string}.tar.gz")
+  current_path <- file.path(dir, final_filename)
+  final_path <- file.path(final_dir, final_filename)
+  if (type == "granges") {
+    current_path <- file.path(dir, pkgname)
+    final_path <- file.path(final_dir, pkgname)
+  }
+  moved <- file.rename(from=current_path, to=final_path)
+  return(final_path)
+}
+
+## EOF

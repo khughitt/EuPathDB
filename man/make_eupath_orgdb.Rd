@@ -20,7 +20,17 @@ make_eupath_orgdb(entry = NULL, dir = "eupathdb", version = NULL,
 
 \item{reinstall}{Re-install an already existing orgdb?}
 
-\item{species}{A specific species ID to query}
+\item{overwrite}{Overwrite a partial installation?}
+
+\item{do_go}{Create the gene ontology table?}
+
+\item{do_orthologs}{Create the gene ortholog table?}
+
+\item{do_interpro}{Create the interpro table?}
+
+\item{do_pathway}{Create the pathway table?}
+
+\item{do_kegg}{Attempt to create the kegg table?}
 }
 \value{
 Currently only the name of the installed package.  This should

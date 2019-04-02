@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 start <- as.POSIXlt(Sys.time())
 library(testthat)
 library(EuPathDB)

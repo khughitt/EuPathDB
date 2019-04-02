@@ -22,8 +22,8 @@
 #' 'table_column' where in this particular instance, the table is further
 #' assumed to be the ortholog table.
 #'
-#' @param db  Species name (subset) from one eupath database.
-#' @param master  Primary keytype to use for indexing the various tables.
+#' @param db Species name (subset) from one eupath database.
+#' @param master Primary keytype to use for indexing the various tables.
 #' @param query_species A list of exact species names to search for.  If uncertain
 #'   about them, add print_speciesnames=TRUE and be ready for a big blob of
 #'   text.  If left null, then it will pull all species.
@@ -32,6 +32,7 @@
 #' @param url_column What column provides the orthomcl group ID?
 #' @param count_column Name of the column with the count of species represented.
 #' @param print_speciesnames Dump the species names for diagnostics?
+#' @param webservice Which eupathdb project to query?
 #' @return A big table of orthoMCL families, the columns are:
 #'  \enumerate{
 #'   \item  GID: The gene ID
@@ -190,8 +191,8 @@ extract_gene_locations <- function(annot_df, location_column="annot_gene_locatio
 #' @export
 load_eupath_annotations <- function(species="Leishmania major", webservice="tritrypdb",
                                     version=NULL, wanted_fields=NULL) {
-  metadata <- download_eupath_metadata(webservice=webservice)
-  pkg_names <- get_eupath_pkgnames(species=species, metadata=metadata, version=version)
+  entry <- get_eupath_entry(species=species, webservice=webservice)
+  pkg_names <- get_eupath_pkgnames(entry=entry, version=version)
   pkg_installedp <- pkg_names[["orgdb_installed"]]
   if (isFALSE(pkg_installedp)) {
     stop("The required package is not installed.")

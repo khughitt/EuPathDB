@@ -27,6 +27,8 @@ text.  If left null, then it will pull all species.}
 \item{count_column}{Name of the column with the count of species represented.}
 
 \item{print_speciesnames}{Dump the species names for diagnostics?}
+
+\item{webservice}{Which eupathdb project to query?}
 }
 \value{
 A big table of orthoMCL families, the columns are:

@@ -7,14 +7,10 @@
 get_eupath_pkgnames(entry, version = NULL)
 }
 \arguments{
+\item{entry}{A metadatum entry.}
+
 \item{version}{Choose a specific version of the eupathdb, only really useful
 when downloading files.}
-
-\item{species}{Species names taken from a metadata instance from a eupath project.}
-
-\item{metadata}{Eupathdb metadata.}
-
-\item{...}{Further arguments to pass to download_eupath_metadata()}
 }
 \value{
 List of package names and some booleans to see if they have already

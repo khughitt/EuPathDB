@@ -18,8 +18,6 @@ post_eupath_table(query_body, entry, table_name = NULL, minutes = 10)
 for prettier labeling.}
 
 \item{minutes}{A timeout when querying the eupathdb.}
-
-\item{...}{Extra arguments for stuff like download_metadtata()}
 }
 \value{
 list containing response from API request.
