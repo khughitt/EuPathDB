@@ -5,7 +5,7 @@ library(EuPathDB)
 ## This script invokes download_eupath_metadata() with arguments to write out
 ## metadata csv files for AnnotationHubData.
 
-devtools::load_all("~/scratch/git/eupathdb_forked")
+devtools::load_all("~/scratch/git/EuPathDB")
 returns <- list(
   "bsgenome" = list(),
   "orgdb" = list(),

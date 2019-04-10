@@ -17,8 +17,8 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
-                  "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
-                  "trichdb", "tritrypdb")
+                  "microsporidiadb", "piroplasmadb", "plasmodb",
+                  "schistodb", "toxodb", "trichdb", "tritrypdb")
     valid_metadata <- data.frame()
     invalid_metadata <- data.frame()
     for (p in projects) {
@@ -57,6 +57,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     "MicrosporidiaDB" = c(shared_tags, "Microsporidia"),
     "PiroplasmaDB" = c(shared_tags, "Piroplasma"),
     "PlasmoDB" = c(shared_tags, "Plasmodium"),
+    "SchistoDB" = c(shared_tags, "Schistosoma"),
     "ToxoDB" = c(shared_tags, "Toxoplasmosis"),
     "TrichDB" = c(shared_tags, "Trichomonas"),
     "TriTrypDB" = c(shared_tags, "Trypanosome", "Kinetoplastid", "Leishmania"))
@@ -67,6 +68,10 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   service_directory <- prefix_map(webservice)
   ## construct API request URL
   base_url <- glue::glue("https://{webservice}.org/{service_directory}/webservices/")
+  if (webservice == "schistodb") {
+    ## WTF? There is some weird politics going on here I bet.
+    base_url <- glue::glue("https://{webservice}.net/{service_directory}/webservices/")
+  }
   query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
   request_url <- glue::glue("{base_url}{query_string}")
 
@@ -167,6 +172,10 @@ trying http next.")
   metadata[["TxdbPkg"]] <- ""
   metadata[["Strain"]] <- ""
   metadata[["Taxon"]] <- ""
+  metadata[["Genus"]] <- ""
+  metadata[["Sp"]] <- ""
+  ## Also double-check the taxon IDs
+  all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
     pkg_names <- get_eupath_pkgnames(metadatum)
@@ -182,6 +191,22 @@ trying http next.")
     metadata[it, "Taxon"] <- gsub(x=species_info[["taxon"]],
                                   pattern="\\.", replacement=" ")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
+    found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
+    if (length(found_genus_taxa_idx) > 0) {
+      subset_taxa <- all_taxa_ids[found_genus_taxa_idx, ]
+      found_species_taxa_idx <- which(subset_taxa[["species"]] %in% species_info[["species"]])
+      if (length(found_species_taxa_idx) > 0) {
+        taxa_ids <- subset_taxa[found_species_taxa_idx, ]
+        taxon_id <- taxa_ids[1, "tax_id"]
+        if (is.na(metadata[it, "TaxonomyId"])) {
+          message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, "Species"], ".")
+          metadata[it, "TaxonomyId"] <- taxon_id
+        } else if (metadata[it, "TaxonomyId"] != taxon_id) {
+          message("The taxonomy ID from GenomeInfoDb does not match what I have for ",
+                  metadata[it, "Species"], ".")
+        }
+      }
+    }
   }
   eupathdb_version <- metadata[1, "SourceVersion"]
   ## A couple changes to try to make the metadata I generate pass
@@ -208,33 +233,34 @@ trying http next.")
 
   ## An attempt to get as many species from AnnotationHub as possible.
   testing_metadata <- metadata
+  valid_metadata <- data.frame()
   invalid_metadata <- data.frame()
   all_valid_species <- AnnotationHubData::getSpeciesList()
-  first_valid_idx <- testing_metadata[["TaxonUnmodified"]] %in% all_valid_species
-  message("Added ", sum(first_valid_idx), " species without changing anything out of ",
+  valid_idx <- testing_metadata[["TaxonUnmodified"]] %in% all_valid_species
+  message("Added ", sum(valid_idx), " species without changing anything out of ",
           nrow(testing_metadata), ".")
-  if (sum(first_valid_idx) > 0) {
-    valid_metadata <- testing_metadata[which(first_valid_idx), ]
-    testing_metadata <- testing_metadata[which(!first_valid_idx), ]
+  if (sum(valid_idx) > 0) {
+    ## Add the stuff which was found to the set of valid entries.
+    valid_metadata <- testing_metadata[which(valid_idx), ]
+    ## Then remove them from the set to be tested.
+    testing_metadata <- testing_metadata[which(!valid_idx), ]
+    ## Set the 'Species' column to taxonunmodified
+    valid_metadata[["Species"]] <- valid_metadata[["TaxonUnmodified"]]
   }
   message("Now there are: ", nrow(testing_metadata), " rows left.")
-  second_valid_idx <- testing_metadata[["Taxon"]] %in% all_valid_species
-  message("Added ", sum(second_valid_idx), " species after sanitizing the metadata.")
-  if (sum(second_valid_idx) > 0) {
-    new_metadata <- testing_metadata[which(second_valid_idx), ]
-    valid_metadata <- rbind(testing_metadata, new_metadata)
-    testing_metadata <- testing_metadata[which(!second_valid_idx), ]
-  }
-  message("Now there are: ", nrow(testing_metadata), " rows left.")
-  third_valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
-  message("Added ", sum(third_valid_idx), " species after using only the genus species.")
-  if (sum(third_valid_idx) > 0) {
-    new_metadata <- testing_metadata[which(third_valid_idx), ]
-    valid_metadata <- rbind(testing_metadata, new_metadata)
-    invalid_metadata <- testing_metadata[which(!third_valid_idx), ]
+  valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
+  message("Added ", sum(valid_idx), " species after using only the genus species.")
+  if (sum(valid_idx) > 0) {
+    new_metadata <- testing_metadata[which(valid_idx), ]
+    ## Pull out the new valid entries
+    valid_metadata <- rbind(valid_metadata, new_metadata)
+    ## Add those to the valid metadata.
+    invalid_metadata <- testing_metadata[which(!valid_idx), ]
+    ## Add whatever is left to the set of invalid metadata.
   }
   if (nrow(invalid_metadata) > 0) {
     message("Unable to find species names for ", nrow(invalid_metadata), " species.")
+    message(invalid_metadata[["Species"]])
   }
   metadata <- valid_metadata
 
