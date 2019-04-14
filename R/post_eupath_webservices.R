@@ -16,7 +16,7 @@
 #' @param dir A directory into which to write the intermediate savefile.
 #' @param overwrite If a partial table exists, overwrite it?
 #' @return  A big honking table.
-post_eupath_annotations <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
+post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -349,7 +349,7 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
 #' @param dir Location to write savefiles.
 #' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return  A big honking table.
-post_eupath_go_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
+post_eupath_go_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -407,7 +407,7 @@ post_eupath_go_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
 #'   exist at all eupathdb subprojects.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb", table="OrthologsLite",
+post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="OrthologsLite",
                                        overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
@@ -460,7 +460,7 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="eupathdb", table="Orthol
 #' @param dir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
-post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
+post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
@@ -511,7 +511,7 @@ post_eupath_interpro_table <- function(entry=NULL, dir="eupathdb", overwrite=FAL
 #' @param dir Location to which to save intermediate savefile.
 #' @param overwrite If trying again, overwrite the savefile?
 #' @return A big honking table.
-post_eupath_pathway_table <- function(entry=NULL, dir="eupathdb", overwrite=FALSE) {
+post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need a eupathdb entry.")
   }
