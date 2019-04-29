@@ -18,7 +18,7 @@ Imports: AnnotationHubData, Biostrings, BiocManager, data.table, dplyr, foreach,
          httr, jsonlite, magrittr, rvest, utils, xml2
 Suggests:
     AnnotationDbi, AnnotationForge, BiocStyle, BSgenome, BiocInstaller, curl, desc, devtools,
-    GenomicFeatures, Go.db, KEGGREST, knitr, OrganismDbi, RCurl, reactome.db, RSQLite, S4Vectors,
+    GenomicFeatures, GO.db, KEGGREST, knitr, OrganismDbi, RCurl, reactome.db, RSQLite, S4Vectors,
     stringr, testthat, tidyr
 biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
 License: Artistic-2.0
