@@ -51,6 +51,14 @@ roxygen:
 	@echo "Generating documentation with devtools::document()"
 	R -e "suppressPackageStartupMessages(devtools::document())"
 
+s3:
+	@echo "Invoking the aws client to upload the sqlite/rda/etc files to s3."
+	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/OrgDb "s3://annotation-contributor/EuPathDB/OrgDb"
+##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges"
+##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb"
+##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/OrganismDBI "s3://annotation-contributor/EuPathDB/OrganismDBI"
+##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/BSGenome "s3://annotation-contributor/EuPathDB/BSGenome"
+
 suggests:
 	@echo "Installing suggested packages."
 	R -e "source('http://bioconductor.org/biocLite.R');\
