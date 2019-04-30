@@ -4,7 +4,7 @@
 \alias{post_eupath_ortholog_table}
 \title{Use the post interface to get ortholog data.}
 \usage{
-post_eupath_ortholog_table(entry = NULL, dir = "eupathdb",
+post_eupath_ortholog_table(entry = NULL, dir = "EuPathDB",
   table = "OrthologsLite", overwrite = FALSE)
 }
 \arguments{

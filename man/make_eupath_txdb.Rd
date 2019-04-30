@@ -4,7 +4,7 @@
 \alias{make_eupath_txdb}
 \title{Generate an EuPathDB organism TxDb package.}
 \usage{
-make_eupath_txdb(entry = NULL, dir = "eupathdb", version = NULL,
+make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
   reinstall = FALSE)
 }
 \arguments{

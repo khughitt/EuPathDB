@@ -1,6 +1,9 @@
 ## The functions in this file are some semi-random helpers used when creating
 ## eupathdb tables.
 
+#' Invoke download_eupath_metadata() using all the sub-projects of the EuPathDB.
+#'
+#' @param webservice Assume all services are desired.
 get_all_metadata <- function(webservice="all") {
   metadata <- data.frame()
   if (webservice == "all") {

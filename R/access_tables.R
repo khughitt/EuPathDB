@@ -489,7 +489,7 @@ The available keytypes are: ", toString(avail_types), "choosing ", keytype, ".")
 
   ## Remove redundant annotations which differ only in source/evidence
   ## and rename ONTOLOGYALL column
-  go_terms <- unique(dplyr::tbl_df(go_terms) %>% na.omit())
+  go_terms <- unique(dplyr::tbl_df(go_terms) %>% stats::na.omit())
   return(go_terms)
 }
 
@@ -525,7 +525,7 @@ orgdb_from_ah <- function(ahid=NULL, title=NULL, species=NULL, type="OrgDb") {
     message("Going to attempt to find a human database.  I hope this is what you want!")
     hits <- grepl(pattern="Hs\\.eg\\.db", x=ah$title)
     ahid <- names(ah)[hits]
-  } else if (is.null(ahid) & is.null(title) & is.null(organism)) {
+  } else if (is.null(ahid) & is.null(title) & is.null(species)) {
     ## Then we got a species
     possible <- ah$species
     titles <- ah$title

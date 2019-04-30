@@ -4,7 +4,7 @@
 \alias{make_eupath_bsgenome}
 \title{Generate a BSgenome package from the eupathdb.}
 \usage{
-make_eupath_bsgenome(entry, version = NULL, dir = "eupathdb",
+make_eupath_bsgenome(entry, version = NULL, dir = "EuPathDB",
   reinstall = FALSE, ...)
 }
 \arguments{

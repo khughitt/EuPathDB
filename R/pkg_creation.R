@@ -284,7 +284,9 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
   message("Starting forgeBSgenomeDataPkg().")
   tt <- requireNamespace("Biostrings")
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
-  library(Biostrings)
+  ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
+  ## way around that due to limitations of Biostrings, lets see.
+  tt <- attachNamespace("Biostrings")
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
@@ -858,7 +860,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   if (class(obj) == "try-error") {
     warning("Failed to save the txdb object.")
   }
-  closed <- try(RSQLite::dbDisconnect(dbconn(obj)), silent=TRUE)
+  closed <- try(RSQLite::dbDisconnect(BiocGenerics::dbconn(obj)), silent=TRUE)
 
   install_dir <- file.path(dir, pkgname)
   install_dir <- clean_pkg(install_dir)

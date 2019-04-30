@@ -4,7 +4,7 @@
 \alias{make_eupath_granges}
 \title{Generate a GRanges rda savefile from a gff file.}
 \usage{
-make_eupath_granges(entry = NULL, dir = "eupathdb", version = NULL)
+make_eupath_granges(entry = NULL, dir = "EuPathDB", version = NULL)
 }
 \arguments{
 \item{entry}{Metadatum entry.}

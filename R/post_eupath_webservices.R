@@ -155,7 +155,7 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
   } else if (result[["status_code"]] == "400") {
     warning("Status 400 was returned, likely a bad formatConfig.")
   } else if (result[["status_code"]] == "404") {
-    warning("A 404 was returned, check the url: ", api_url)
+    warning("A 404 was returned, check the url: ", api_uri)
   } else if (result[["status_code"]] != "200") {
     warning("An error status code was returned.")
     return(data.frame())

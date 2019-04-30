@@ -4,7 +4,7 @@
 \alias{post_eupath_annotations}
 \title{Gather all available annotation data for a given eupathdb species.}
 \usage{
-post_eupath_annotations(entry = NULL, dir = "eupathdb",
+post_eupath_annotations(entry = NULL, dir = "EuPathDB",
   overwrite = FALSE)
 }
 \arguments{

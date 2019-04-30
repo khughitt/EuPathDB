@@ -14,53 +14,35 @@ context("010annotation_eupathdb.R
 testing <- download_eupath_metadata()
 ## Looks like 8 new species were added.
 ## oh wow, some species were removed now!
-expected <- c(354, 19)
-actual <- dim(testing)
+expected <- c(378, 23)
+actual <- dim(testing[["valid"]])
 ## 01
-test_that("Is the eupathdb metadata the expected size?", {
+test_that("Is the eupathdb valid metadata the expected size?", {
+  expect_equal(expected, actual)
+})
+
+expected <- c(5, 23)
+actual <- dim(testing[["invalid"]])
+## 01
+test_that("Is the eupathdb invalid metadata the expected size?", {
   expect_equal(expected, actual)
 })
 
 testing <- download_eupath_metadata(webservice="tritrypdb")
-expected <- c(46, 19)
-actual <- dim(testing)
+
+expected <- c(55, 23)
+actual <- dim(testing[["valid"]])
 ## 01
-test_that("Is the tritrypdb metadata the expected size?", {
+test_that("Is the tritrypdb valid metadata the expected size?", {
   expect_equal(expected, actual)
 })
 
-do_long_tests <- FALSE
-if (isTRUE(do_long_tests)) {
-  ## You know what, making all of these will take days, just pull a random 2
-  random_org <- try(random::randomNumbers(n=1, min=1, max=nrow(testing), col=1), silent=TRUE)
-  chosen <- 1
-  if (class(random_org) == "try-error") {
-    chosen <- sample(1:nrow(testing), 1)
-  } else {
-    chosen <- random_org[, 1]
-  }
-  eupath_names <- testing[["Species"]]
-  species <- eupath_names[chosen]
-  message(paste0("\nGoing to attempt making packages for: ", species))
-  eupath_test <- make_eupath_organismdbi(species=species, metadata=testing, reinstall=TRUE)
-  if (class(eupath_test) != "try-error") {
-    test_that("Did the organismdbi get installed?", {
-      expect_true(eupath_test[["organdb_name"]] %in% installed.packages())
-    })
-  } else {
-    message(paste0("Creation of orgdb/etc failed for ", species))
-  }
-  bsgenome_test <- sm(make_eupath_bsgenome(species, reinstall=TRUE))
-  test_that("Did the bsgenome get installed?", {
-    expect_true(bsgenome_test[["bsgenome_name"]] %in% installed.packages())
-  })
-
-  ## I found a note in Keith's EupathDb package that T. vaginalis took 12 hours.
-  ## I want to see how long this version of that idea takes...
-  ## Starting at 11:38
-  tvag <- make_eupath_organismdbi(species="vaginalis")
-  Sys.time()
-}
+actual <- dim(testing[["invalid"]])
+expected <- c(0, 23)
+## 01
+test_that("Is the tritrypdb invalid metadata the expected size?", {
+  expect_equal(actual, expected)
+})
 
 end <- as.POSIXlt(Sys.time())
 elapsed <- round(x=as.numeric(end) - as.numeric(start))

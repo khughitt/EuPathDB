@@ -8,6 +8,7 @@
 #' @param bioc_version Manually set the bioconductor release if desired.
 #' @param dir Where to put the json.
 #' @param version Choose a specific eupathdb version?
+#' @param write_csv Write a csv file in the format expected by AnnotationHubData?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export

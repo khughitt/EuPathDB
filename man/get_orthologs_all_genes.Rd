@@ -4,7 +4,7 @@
 \alias{get_orthologs_all_genes}
 \title{Query ortholog tables from the eupathdb one gene at a time.}
 \usage{
-get_orthologs_all_genes(entry = NULL, dir = "eupathdb",
+get_orthologs_all_genes(entry = NULL, dir = "EuPathDB",
   gene_ids = NULL)
 }
 \arguments{

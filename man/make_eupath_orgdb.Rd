@@ -4,7 +4,7 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(entry = NULL, dir = "eupathdb", version = NULL,
+make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
   kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
   do_go = TRUE, do_orthologs = TRUE, do_interpro = TRUE,
   do_pathway = TRUE, do_kegg = TRUE)
