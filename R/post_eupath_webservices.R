@@ -48,10 +48,10 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
     "max_molecular_weight" = jsonlite::unbox("10000000000000000")
   )
   question <- "GeneQuestions.GenesByMolecularWeight"
-  table_name <- "annot"
   result <- post_eupath_raw(entry, question=question,
-                            parameters=parameters, table_name=table_name)
+                            parameters=parameters, table_name="annot")
   colnames(result) <- tolower(colnames(result))
+  colnames(result) <- gsub(x=colnames(result), pattern="annot_annotated", replacement="annot")
   numeric_columns <- c(
     "annot_gene_exon_count",
     "annot_gene_transcript_count",
@@ -390,6 +390,7 @@ post_eupath_go_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="go")
+  colnames(result) <- gsub(x=colnames(result), pattern="GO_GO", replacement="GO")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
@@ -449,6 +450,11 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="orthologs")
+  ## Because the orthologslite table changes some column names...
+  colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
+                           replacement="ORTHOLOGS_ID")
+  colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
+                           replacement="ORTHOLOGS_GENE_ID")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
@@ -500,6 +506,8 @@ post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FAL
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="interpro")
+  colnames(result) <- gsub(x=colnames(result), pattern="INTERPRO_INTERPRO",
+                           replacement="INTERPRO")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
@@ -551,6 +559,10 @@ post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALS
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="pathway")
+  colnames(result) <- gsub(x=colnames(result), pattern="^PATHWAY_PATHWAY$",
+                           replacement="PATHWAY_ID")
+  colnames(result) <- gsub(x=colnames(result), pattern="PATHWAY_PATHWAY",
+                           replacement="PATHWAY")
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)

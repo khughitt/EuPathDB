@@ -484,6 +484,9 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   if (is.null(entry)) {
     stop("Need an entry.")
   }
+  if (class(entry)[1] == "character") {
+    entry <- get_eupath_entry(entry)
+  }
   taxa <- make_taxon_names(entry)
   pkgnames <- get_eupath_pkgnames(entry, version=version)
   pkgname <- pkgnames[["orgdb"]]
@@ -747,12 +750,13 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
-    tt <- download.file(url=gff_url, destfile=input_gff,
-                        method="curl", quiet=FALSE)
+    downloaded_gff <- try(download.file(url=gff_url, destfile=input_gff,
+                            method="curl", quiet=FALSE), silent=TRUE)
+    if (class(downloaded_gff)[[1]] == "try-error") {
+      stop("Failed to download the gff file from: ", gff_url, ".")
+    }
   }
-  if (!isTRUE(tt)) {
-    stop("Failed to download the gff file from: ", gff_url, ".")
-  }
+
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
   granges_name <- make_eupath_granges(entry=entry, dir=dir)
