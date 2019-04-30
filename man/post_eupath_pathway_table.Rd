@@ -4,7 +4,7 @@
 \alias{post_eupath_pathway_table}
 \title{Use the post interface to get pathway data.}
 \usage{
-post_eupath_pathway_table(entry = NULL, dir = "eupathdb",
+post_eupath_pathway_table(entry = NULL, dir = "EuPathDB",
   overwrite = FALSE)
 }
 \arguments{

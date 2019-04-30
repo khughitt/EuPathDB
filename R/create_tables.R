@@ -1,6 +1,9 @@
 ## The functions in this file are some semi-random helpers used when creating
 ## eupathdb tables.
 
+#' Invoke download_eupath_metadata() using all the sub-projects of the EuPathDB.
+#'
+#' @param webservice Assume all services are desired.
 get_all_metadata <- function(webservice="all") {
   metadata <- data.frame()
   if (webservice == "all") {
@@ -34,23 +37,24 @@ get_all_metadata <- function(webservice="all") {
 #' @export
 get_eupath_entry <- function(species="Leishmania major", webservice="eupathdb") {
   metadata <- download_eupath_metadata(webservice=webservice)
+  metadata <- metadata[["valid"]]
   all_species <- metadata[["Species"]]
   entry <- NULL
   grep_hits <- grepl(species, all_species)
   grepped_hits <- all_species[grep_hits]
-  found_species <- sum(species %in% all_species)
-  if (found_species > 0) {
-    entry <- metadata[metadata[["Species"]] == species, ]
-    message("Found: ", entry[["Species"]])
-  } else if (sum(grep_hits >= 1)) {
-    species <- grepped_hits[[1]]
-    entry <- metadata[metadata[["Species"]] == species, ]
-    if (sum(grep_hits > 1)) {
-      message("Found the following hits: ", toString(grepped_hits), ", choosing the first.")
-    }
-  } else {
+  found_species <- sum(grep_hits)
+  if (found_species == 0) {
     message("Here are the possible species: ", toString(all_species))
     stop("Did not find your species.")
+  } else if (found_species == 1) {
+    entry <- metadata[metadata[["Species"]] == grepped_hits, ]
+    message("Found: ", entry[["Species"]])
+  } else if (found_species > 1) {
+    species <- grepped_hits[[1]]
+    entry <- metadata[metadata[["Species"]] == species, ]
+    message("Found the following hits: ", toString(grepped_hits), ", choosing the first.")
+  } else {
+    stop("It should not be possible to have negative hits.")
   }
   return(entry)
 }

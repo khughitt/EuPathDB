@@ -4,7 +4,7 @@
 \alias{post_eupath_go_table}
 \title{Use the POST interface to get GO data from the EuPathDB.}
 \usage{
-post_eupath_go_table(entry = NULL, dir = "eupathdb",
+post_eupath_go_table(entry = NULL, dir = "EuPathDB",
   overwrite = FALSE)
 }
 \arguments{

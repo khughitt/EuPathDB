@@ -6,7 +6,7 @@
 eupathdb web servers.}
 \usage{
 get_orthologs_one_gene(entry = NULL, gene = "LmjF.01.0010",
-  dir = "eupathdb")
+  dir = "EuPathDB")
 }
 \arguments{
 \item{entry}{Metadata entry.}

@@ -284,7 +284,9 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
   message("Starting forgeBSgenomeDataPkg().")
   tt <- requireNamespace("Biostrings")
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
-  library(Biostrings)
+  ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
+  ## way around that due to limitations of Biostrings, lets see.
+  tt <- attachNamespace("Biostrings")
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
@@ -481,6 +483,9 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
                               do_pathway=TRUE, do_kegg=TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
+  }
+  if (class(entry)[1] == "character") {
+    entry <- get_eupath_entry(entry)
   }
   taxa <- make_taxon_names(entry)
   pkgnames <- get_eupath_pkgnames(entry, version=version)
@@ -745,12 +750,13 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
-    tt <- download.file(url=gff_url, destfile=input_gff,
-                        method="curl", quiet=FALSE)
+    downloaded_gff <- try(download.file(url=gff_url, destfile=input_gff,
+                            method="curl", quiet=FALSE), silent=TRUE)
+    if (class(downloaded_gff)[[1]] == "try-error") {
+      stop("Failed to download the gff file from: ", gff_url, ".")
+    }
   }
-  if (!isTRUE(tt)) {
-    stop("Failed to download the gff file from: ", gff_url, ".")
-  }
+
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
   granges_name <- make_eupath_granges(entry=entry, dir=dir)
@@ -858,7 +864,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   if (class(obj) == "try-error") {
     warning("Failed to save the txdb object.")
   }
-  closed <- try(RSQLite::dbDisconnect(dbconn(obj)), silent=TRUE)
+  closed <- try(RSQLite::dbDisconnect(BiocGenerics::dbconn(obj)), silent=TRUE)
 
   install_dir <- file.path(dir, pkgname)
   install_dir <- clean_pkg(install_dir)

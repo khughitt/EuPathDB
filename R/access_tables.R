@@ -49,38 +49,44 @@
 #' @author atb
 #' @export
 extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
-                                     id_column="ORTHOLOG_ID",
-                                     org_column="ORGANISM",
-                                     url_column="ORTHOLOG_GROUP",
-                                     count_column="ORTHOLOG_COUNT",
+                                     id_column="ORTHOLOGS_ORTHOLOG",
+                                     org_column="ORTHOLOGS_ORGANISM",
+                                     url_column="ORTHOLOGS_PRODUCT",
+                                     count_column="ORTHOLOGS_COUNT",
                                      print_speciesnames=FALSE,
                                      webservice="eupathdb") {
 
   load_pkg <- function(name, ...) {
-    metadata <- download_eupath_metadata(webservice=webservice)
-    entry <- get_eupath_entry(name)
-    first_name <- entry[["Species"]]
-    pkg_names <- get_eupath_pkgnames(entry)
-    first_pkg <- pkg_names[["orgdb"]]
-    tt <- try(do.call("library", as.list(first_pkg)), silent=TRUE)
-    if (class(tt) == "try-error") {
-      message("Did not find the package: ",
-              first_pkg,
-              ". Will not be able to do reciprocal hits.")
-      message("Perhaps try invoking the following: make_eupath_organismdbi('",
-              first_name, "')")
-      pkg <- NULL
+    first_try <- try(do.call("library", as.list(name)), silent=TRUE)
+    if (class(first_try) == "try-error") {
+      metadata <- download_eupath_metadata(webservice=webservice)
+      entry <- get_eupath_entry(name)
+      first_name <- entry[["Species"]]
+      pkg_names <- get_eupath_pkgnames(entry)
+      first_pkg <- pkg_names[["orgdb"]]
+      tt <- try(do.call("library", as.list(first_pkg)), silent=TRUE)
+      if (class(tt) == "try-error") {
+        message("Did not find the package: ",
+                first_pkg,
+                ". Will not be able to do reciprocal hits.")
+        message("Perhaps try invoking the following: make_eupath_organismdbi('",
+                first_name, "')")
+        pkg <- NULL
+      } else {
+        message("Loaded: ", first_pkg)
+        pkg <- get(first_pkg)
+      }
+      return(pkg)
     } else {
-      message("Loaded: ", first_pkg)
-      pkg <- get(first_pkg)
+      pkg <- get(name)
+      return(pkg)
     }
-    return(pkg)
   }  ## End internal function 'load_pkg()'
 
   pkg <- NULL
   if (class(db)[1] == "OrgDb") {
     pkg <- db
-  } else if (class(db)[1] == "character") {
+  } else if ("character" %in% class(db)) {
     pkg <- load_pkg(db)
   } else {
     stop("I only understand orgdbs or the name of a species.")
@@ -101,7 +107,7 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
   }
   all_orthos <- AnnotationDbi::select(x=pkg, keytype=master,
                                       keys=gene_set, columns=columns)
-  all_orthos[["ORTHOLOG_GROUP_ID"]] <- gsub(pattern="^.*>(.*)<\\/a>$",
+  all_orthos[["ORTHOLOGS_GROUP_ID"]] <- gsub(pattern="^.*>(.*)<\\/a>$",
                                             replacement="\\1", x=all_orthos[[url_column]])
   all_orthos[[org_column]] <- as.factor(all_orthos[[org_column]])
   num_possible <- 1
@@ -131,20 +137,25 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
   }
   kept_orthos_idx <- all_orthos[[org_column]] %in% query_species
   kept_orthos <- all_orthos[kept_orthos_idx, ]
-  colnames(kept_orthos) <- c(master, "ORTHOLOG_ID", "ORTHOLOG_SPECIES",
-                             "ORTHOLOG_URL", "ORTHOLOG_COUNT", "ORTHOLOG_GROUP")
-  kept_orthos[["ORTHOLOG_COUNT"]] <- as.integer(kept_orthos[["ORTHOLOG_COUNT"]])
-
-  kept_orthos_dt <- data.table::as.data.table(kept_orthos) %>%
-    dplyr::group_by_(master) %>%
-    dplyr::add_count_(master)
-  colnames(kept_orthos_dt) <- c(master, "ORTHOLOG_ID", "ORTHOLOG_SPECIES",
-                             "ORTHOLOG_URL", "ORTHOLOG_COUNT", "ORTHOLOG_GROUP",
-                             "QUERIES_IN_GROUP")
-
-  kept_orthos_dt[["GROUP_REPRESENTATION"]] <- kept_orthos_dt[["ORTHOLOG_COUNT"]] / num_possible
-  num_queries <- length(query_species)
-
+  ## The following is not possible if we used the orthologslite table.
+  ## In fact, the orthologslite table is (I am realizing) quite a disappointment.
+  ## I might remove that query and just force the much slower orthologs table as it
+  ## provides much more useful information.
+  if (is.null(all_orthos[["ORTHOLOGS_COUNT"]])) {
+    kept_orthos_dt <- data.table::as.data.table(kept_orthos)
+  } else {
+    colnames(kept_orthos) <- c(master, "ORTHOLOGS_ID", "ORTHOLOGS_SPECIES",
+                               "ORTHOLOGS_URL", "ORTHOLOGS_COUNT", "ORTHOLOGS_GROUP")
+    kept_orthos[["ORTHOLOGS_COUNT"]] <- as.integer(kept_orthos[["ORTHOLOGS_COUNT"]])
+    kept_orthos_dt <- data.table::as.data.table(kept_orthos) %>%
+      dplyr::group_by_(master) %>%
+      dplyr::add_count_(master)
+    colnames(kept_orthos_dt) <- c(master, "ORTHOLOGS_ID", "ORTHOLOGS_SPECIES",
+                                  "ORTHOLOGS_URL", "ORTHOLOGS_COUNT", "ORTHOLOGS_GROUP",
+                                  "QUERIES_IN_GROUP")
+    kept_orthos_dt[["ORTHOLOGS_REPRESENTATION"]] <- kept_orthos_dt[["ORTHOLOGS_COUNT"]] / num_possible
+    num_queries <- length(query_species)
+  }
   return(kept_orthos_dt)
 }
 
@@ -206,6 +217,7 @@ load_eupath_annotations <- function(species="Leishmania major", webservice="trit
     annot_fields_idx <- grepl(pattern="^ANNOT", x=all_fields)
     annot_fields <- all_fields[annot_fields_idx]
     wanted_fields <- c("gid", annot_fields)
+    message("Returning fields which start with 'annot'")
   }
   org <- load_orgdb_annotations(pkg, keytype="gid", fields=wanted_fields)[["genes"]]
   colnames(org) <- gsub(pattern="^annot_", replacement="", x=colnames(org))
@@ -419,7 +431,7 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
 #' @author I think Keith provided the initial implementation of this, but atb
 #'   messed with it pretty extensively.
 #' @export
-load_orgdb_go <- function(orgdb=NULL, gene_ids=NULL, keytype="ensembl",
+load_orgdb_go <- function(orgdb=NULL, gene_ids=NULL, keytype="gid",
                           columns=c("go", "goall", "goid")) {
   if (is.null(orgdb)) {
     message("Assuming Homo.sapiens.")
@@ -489,7 +501,7 @@ The available keytypes are: ", toString(avail_types), "choosing ", keytype, ".")
 
   ## Remove redundant annotations which differ only in source/evidence
   ## and rename ONTOLOGYALL column
-  go_terms <- unique(dplyr::tbl_df(go_terms) %>% na.omit())
+  go_terms <- unique(dplyr::tbl_df(go_terms) %>% stats::na.omit())
   return(go_terms)
 }
 
@@ -525,7 +537,7 @@ orgdb_from_ah <- function(ahid=NULL, title=NULL, species=NULL, type="OrgDb") {
     message("Going to attempt to find a human database.  I hope this is what you want!")
     hits <- grepl(pattern="Hs\\.eg\\.db", x=ah$title)
     ahid <- names(ah)[hits]
-  } else if (is.null(ahid) & is.null(title) & is.null(organism)) {
+  } else if (is.null(ahid) & is.null(title) & is.null(species)) {
     ## Then we got a species
     possible <- ah$species
     titles <- ah$title

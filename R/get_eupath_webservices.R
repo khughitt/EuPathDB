@@ -8,12 +8,14 @@
 #' @param bioc_version Manually set the bioconductor release if desired.
 #' @param dir Where to put the json.
 #' @param version Choose a specific eupathdb version?
+#' @param write_csv Write a csv file in the format expected by AnnotationHubData?
+#' @param verbose Print helper message about species matching?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      bioc_version=NULL, dir="EuPathDB",
-                                     version=NULL, write_csv=FALSE) {
+                                     version=NULL, write_csv=FALSE, verbose=FALSE) {
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
@@ -81,8 +83,10 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   file <- try(download.file(url=request_url, destfile=metadata_json), silent=TRUE)
   if (class(file) == "try-error") {
     ## Try again without https?
-    message("Downloading the https file failed, not all eupathdb services have migrated to https,
+    if (isTRUE(verbose)) {
+      message("Downloading the https file failed, not all eupathdb services have migrated to https,
 trying http next.")
+    }
     base_url <- glue::glue("http://{webservice}.org/{service_directory}/webservices/")
     query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
     request_url <- glue::glue("{base_url}{query_string}")
@@ -96,7 +100,7 @@ trying http next.")
     stop("There was a parsing failure when reading the metadata.")
   }
   records <- result[["response"]][["recordset"]][["records"]]
-  message("Downloaded: ", request_url)
+  ##message("Downloaded: ", request_url)
 
   ## convert to a dataframe
   dat <- data.frame(t(sapply(records[["fields"]], function(x) {
@@ -199,11 +203,15 @@ trying http next.")
         taxa_ids <- subset_taxa[found_species_taxa_idx, ]
         taxon_id <- taxa_ids[1, "tax_id"]
         if (is.na(metadata[it, "TaxonomyId"])) {
-          message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, "Species"], ".")
+          if (isTRUE(verbose)) {
+            message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, "Species"], ".")
+          }
           metadata[it, "TaxonomyId"] <- taxon_id
         } else if (metadata[it, "TaxonomyId"] != taxon_id) {
-          message("The taxonomy ID from GenomeInfoDb does not match what I have for ",
-                  metadata[it, "Species"], ".")
+          if (isTRUE(verbose)) {
+            message("The taxonomy ID from GenomeInfoDb does not match what I have for ",
+                    metadata[it, "Species"], ".")
+          }
         }
       }
     }
@@ -237,8 +245,10 @@ trying http next.")
   invalid_metadata <- data.frame()
   all_valid_species <- AnnotationHubData::getSpeciesList()
   valid_idx <- testing_metadata[["TaxonUnmodified"]] %in% all_valid_species
-  message("Added ", sum(valid_idx), " species without changing anything out of ",
-          nrow(testing_metadata), ".")
+  if (isTRUE(verbose)) {
+    message("Added ", sum(valid_idx), " species without changing anything out of ",
+            nrow(testing_metadata), ".")
+  }
   if (sum(valid_idx) > 0) {
     ## Add the stuff which was found to the set of valid entries.
     valid_metadata <- testing_metadata[which(valid_idx), ]
@@ -247,7 +257,9 @@ trying http next.")
     ## Set the 'Species' column to taxonunmodified
     valid_metadata[["Species"]] <- valid_metadata[["TaxonUnmodified"]]
   }
-  message("Now there are: ", nrow(testing_metadata), " rows left.")
+  if (isTRUE(verbose)) {
+    message("Now there are: ", nrow(testing_metadata), " rows left.")
+  }
   valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
   message("Added ", sum(valid_idx), " species after using only the genus species.")
   if (sum(valid_idx) > 0) {
@@ -260,7 +272,7 @@ trying http next.")
   }
   if (nrow(invalid_metadata) > 0) {
     message("Unable to find species names for ", nrow(invalid_metadata), " species.")
-    message(invalid_metadata[["Species"]])
+    message(toString(invalid_metadata[["Species"]]))
   }
   metadata <- valid_metadata
 

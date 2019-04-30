@@ -4,7 +4,7 @@
 \alias{post_eupath_interpro_table}
 \title{Use the post interface to get interpro data.}
 \usage{
-post_eupath_interpro_table(entry = NULL, dir = "eupathdb",
+post_eupath_interpro_table(entry = NULL, dir = "EuPathDB",
   overwrite = FALSE)
 }
 \arguments{

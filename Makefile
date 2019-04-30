@@ -53,11 +53,11 @@ roxygen:
 
 s3:
 	@echo "Invoking the aws client to upload the sqlite/rda/etc files to s3."
-	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/OrgDb "s3://annotation-contributor/EuPathDB/OrgDb"
-##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges"
-##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb"
-##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/OrganismDBI "s3://annotation-contributor/EuPathDB/OrganismDBI"
-##	aws --profile AnnotationContributor s3 cp scripts/EuPathDB/BSGenome "s3://annotation-contributor/EuPathDB/BSGenome"
+	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrgDb "s3://annotation-contributor/EuPathDB/OrgDb" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges" --recursive --acl public-read
+##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb" --recursive --acl public-read
+##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrganismDBI "s3://annotation-contributor/EuPathDB/OrganismDBI" --recursive --acl public-read
+##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/BSGenome "s3://annotation-contributor/EuPathDB/BSGenome" --recursive --acl public-read
 
 suggests:
 	@echo "Installing suggested packages."

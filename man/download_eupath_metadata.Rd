@@ -5,7 +5,8 @@
 \title{Returns metadata for all eupathdb organisms.}
 \usage{
 download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
-  bioc_version = NULL, dir = "eupathdb", use_savefile = TRUE, ...)
+  bioc_version = NULL, dir = "EuPathDB", version = NULL,
+  write_csv = FALSE)
 }
 \arguments{
 \item{overwrite}{Overwrite existing data?}
@@ -16,9 +17,9 @@ download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
 
 \item{dir}{Where to put the json.}
 
-\item{use_savefile}{Make a savefile of the data for future reference.}
+\item{version}{Choose a specific eupathdb version?}
 
-\item{...}{Catch any extra arguments passed here, currently unused.}
+\item{write_csv}{Write a csv file in the format expected by AnnotationHubData?}
 }
 \value{
 Dataframe with lots of rows for the various species in eupathdb.
