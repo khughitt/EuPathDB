@@ -32,8 +32,9 @@ install:
 
 prereq:
 	@echo "Checking a few prerequisites."
-	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-bioc_prereq <- c('BiocStyle','GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
+	R -e "install.packages("BiocManager");\
+suppressPackageStartupMessages(suppressMessages(BiocManager));\
+bioc_prereq <- c('BiocStyle','GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','readr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
 for (req in bioc_prereq) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', req, ')')))))) == 'try-error') { BiocManager::install(req, update=FALSE) } } \
 ## hahaha looks like lisp!"
 
