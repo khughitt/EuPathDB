@@ -5,8 +5,8 @@
 \title{Given 2 species names from the eupathdb, make orthology tables betwixt them.}
 \usage{
 extract_eupath_orthologs(db, master = "GID", query_species = NULL,
-  id_column = "ORTHOLOG_ID", org_column = "ORGANISM",
-  url_column = "ORTHOLOG_GROUP", count_column = "ORTHOLOG_COUNT",
+  id_column = "ORTHOLOGS_ORTHOLOG", org_column = "ORTHOLOGS_ORGANISM",
+  url_column = "ORTHOLOGS_PRODUCT", count_column = "ORTHOLOGS_COUNT",
   print_speciesnames = FALSE, webservice = "eupathdb")
 }
 \arguments{

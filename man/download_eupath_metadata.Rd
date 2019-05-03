@@ -6,7 +6,7 @@
 \usage{
 download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
   bioc_version = NULL, dir = "EuPathDB", version = NULL,
-  write_csv = FALSE)
+  write_csv = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{overwrite}{Overwrite existing data?}
@@ -20,6 +20,8 @@ download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
 \item{version}{Choose a specific eupathdb version?}
 
 \item{write_csv}{Write a csv file in the format expected by AnnotationHubData?}
+
+\item{verbose}{Print helper message about species matching?}
 }
 \value{
 Dataframe with lots of rows for the various species in eupathdb.
