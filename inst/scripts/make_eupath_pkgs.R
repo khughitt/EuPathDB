@@ -12,7 +12,14 @@ returns <- list(
   "txdb" = list(),
   "organismdbi" = list(),
   "granges" = list())
-all_metadata <- download_eupath_metadata(bioc_version="3.9", overwrite=TRUE)
+projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
+              "microsporidiadb", "piroplasmadb", "plasmodb", "toxodb",
+              "trichdb", "tritrypdb")
+all_metadata <- data.frame()
+for (p in projects) {
+  project_metadata <- download_eupath_metadata(webservice=p, bioc_version="3.9", overwrite=TRUE)
+  all_metadata <- rbind(all_metadata, project_metadata)
+}
 
 end <- nrow(all_metadata)
 for (it in rev(1:end)) {
@@ -65,6 +72,4 @@ for (it in rev(1:end)) {
   print(showConnections())
 } ## End iterating over every entry in the eupathdb metadata.
 
-readr::write_csv(
-         x=all_metadata[["valid"]],
-         path=file.path("..", "..", "inst", "extdata", "all_metadata.csv"))
+readr::write_csv(x=all_metadata, path=file.path("..", "inst", "extdata", "all_metadata.csv"))

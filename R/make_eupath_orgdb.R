@@ -65,7 +65,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     return(NULL)
   }
 
-  gene_ids <- gene_table[["GID"]]
   go_table <- data.frame()
   if (isTRUE(do_go)) {
     go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
@@ -74,6 +73,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     }
   }
 
+  gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
   if (class(do_orthologs)[1] == "character" & do_orthologs == "get") {
     ortholog_table <- try(get_orthologs_all_genes(entry=entry, dir=dir, gene_ids=gene_ids))

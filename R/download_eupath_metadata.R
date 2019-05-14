@@ -393,5 +393,4 @@ Genome for {.data[['Taxon']]}"),
     "valid" = metadata,
     "invalid" = invalid_metadata)
   return(retlist)
-
 }

@@ -52,11 +52,19 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="orthologs")
-  ## Because the orthologslite table changes some column names...
-  colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
-                           replacement="ORTHOLOGS_ID")
-  colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
-                           replacement="ORTHOLOGS_GENE_ID")
+  if (table == "OrthologsLite") {
+    ## Because the orthologslite table changes some column names...
+    ## Damn, the new eupathDB is timing out on me.
+    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
+                             replacement="ORTHOLOGS_ID")
+    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
+                             replacement="ORTHOLOGS_GENE_ID")
+  } else {
+    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
+                             replacement="ORTHOLOGS_ID")
+    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
+                             replacement="ORTHOLOGS_GENE_ID")
+  }
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)
