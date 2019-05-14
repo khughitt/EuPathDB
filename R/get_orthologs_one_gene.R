@@ -52,6 +52,9 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="EuPathD
   if (result[["status_code"]] == "422") {
     warning("There is a missing parameter.")
     return(data.frame())
+  } else if (result[["status_code"]] == "500") {
+    warning("An internal error was returned.")
+    return(data.frame())
   } else if (result[["status_code"]] == "400") {
     warning("An invalid format configuration was provided.")
     return(data.frame())

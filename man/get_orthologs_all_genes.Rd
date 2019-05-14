@@ -5,7 +5,7 @@
 \title{Query ortholog tables from the eupathdb one gene at a time.}
 \usage{
 get_orthologs_all_genes(entry = NULL, dir = "EuPathDB",
-  gene_ids = NULL)
+  gene_ids = NULL, overwrite = TRUE)
 }
 \arguments{
 \item{entry}{An entry from the eupathdb metadata to use for other parameters.}

@@ -7,7 +7,8 @@
 make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
   kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
   do_go = TRUE, do_orthologs = TRUE, do_interpro = TRUE,
-  do_pathway = TRUE, do_kegg = TRUE)
+  do_linkout = TRUE, do_pubmed = TRUE, do_pathway = TRUE,
+  do_kegg = TRUE)
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}

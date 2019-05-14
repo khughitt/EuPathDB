@@ -53,15 +53,12 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
 
   result <- post_eupath_table(query_body, entry, table_name="orthologs")
   if (table == "OrthologsLite") {
-    ## Because the orthologslite table changes some column names...
-    ## Damn, the new eupathDB is timing out on me.
-    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
-                             replacement="ORTHOLOGS_ID")
-    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
-                             replacement="ORTHOLOGS_GENE_ID")
+    colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
+                          "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
+    result[["GENE_ID"]] <- NULL
   } else {
     colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
-                             replacement="ORTHOLOGS_ID")
+                             replacement="ORTHOLOGS_GID")
     colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
                              replacement="ORTHOLOGS_GENE_ID")
   }

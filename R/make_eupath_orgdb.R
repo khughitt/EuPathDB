@@ -24,8 +24,8 @@
 #' @export
 make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
-                              do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
-                              do_pathway=TRUE, do_kegg=TRUE) {
+                              do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE, do_linkout=TRUE,
+                              do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -76,7 +76,8 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
   if (class(do_orthologs)[1] == "character" & do_orthologs == "get") {
-    ortholog_table <- try(get_orthologs_all_genes(entry=entry, dir=dir, gene_ids=gene_ids))
+    ortholog_table <- try(get_orthologs_all_genes(entry=entry, dir=dir,
+                                                  gene_ids=gene_ids, overwrite=overwrite))
     if (class(ortholog_table)[1] == "try-error") {
       ortholog_table <- data.frame()
     }
@@ -89,6 +90,22 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
       if (class(ortholog_table)[1] == "try-error") {
         ortholog_table <- data.frame()
       }
+    }
+  }
+
+  linkout_table <- data.frame()
+  if (isTRUE(do_linkout)) {
+    linkout_table <- try(post_eupath_linkout_table(entry=entry, dir=dir, overwrite=overwrite))
+    if (class(linkout_table) == "try-error") {
+      linkout_table <- data.frame()
+    }
+  }
+
+  pubmed_table <- data.frame()
+  if (isTRUE(do_pubmed)) {
+    pubmed_table <- try(post_eupath_pubmed_table(entry=entry, dir=dir, overwrite=overwrite))
+    if (class(pubmed_table) == "try-error") {
+      pubmed_table <- data.frame()
     }
   }
 
@@ -165,6 +182,16 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     message("This should not be possible, but the kegg table is still null.")
   } else if (nrow(kegg_table) > 0) {
     orgdb_args[["kegg"]] <- kegg_table
+  }
+  if (is.null(linkout_table)) {
+    message("This should not be possible, but the linkout table is still null.")
+  } else if (nrow(linkout_table) > 0) {
+    orgdb_args[["linkout"]] <- linkout_table
+  }
+  if (is.null(pubmed_table)) {
+    message("This should not be possible, but the pubmed table is still null.")
+  } else if (nrow(pubmed_table) > 0) {
+    orgdb_args[["pubmed"]] <- pubmed_table
   }
 
   ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
