@@ -11,7 +11,8 @@
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall=FALSE) {
+make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall=FALSE,
+                             copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -32,7 +33,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_name <- make_eupath_granges(entry=entry, dir=dir)
+  granges_name <- make_eupath_granges(entry=entry, dir=dir, copy_s3=copy_s3)
   final_granges_path <- move_final_package(granges_name, type="granges", dir=dir)
   granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
 
@@ -64,7 +65,6 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
                                  chrominfo=chromosome_info,
                                  dataSource=entry[["SourceUrl"]],
                                  organism=glue::glue("{taxa[['genus']]} {taxa[['species']]}"),
-                                 ## metadata=t(entry))
                                  ))
   if (class(txdb)[1] == "try-error") {
     ## Perhaps it is an invalid taxonomy ID?
@@ -76,7 +76,6 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
                                    chrominfo=chromosome_info,
                                    dataSource=entry[["SourceUrl"]],
                                    organism=glue::glue("{taxa[['genus']]} {taxa[['species']]}"),
-                                   ## metadata=t(entry))
                                    ))
   }
   if (class(txdb) == "try-error") {
@@ -143,6 +142,14 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   install_dir <- clean_pkg(install_dir)
   install_dir <- clean_pkg(install_dir, removal="_", replace="")
   install_dir <- clean_pkg(install_dir, removal="_like", replace="like")
+
+  if (isTRUE(copy_s3)) {
+    s3_file <- entry[["TxdbFile"]]
+    copied <- copy_s3_file(src_dir=db_dir, type="txdb", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the txdb sqlite to the s3 staging directory.")
+    }
+  }
 
   inst <- try(devtools::install(install_dir, quiet=TRUE))
   if (class(inst) != "try-error") {

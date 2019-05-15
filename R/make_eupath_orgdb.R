@@ -24,8 +24,8 @@
 #' @export
 make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
-                              do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE, do_linkout=TRUE,
-                              do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
+                              copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
+                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -253,8 +253,8 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
 
   ## Fix name in sqlite metadata table
   dbpath <- file.path(
-    orgdb_path, "inst/extdata", sub(".db", ".sqlite", basename(orgdb_path)))
-  message(sprintf("- Fixing sqlite Orgdb sqlite database %s", dbpath))
+    orgdb_path, "inst", "extdata", sub(".db", ".sqlite", basename(orgdb_path)))
+  message("- Fixing sqlite Orgdb sqlite database ", dbpath)
 
   ## make sqlite database editable
   Sys.chmod(dbpath, mode="0644")
@@ -276,7 +276,18 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   orgdb_path <- clean_pkg(orgdb_path, removal="_", replace="")
   orgdb_path <- clean_pkg(orgdb_path, removal="_like", replace="like")
   testthat::expect_equal(first_path, orgdb_path)
+
+  if (isTRUE(copy_s3)) {
+    s3_file <- entry[["OrgdbFile"]]
+    copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the orgdb sqlite database to the s3 staging directory.")
+    }
+  }
+
   ## And install the resulting package.
+  ## I think installing the package really should be optional, but in the case of orgdb/txdb,
+  ## without them there is no organismdbi, which makes things confusing.
   inst <- try(devtools::install(orgdb_path))
   if (class(inst) != "try-error") {
     built <- try(devtools::build(orgdb_path, quiet=TRUE))

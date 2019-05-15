@@ -1,2 +1,8 @@
+Changes in version 1.5.0 (2019-05-15)
++ Generates local OrgDB, TxDB, OrganismDbi, GRanges, and BSgenome packages/data files.
++ Provides functions to load the various annotations into data frames/tables.
++ Provides ortholog/GO/Interpro/pathway accessor functions.
++ Submitted EuPathDB data version 42 data to AnnotationHub.
+
 Changes in version 0.99.0 (2018-10-02)
 + Submitted to Bioconductor

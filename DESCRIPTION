@@ -1,6 +1,6 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
-Version: 1.0.1
+Version: 1.5.0
 Author: Keith Hughitt, Ashton Trey Belew
 Authors@R: c(person("Keith", "Hughitt", email="khughitt@umd.edu", role=c("aut","cre")),
              person("Ashton", "Belew", email="abelew@gmail.com", role=c("aut")))
@@ -29,6 +29,7 @@ RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Collate:
  'clean_pkg.R'
+ 'copy_s3_file.R'
  'download_eupath_metadata.R'
  'eupathdb.R'
  'extract_eupath_orthologs.R'

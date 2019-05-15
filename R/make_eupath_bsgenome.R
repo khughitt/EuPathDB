@@ -13,7 +13,7 @@
 #' @return  List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
+make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FALSE,
                                  reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -137,12 +137,21 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
-  tt <- attachNamespace("Biostrings")
+  tt <- try(attachNamespace("Biostrings"), silent=TRUE)
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
   if (class(annoying) != "try-error") {
     inst <- try(devtools::install(pkgname, quiet=TRUE))
+  }
+
+  if (isTRUE(copy_s3)) {
+    source_dir <- basename(bsgenome_dir)
+    s3_file <- entry[["BsgenomeFile"]]
+    copied <- copy_s3_file(src_dir=source_dir, type="bsgenome", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the genome 2bit file to the s3 staging directory.")
+    }
   }
 
   retlist <- list()

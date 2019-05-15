@@ -6,7 +6,7 @@
 \usage{
 make_eupath_organismdbi(entry = NULL, version = NULL,
   dir = "EuPathDB", reinstall = FALSE, kegg_abbreviation = NULL,
-  exclude_join = "ENTREZID")
+  exclude_join = "ENTREZID", copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{A row from the eupathdb metadataframe.}

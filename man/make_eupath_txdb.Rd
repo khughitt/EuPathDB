@@ -5,7 +5,7 @@
 \title{Generate an EuPathDB organism TxDb package.}
 \usage{
 make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
-  reinstall = FALSE)
+  reinstall = FALSE, copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{One row from the organism metadata.}

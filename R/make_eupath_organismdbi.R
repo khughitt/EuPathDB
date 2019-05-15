@@ -19,7 +19,7 @@
 #' @author  Keith Hughitt, modified by atb.
 #' @export
 make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", reinstall=FALSE,
-                                    kegg_abbreviation=NULL, exclude_join="ENTREZID") {
+                                    kegg_abbreviation=NULL, exclude_join="ENTREZID", copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -64,28 +64,26 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", re
   }
   required <- requireNamespace("GO.db")
   required <- try(attachNamespace("GO.db"), silent=TRUE)
-  ## FIXME Theoretically we should no longer have columns with names like
-  ## GO_GO
-  orgdb_go_col <- "GO_GO_ID"
-  goids_found <- "GOID" %in% AnnotationDbi::keytypes(get("GO.db")) &&
-    orgdb_go_col %in% AnnotationDbi::keytypes(get(orgdb_name))
+
+  goids_found_in_godb <- "GOID" %in% AnnotationDbi::keytypes(get("GO.db"))
+  goids_found_in_pkg <- "GO_ID" %in% AnnotationDbi::columns(get(orgdb_name))
+  goids_found <- goids_found_in_godb & goids_found_in_pkg
   if (isTRUE(goids_found)) {
     count <- count + 1
     name <- glue::glue("join{count}")
-    graph_data[[name]] <- c(GO.db="GOID", orgdb=orgdb_go_col)
+    graph_data[[name]] <- c(GO.db="GOID", orgdb="GO_ID")
     names(graph_data[[name]]) <- c("GO.db", orgdb_name)
   }
-  ## FIXME Theoretically we should no longer have columns with names like
-  ## PATHWAY_PATHWAY
+
   required <- requireNamespace("reactome.db")
   required <- try(attachNamespace("reactome.db"), silent=TRUE)
-  orgdb_path_col <- "PATHWAY_PATHWAY"
-  reactomeids_found <- "REACTOMEID" %in% AnnotationDbi::keytypes(get("reactome.db")) &&
-    orgdb_path_col %in% AnnotationDbi::keytypes(get(orgdb_name))
+  reactomeids_found_in_reactome <- "REACTOMEID" %in% AnnotationDbi::columns(get("reactome.db"))
+  reactomeids_found_in_pkg <- "PATHWAY_ID" %in% AnnotationDbi::keytypes(get(orgdb_name))
+  reactomeids_found <- reactomeids_found_in_reactome & reactomeids_found_in_pkg
   if (isTRUE(reactomeids_found)) {
     count <- count + 1
     name <- glue::glue("join{count}")
-    graph_data[[name]] <- c(reactome.db="REACTOMEID", orgdb=orgdb_path_col)
+    graph_data[[name]] <- c(reactome.db="REACTOMEID", orgdb="PATHWAY_ID")
     names(graph_data[[name]]) <- c("reactome.db", orgdb_name)
   }
 
@@ -103,6 +101,7 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", re
     }
   }
 
+  ## The way makeOrganismPackage handles directories is very confusing.
   tmp_pkg_dir <- file.path(dir)
   if (!file.exists(tmp_pkg_dir)) {
     dir.create(tmp_pkg_dir, recursive=TRUE)
@@ -117,9 +116,24 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", re
                             author=author,
                             destDir=tmp_pkg_dir,
                             license="Artistic-2.0")
+  srcdir <- file.path(tmp_pkg_dir, pkgname)
+  if (!file.exists(dirname(final_dir))) {
+    dir.create(dirname(final_dir), recursive=TRUE)
+  }
+  renamed <- file.rename(srcdir, final_dir)
+
   organdb_path <- clean_pkg(final_dir)
   organdb_path <- clean_pkg(organdb_path, removal="_", replace="", sqlite=FALSE)
   organdb_path <- clean_pkg(organdb_path, removal="_like", replace="like", sqlite=FALSE)
+
+  if (isTRUE(copy_s3)) {
+    s3_file <- entry[["OrganismdbiFile"]]
+    copied <- copy_s3_file(src_dir=organdb_path, type="organismdbi", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the organismdbi map to the s3 staging directory.")
+    }
+  }
+
   if (class(organdb) == "list") {
     inst <- try(devtools::install(organdb_path))
     if (class(inst) != "try-error") {
@@ -131,6 +145,7 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", re
   }
   final_organdb_name <- basename(organdb_path)
   final_organdb_path <- move_final_package(organdb_path, type="organismdbi", dir=dir)
+
   retlist <- list(
     "orgdb_name" = orgdb_name,
     "txdb_name" = txdb_name,
