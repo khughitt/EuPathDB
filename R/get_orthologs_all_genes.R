@@ -7,7 +7,7 @@
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
 #' @export
-get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL) {
+get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL, overwrite=TRUE) {
   if (is.null(entry)) {
     stop("Needs an entry from the eupathdb.")
   }
@@ -32,12 +32,16 @@ get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL) {
 
   savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
   if (file.exists(savefile)) {
-    message("We can save some time by reading the savefile.")
-    message("Delete the file ", savefile, " to regenerate.")
-    all_orthologs <- new.env()
-    load(savefile, envir=all_orthologs)
-    all_orthologs <- all_orthologs[["savelist"]]
-    return(all_orthologs)
+    if (isTRUE(overwrite)) {
+      removed <- file.remove(savefile)
+    } else {
+      message("We can save some time by reading the savefile.")
+      message("Delete the file ", savefile, " to regenerate.")
+      all_orthologs <- new.env()
+      load(savefile, envir=all_orthologs)
+      all_orthologs <- all_orthologs[["savelist"]]
+      return(all_orthologs)
+    }
   }
 
   all_orthologs <- data.frame()
@@ -67,7 +71,7 @@ get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL) {
     gene <- gene_ids[i]
     ## I keep getting weird timeouts, so I figure I will give the eupath
     ## webservers a moment.
-    Sys.sleep(0.4)
+    ## Sys.sleep(0.1)
     orthos <- get_orthologs_one_gene(entry=entry, gene=gene)
     all_orthologs <- rbind(all_orthologs, orthos)
     message("Downloading: ", gene, " ", i, "/", length(gene_ids),

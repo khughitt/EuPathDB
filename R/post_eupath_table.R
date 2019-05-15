@@ -15,7 +15,7 @@
 #' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
+post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=20) {
   if (is.null(entry)) {
     stop("This requires a eupathdb entry.")
   }
@@ -38,6 +38,8 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=10) {
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
     warning("A minimal amount of content was returned.")
+  } else {
+    message("Downloaded data, parsing now.")
   }
 
   result <- httr::content(result, encoding="UTF-8")
