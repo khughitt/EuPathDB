@@ -24,6 +24,8 @@ joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 variable is intended to exclude columns with common IDs that might
 multi-match spuriously -- I think in the end I killed the idea though,
 perhaps this should be removed or resurrected.}
+
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }
 \value{
 The result of attempting to install the organismDbi package.

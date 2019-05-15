@@ -12,6 +12,8 @@ get_eupath_entry(species = "Leishmania major", webservice = "eupathdb",
 species name.}
 
 \item{webservice}{The EuPathDB webservice to query.}
+
+\item{column}{Which column to use for getting the species name?}
 }
 \value{
 A single row from the eupathdb metadata.

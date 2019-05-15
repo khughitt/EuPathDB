@@ -8,6 +8,8 @@ make_taxon_names(entry, column = "TaxonUnmodified")
 }
 \arguments{
 \item{entry}{An entry of the eupathdb metadata.}
+
+\item{column}{Which column should be used to query the species name?}
 }
 \value{
 A list of hopefully valid nomenclature names to be used elsewhere in

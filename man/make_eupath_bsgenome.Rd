@@ -14,6 +14,8 @@ make_eupath_bsgenome(entry, version = NULL, dir = "EuPathDB",
 
 \item{dir}{Working directory.}
 
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
+
 \item{reinstall}{Rewrite an existing package directory.}
 
 \item{...}{Extra arguments for downloading metadata when not provided.}

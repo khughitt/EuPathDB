@@ -13,6 +13,8 @@ make_eupath_granges(entry = NULL, dir = "EuPathDB", version = NULL,
 \item{dir}{Place to put the resulting file(s).}
 
 \item{version}{Optionally request a specific version of the gff file.}
+
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }
 \description{
 There is not too much else to say. This uses import.gff from rtracklayer.

@@ -8,6 +8,7 @@
 #' @param version  Which version of the eupathdb to use for creating this package?
 #' @param dir  Base directory for building the package.
 #' @param reinstall  Overwrite an existing installed package?
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export

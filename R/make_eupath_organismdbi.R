@@ -15,6 +15,7 @@
 #'   variable is intended to exclude columns with common IDs that might
 #'   multi-match spuriously -- I think in the end I killed the idea though,
 #'   perhaps this should be removed or resurrected.
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return  The result of attempting to install the organismDbi package.
 #' @author  Keith Hughitt, modified by atb.
 #' @export

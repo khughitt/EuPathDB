@@ -6,6 +6,13 @@
 \usage{
 move_final_package(pkgname, type = "orgdb", dir = "EuPathDB")
 }
+\arguments{
+\item{pkgname}{Name of package to move to its final home.}
+
+\item{type}{Which type of package is this?}
+
+\item{dir}{base working directory.}
+}
 \description{
 Move a package file to its final location for collation by AnnotationHubData.
 }

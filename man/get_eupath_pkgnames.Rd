@@ -11,6 +11,8 @@ get_eupath_pkgnames(entry, version = NULL, column = "TaxonUnmodified")
 
 \item{version}{Choose a specific version of the eupathdb, only really useful
 when downloading files.}
+
+\item{column}{Which column to query to get the species name?}
 }
 \value{
 List of package names and some booleans to see if they have already

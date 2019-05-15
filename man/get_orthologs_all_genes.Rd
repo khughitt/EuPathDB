@@ -13,6 +13,8 @@ get_orthologs_all_genes(entry = NULL, dir = "EuPathDB",
 \item{dir}{Directory to which to save intermediate data (currently unused).}
 
 \item{gene_ids}{List of gene IDs to query.}
+
+\item{overwrite}{Overwrite the savefile?}
 }
 \description{
 Querying the full ortholog table at eupathdb.org fails mysteriously.

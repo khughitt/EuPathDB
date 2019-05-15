@@ -6,6 +6,7 @@
 #' @param entry An entry from the eupathdb metadata to use for other parameters.
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
+#' @param overwrite Overwrite the savefile?
 #' @export
 get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL, overwrite=TRUE) {
   if (is.null(entry)) {

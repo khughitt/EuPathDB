@@ -8,6 +8,7 @@
 #' @param entry Metadatum entry.
 #' @param dir Place to put the resulting file(s).
 #' @param version Optionally request a specific version of the gff file.
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
 make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL, copy_s3=FALSE) {
   if (is.null(entry)) {

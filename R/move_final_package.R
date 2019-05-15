@@ -1,4 +1,8 @@
 #' Move a package file to its final location for collation by AnnotationHubData.
+#'
+#' @param pkgname Name of package to move to its final home.
+#' @param type Which type of package is this?
+#' @param dir base working directory.
 move_final_package <- function(pkgname, type="orgdb", dir="EuPathDB") {
   final_dir <- file.path(dir, type)
   if (!file.exists(final_dir)) {

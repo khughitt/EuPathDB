@@ -23,11 +23,17 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
 
 \item{overwrite}{Overwrite a partial installation?}
 
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
+
 \item{do_go}{Create the gene ontology table?}
 
 \item{do_orthologs}{Create the gene ortholog table?}
 
 \item{do_interpro}{Create the interpro table?}
+
+\item{do_linkout}{Create a table of linkout data?}
+
+\item{do_pubmed}{Create a table of pubmed entries?}
 
 \item{do_pathway}{Create the pathway table?}
 

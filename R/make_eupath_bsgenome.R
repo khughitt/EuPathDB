@@ -8,6 +8,7 @@
 #' @param entry  Single eupathdb metadata entry.
 #' @param version Which version of the eupathdb to use for creating the BSGenome?
 #' @param dir  Working directory.
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param reinstall  Rewrite an existing package directory.
 #' @param ... Extra arguments for downloading metadata when not provided.
 #' @return  List of package names generated (only 1).

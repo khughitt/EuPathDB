@@ -9,6 +9,7 @@
 #' @param species String containing some reasonably unique text in the desired
 #'   species name.
 #' @param webservice The EuPathDB webservice to query.
+#' @param column Which column to use for getting the species name?
 #' @return  A single row from the eupathdb metadata.
 #' @author atb
 #' @export

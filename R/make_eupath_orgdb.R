@@ -13,9 +13,12 @@
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param do_go Create the gene ontology table?
 #' @param do_orthologs Create the gene ortholog table?
 #' @param do_interpro Create the interpro table?
+#' @param do_linkout Create a table of linkout data?
+#' @param do_pubmed Create a table of pubmed entries?
 #' @param do_pathway Create the pathway table?
 #' @param do_kegg Attempt to create the kegg table?
 #' @return Currently only the name of the installed package.  This should
