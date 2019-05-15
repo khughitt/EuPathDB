@@ -11,6 +11,7 @@ returns <- list(
   "txdb" = list(),
   "organismdbi" = list(),
   "granges" = list())
+unlink("*.csv")
 meta <- download_eupath_metadata(bioc_version="3.9", overwrite=TRUE,
                                  write_csv=TRUE)
 all_metadata <- meta[["valid"]]
@@ -31,7 +32,6 @@ for (it in 1:end) {
   test_that("Is there eupathdb metadata?", {
     expect_equal(expected, actual)
   })
-  species <- entry[["Species"]]
   bsgenome_result <- make_eupath_bsgenome(entry, copy_s3=TRUE)
   expected <- "bsgenome_name"
   actual <- names(bsgenome_result)

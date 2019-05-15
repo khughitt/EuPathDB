@@ -134,11 +134,10 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
 
   ## Generate the package, this puts it into the cwd.
   message("Starting forgeBSgenomeDataPkg().")
-  tt <- requireNamespace("Biostrings")
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
-  tt <- try(attachNamespace("Biostrings"), silent=TRUE)
+  tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
@@ -162,7 +161,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
     deleted <- unlink(x=bsgenome_dir, recursive=TRUE, force=TRUE)
     built <- try(devtools::build(pkgname, quiet=TRUE))
     if (class(built) != "try-error") {
-      final_path <- move_final_package(bsgenome_dir, type="bsgenome", dir=dir)
+      final_path <- move_final_package(pkgname, type="bsgenome", dir=dir)
       final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
     }
   } else {
