@@ -11,11 +11,15 @@
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
 post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="OrthologsLite",
-                                       overwrite=FALSE) {
+                                       gene_ids=NULL, overwrite=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
-  savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
+  rdadir <- file.path(dir, "rda")
+  if (!file.exists(rdadir)) {
+    created <- dir.create(rdadir, recursive=TRUE)
+  }
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
@@ -52,16 +56,17 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="orthologs")
-  if (table == "OrthologsLite") {
+  if (nrow(result) == 0) {
+    message("Failed to download the OrthologsLite table, attempting to download 1 gene at a time.")
+    result <- get_orthologs_all_genes(entry, dir=dir,
+                                      gene_ids=gene_ids, overwrite=overwrite)
+  } else {
     colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
                           "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
+    ## The GENE_ID column is redundant, drop it.
     result[["GENE_ID"]] <- NULL
-  } else {
-    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_ORTHOLOG",
-                             replacement="ORTHOLOGS_GID")
-    colnames(result) <- gsub(x=colnames(result), pattern="ORTHOLOGS_GENE_ID_1",
-                             replacement="ORTHOLOGS_GENE_ID")
   }
+
   message("Saving annotations to ", savefile)
   save(result, file=savefile)
   return(result)

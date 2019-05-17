@@ -56,6 +56,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     }
   }
 
+  ## I am almoster certain that wrapping these in a try() is no longer necessary.
   gene_table <- try(post_eupath_annotations(entry, dir=dir, overwrite=overwrite))
   if (class(gene_table) == "try-error") {
     gene_table <- data.frame()
@@ -71,35 +72,25 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   go_table <- data.frame()
   if (isTRUE(do_go)) {
     go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
-    if (class(go_table) == "try-error") {
+    if (class(go_table)[1] == "try-error") {
       go_table <- data.frame()
     }
   }
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
-  if (class(do_orthologs)[1] == "character" & do_orthologs == "get") {
-    ortholog_table <- try(get_orthologs_all_genes(entry=entry, dir=dir,
-                                                  gene_ids=gene_ids, overwrite=overwrite))
+  if (isTRUE(do_orthologs)) {
+    ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir,
+                                                     gene_ids=gene_ids, overwrite=overwrite))
     if (class(ortholog_table)[1] == "try-error") {
       ortholog_table <- data.frame()
-    }
-  } else if (isTRUE(do_orthologs)) {
-    ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(ortholog_table)[1] == "try-error") {
-      ## Try again on the fallback table.
-      ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir,
-                                                       overwrite=overwrite, table="Orthologs"))
-      if (class(ortholog_table)[1] == "try-error") {
-        ortholog_table <- data.frame()
-      }
     }
   }
 
   linkout_table <- data.frame()
   if (isTRUE(do_linkout)) {
     linkout_table <- try(post_eupath_linkout_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(linkout_table) == "try-error") {
+    if (class(linkout_table)[1] == "try-error") {
       linkout_table <- data.frame()
     }
   }
@@ -107,7 +98,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   pubmed_table <- data.frame()
   if (isTRUE(do_pubmed)) {
     pubmed_table <- try(post_eupath_pubmed_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(pubmed_table) == "try-error") {
+    if (class(pubmed_table)[1] == "try-error") {
       pubmed_table <- data.frame()
     }
   }
@@ -115,7 +106,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   interpro_table <- data.frame()
   if (isTRUE(do_interpro)) {
     interpro_table <- try(post_eupath_interpro_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(interpro_table) == "try-error") {
+    if (class(interpro_table)[1] == "try-error") {
       interpro_table <- data.frame()
     }
   }
@@ -123,7 +114,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   pathway_table <- data.frame()
   if (isTRUE(do_pathway)) {
     pathway_table <- try(post_eupath_pathway_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(pathway_table) == "try-error") {
+    if (class(pathway_table)[1] == "try-error") {
       pathway_table <- data.frame()
     }
   }
@@ -133,7 +124,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
                                             flatten=FALSE,
                                             abbreviation=kegg_abbreviation))
-    if (class(kegg_table) == "try-error" | nrow(kegg_table) == 0) {
+    if (class(kegg_table)[1] == "try-error" | nrow(kegg_table) == 0) {
       kegg_table <- data.frame()
     } else {
       colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")

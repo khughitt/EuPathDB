@@ -17,7 +17,11 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
-  savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_annotations.rda"))
+  rdadir <- file.path(dir, "rda")
+  if (!file.exists(rdadir)) {
+    created <- dir.create(rdadir, recursive=TRUE)
+  }
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_annotations.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
