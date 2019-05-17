@@ -13,9 +13,12 @@
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param do_go Create the gene ontology table?
 #' @param do_orthologs Create the gene ortholog table?
 #' @param do_interpro Create the interpro table?
+#' @param do_linkout Create a table of linkout data?
+#' @param do_pubmed Create a table of pubmed entries?
 #' @param do_pathway Create the pathway table?
 #' @param do_kegg Attempt to create the kegg table?
 #' @return Currently only the name of the installed package.  This should
@@ -24,8 +27,8 @@
 #' @export
 make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
-                              do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE, do_linkout=TRUE,
-                              do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
+                              copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
+                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -53,6 +56,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     }
   }
 
+  ## I am almoster certain that wrapping these in a try() is no longer necessary.
   gene_table <- try(post_eupath_annotations(entry, dir=dir, overwrite=overwrite))
   if (class(gene_table) == "try-error") {
     gene_table <- data.frame()
@@ -68,35 +72,25 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   go_table <- data.frame()
   if (isTRUE(do_go)) {
     go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
-    if (class(go_table) == "try-error") {
+    if (class(go_table)[1] == "try-error") {
       go_table <- data.frame()
     }
   }
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
-  if (class(do_orthologs)[1] == "character" & do_orthologs == "get") {
-    ortholog_table <- try(get_orthologs_all_genes(entry=entry, dir=dir,
-                                                  gene_ids=gene_ids, overwrite=overwrite))
+  if (isTRUE(do_orthologs)) {
+    ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir,
+                                                     gene_ids=gene_ids, overwrite=overwrite))
     if (class(ortholog_table)[1] == "try-error") {
       ortholog_table <- data.frame()
-    }
-  } else if (isTRUE(do_orthologs)) {
-    ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(ortholog_table)[1] == "try-error") {
-      ## Try again on the fallback table.
-      ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir,
-                                                       overwrite=overwrite, table="Orthologs"))
-      if (class(ortholog_table)[1] == "try-error") {
-        ortholog_table <- data.frame()
-      }
     }
   }
 
   linkout_table <- data.frame()
   if (isTRUE(do_linkout)) {
     linkout_table <- try(post_eupath_linkout_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(linkout_table) == "try-error") {
+    if (class(linkout_table)[1] == "try-error") {
       linkout_table <- data.frame()
     }
   }
@@ -104,7 +98,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   pubmed_table <- data.frame()
   if (isTRUE(do_pubmed)) {
     pubmed_table <- try(post_eupath_pubmed_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(pubmed_table) == "try-error") {
+    if (class(pubmed_table)[1] == "try-error") {
       pubmed_table <- data.frame()
     }
   }
@@ -112,7 +106,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   interpro_table <- data.frame()
   if (isTRUE(do_interpro)) {
     interpro_table <- try(post_eupath_interpro_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(interpro_table) == "try-error") {
+    if (class(interpro_table)[1] == "try-error") {
       interpro_table <- data.frame()
     }
   }
@@ -120,7 +114,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   pathway_table <- data.frame()
   if (isTRUE(do_pathway)) {
     pathway_table <- try(post_eupath_pathway_table(entry=entry, dir=dir, overwrite=overwrite))
-    if (class(pathway_table) == "try-error") {
+    if (class(pathway_table)[1] == "try-error") {
       pathway_table <- data.frame()
     }
   }
@@ -130,7 +124,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
                                             flatten=FALSE,
                                             abbreviation=kegg_abbreviation))
-    if (class(kegg_table) == "try-error" | nrow(kegg_table) == 0) {
+    if (class(kegg_table)[1] == "try-error" | nrow(kegg_table) == 0) {
       kegg_table <- data.frame()
     } else {
       colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
@@ -253,8 +247,8 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
 
   ## Fix name in sqlite metadata table
   dbpath <- file.path(
-    orgdb_path, "inst/extdata", sub(".db", ".sqlite", basename(orgdb_path)))
-  message(sprintf("- Fixing sqlite Orgdb sqlite database %s", dbpath))
+    orgdb_path, "inst", "extdata", sub(".db", ".sqlite", basename(orgdb_path)))
+  message("- Fixing sqlite Orgdb sqlite database ", dbpath)
 
   ## make sqlite database editable
   Sys.chmod(dbpath, mode="0644")
@@ -276,7 +270,18 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   orgdb_path <- clean_pkg(orgdb_path, removal="_", replace="")
   orgdb_path <- clean_pkg(orgdb_path, removal="_like", replace="like")
   testthat::expect_equal(first_path, orgdb_path)
+
+  if (isTRUE(copy_s3)) {
+    s3_file <- entry[["OrgdbFile"]]
+    copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the orgdb sqlite database to the s3 staging directory.")
+    }
+  }
+
   ## And install the resulting package.
+  ## I think installing the package really should be optional, but in the case of orgdb/txdb,
+  ## without them there is no organismdbi, which makes things confusing.
   inst <- try(devtools::install(orgdb_path))
   if (class(inst) != "try-error") {
     built <- try(devtools::build(orgdb_path, quiet=TRUE))

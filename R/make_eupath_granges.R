@@ -8,8 +8,9 @@
 #' @param entry Metadatum entry.
 #' @param dir Place to put the resulting file(s).
 #' @param version Optionally request a specific version of the gff file.
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
-make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL) {
+make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL, copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -35,6 +36,16 @@ make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL) {
   save_result <- save(list=ls(envir=granges_env),
                       file=granges_file,
                       envir=granges_env)
+
+  if (isTRUE(copy_s3)) {
+    s3_file <- entry[["GrangesFile"]]
+    copied <- copy_s3_file(src_dir=granges_file, type="granges", s3_file=s3_file)
+    print(copied)
+    if (isTRUE(copied)) {
+      message("Successfully copied the granges rda to the s3 staging directory.")
+    }
+  }
+
   ## import.gff3 appears to be opening 2 connections to the gff file, both are read only.
   ## It is not entirely clear to me, given the semantics of import.gff3, how to close these
   ## connections cleanly, ergo the following.

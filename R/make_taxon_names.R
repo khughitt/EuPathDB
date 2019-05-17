@@ -3,7 +3,8 @@
 #' Spend some time making sure they are valid, too.  Thus we want to get rid of
 #' weird characters like hash marks, pipes, etc.
 #'
-#' @param entry  An entry of the eupathdb metadata.
+#' @param entry An entry of the eupathdb metadata.
+#' @param column Which column should be used to query the species name?
 #' @return  A list of hopefully valid nomenclature names to be used elsewhere in
 #'   this family.
 #' @author atb

@@ -5,7 +5,7 @@
 \title{Generate an EuPathDB organism TxDb package.}
 \usage{
 make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
-  reinstall = FALSE)
+  reinstall = FALSE, copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{One row from the organism metadata.}
@@ -15,6 +15,8 @@ make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
 \item{version}{Which version of the eupathdb to use for creating this package?}
 
 \item{reinstall}{Overwrite an existing installed package?}
+
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }
 \value{
 TxDb instance name.

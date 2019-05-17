@@ -6,9 +6,9 @@
 \usage{
 make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
   kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
-  do_go = TRUE, do_orthologs = TRUE, do_interpro = TRUE,
-  do_linkout = TRUE, do_pubmed = TRUE, do_pathway = TRUE,
-  do_kegg = TRUE)
+  copy_s3 = FALSE, do_go = TRUE, do_orthologs = TRUE,
+  do_interpro = TRUE, do_linkout = TRUE, do_pubmed = TRUE,
+  do_pathway = TRUE, do_kegg = TRUE)
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}
@@ -23,11 +23,17 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
 
 \item{overwrite}{Overwrite a partial installation?}
 
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
+
 \item{do_go}{Create the gene ontology table?}
 
 \item{do_orthologs}{Create the gene ortholog table?}
 
 \item{do_interpro}{Create the interpro table?}
+
+\item{do_linkout}{Create a table of linkout data?}
+
+\item{do_pubmed}{Create a table of pubmed entries?}
 
 \item{do_pathway}{Create the pathway table?}
 

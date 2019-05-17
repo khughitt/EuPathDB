@@ -8,21 +8,14 @@
 #' @param gene What gene to query?
 #' @param dir Where to put the checkpoint file?
 #' @return table of orthologs for our one gene.
-get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="EuPathDB") {
+get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
+                                   dir="EuPathDB", species_list=NULL) {
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
-  provider <- tolower(entry[["DataProvider"]])
-  service_directory <- prefix_map(provider)
-  question <- "GenesOrthologousToAGivenGene"
-  params_uri <- glue::glue(
-    "http://{provider}.org/{service_directory}/webservices/GeneQuestions/{question}.wadl")
-  result <- xml2::read_html(params_uri)
-  test <- rvest::html_nodes(result, "param")
-  param_string <- rvest::html_attr(x=test, name="default")[[1]]
 
   parameters <- list(
-    "organism" = jsonlite::unbox(param_string),
+    "organism" = jsonlite::unbox(toString(species_list)),
     "single_gene_id" = jsonlite::unbox(gene))
   columns <- c("primary_key", "organism", "orthomcl_link",
                "gene_ortholog_number", "gene_paralog_number")
@@ -48,7 +41,6 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010", dir="EuPathD
                     url=api_uri,
                     body=body,
                     httr::content_type("application/json"))
-
   if (result[["status_code"]] == "422") {
     warning("There is a missing parameter.")
     return(data.frame())

@@ -9,7 +9,11 @@ post_eupath_go_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
     stop("Need an entry from the eupathdb.")
   }
 
-  savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_go_table.rda"))
+  rdadir <- file.path(dir, "rda")
+  if (!file.exists(rdadir)) {
+    created <- create.dir(rdadir, recursive=TRUE)
+  }
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_go_table.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)

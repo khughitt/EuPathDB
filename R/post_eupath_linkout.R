@@ -8,7 +8,11 @@ post_eupath_linkout_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALS
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
-  savefile <- file.path(dir, glue::glue("{entry[['Genome']]}_linkout_table.rda"))
+  rdadir <- file.path(dir, "rda")
+  if (!file.exists(rdadir)) {
+    created <- create.dir(rdadir, recursive=TRUE)
+  }
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_linkout_table.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)

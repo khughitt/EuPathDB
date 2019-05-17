@@ -8,12 +8,13 @@
 #' @param entry  Single eupathdb metadata entry.
 #' @param version Which version of the eupathdb to use for creating the BSGenome?
 #' @param dir  Working directory.
+#' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param reinstall  Rewrite an existing package directory.
 #' @param ... Extra arguments for downloading metadata when not provided.
 #' @return  List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
+make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FALSE,
                                  reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -133,16 +134,24 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
 
   ## Generate the package, this puts it into the cwd.
   message("Starting forgeBSgenomeDataPkg().")
-  tt <- requireNamespace("Biostrings")
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
-  tt <- attachNamespace("Biostrings")
+  tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
   if (class(annoying) != "try-error") {
     inst <- try(devtools::install(pkgname, quiet=TRUE))
+  }
+
+  if (isTRUE(copy_s3)) {
+    source_dir <- basename(bsgenome_dir)
+    s3_file <- entry[["BsgenomeFile"]]
+    copied <- copy_s3_file(src_dir=source_dir, type="bsgenome", s3_file=s3_file)
+    if (isTRUE(copied)) {
+      message("Successfully copied the genome 2bit file to the s3 staging directory.")
+    }
   }
 
   retlist <- list()
@@ -152,7 +161,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB",
     deleted <- unlink(x=bsgenome_dir, recursive=TRUE, force=TRUE)
     built <- try(devtools::build(pkgname, quiet=TRUE))
     if (class(built) != "try-error") {
-      final_path <- move_final_package(bsgenome_dir, type="bsgenome", dir=dir)
+      final_path <- move_final_package(pkgname, type="bsgenome", dir=dir)
       final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
     }
   } else {

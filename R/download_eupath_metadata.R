@@ -144,17 +144,17 @@ trying http next.")
   ## this precludes the inclusion of a lot of prokaryotic resources.
 
   ## I am not sure that this is needed anymore, since I cross reference against ncbi myself now.
-  known_taxon_ids <- data.frame(
-    species=c("Ordospora colligata OC4",
-              "Trypanosoma cruzi CL Brener Esmeraldo-like",
-              "Trypanosoma cruzi CL Brener Non-Esmeraldo-like"),
-    taxonomy_id=c("1354746", "353153", "353153"),
-    stringsAsFactors=FALSE)
-
-  taxon_mask <- metadata[["Species"]] %in% known_taxon_ids[["species"]]
-  ind <- match(metadata[taxon_mask, "Species"], known_taxon_ids[["species"]])
-  metadata[taxon_mask, ][["TaxonomyId"]] <- as.character(
-    known_taxon_ids[["taxonomy_id"]][ind])
+  ## Lets comment this out now and delete later if I am correct.
+  ##known_taxon_ids <- data.frame(
+  ##  species=c("Ordospora colligata OC4",
+  ##            "Trypanosoma cruzi CL Brener Esmeraldo-like",
+  ##            "Trypanosoma cruzi CL Brener Non-Esmeraldo-like"),
+  ##  taxonomy_id=c("1354746", "353153", "353153"),
+  ##  stringsAsFactors=FALSE)
+  ##taxon_mask <- metadata[["Species"]] %in% known_taxon_ids[["species"]]
+  ##ind <- match(metadata[taxon_mask, "Species"], known_taxon_ids[["species"]])
+  ##metadata[taxon_mask, ][["TaxonomyId"]] <- as.character(
+  ##  known_taxon_ids[["taxonomy_id"]][ind])
 
   ## exclude remaining species which are missing taxonomy information from
   ## metadata; cannot construct GRanges/OrgDb instances for them since they are
@@ -189,59 +189,81 @@ trying http next.")
     pkg_names <- get_eupath_pkgnames(metadatum, column="Species")
     species_info <- make_taxon_names(metadatum, column="Species")
     metadata[it, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
+    metadata[it, "BsgenomeFile"] <- file.path(
+      dir, "BSgenome", metadata[it, "BiocVersion"],
+      metadata[it, "BsgenomePkg"], "single_sequences.2bit")
     metadata[it, "GrangesPkg"] <- pkg_names[["granges"]]
+    metadata[it, "GrangesFile"] <- file.path(
+      dir, "GRanges", metadata[it, "BiocVersion"], metadata[it, "GrangesPkg"])
     metadata[it, "OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
+    metadata[it, "OrganismdbiFile"] <- file.path(
+      dir, "OrganismDbi", metadata[it, "BiocVersion"],
+      metadata[it, "OrganismdbiPkg"], "graphInfo.rda")
     metadata[it, "OrgdbPkg"] <- pkg_names[["orgdb"]]
+    metadata[it, "OrgdbFile"] <- file.path(
+      dir, "OrgDb", metadata[it, "BiocVersion"],
+      gsub(x=metadata[it, "OrgdbPkg"], pattern="db$", replacement="sqlite"))
     metadata[it, "TxdbPkg"] <- pkg_names[["txdb"]]
+    metadata[it, "TxdbFile"] <- file.path(
+      dir, "TxDb", metadata[it, "BiocVersion"],
+      glue::glue("{metadata[it, 'TxdbPkg']}.sqlite"))
     metadata[it, "Species"] <- gsub(x=species_info[["genus_species"]],
                                     pattern="\\.", replacement=" ")
     metadata[it, "Strain"] <- species_info[["strain"]]
     metadata[it, "Taxon"] <- gsub(x=species_info[["taxon"]],
                                   pattern="\\.", replacement=" ")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
-    found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
-    if (length(found_genus_taxa_idx) > 0) {
-      subset_taxa <- all_taxa_ids[found_genus_taxa_idx, ]
-      found_species_taxa_idx <- which(subset_taxa[["species"]] %in% species_info[["species"]])
-      if (length(found_species_taxa_idx) > 0) {
-        taxa_ids <- subset_taxa[found_species_taxa_idx, ]
-        taxon_id <- taxa_ids[1, "tax_id"]
-        if (is.na(metadata[it, "TaxonomyId"])) {
+    ## Ohhhh I get it genomeInfoDb and eupathdb have different definitions of strain vs. species.
+    ## Therefore the original logic here was essentially backwards.
+    ## I flipped and removed the original.
+    ## The upshot: now the genomeInfoDb genus_species is the canonical species in the metadata.
+    ## Crap in a hat, not all taxonomy IDs are defined.
+    ## So the previous logic was actually required.
+    ## okok, some but not all are NA.  So check for NA and go in the opposite direction
+    ## in those cases.
+    if (is.na(metadata[it, "TaxonomyId"])) {
+      found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
+      if (length(found_genus_taxa_idx) > 0) {
+        subset_taxa <- all_taxa_ids[found_genus_taxa_idx, ]
+        found_species_taxa_idx <- which(subset_taxa[["species"]] %in% species_info[["species"]])
+        if (length(found_species_taxa_idx) > 0) {
+          taxa_ids <- subset_taxa[found_species_taxa_idx, ]
+          taxon_id <- taxa_ids[1, "tax_id"]
           if (isTRUE(verbose)) {
             message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, "Species"], ".")
           }
           metadata[it, "TaxonomyId"] <- taxon_id
-        } else if (metadata[it, "TaxonomyId"] != taxon_id) {
-          if (isTRUE(verbose)) {
-            message("The taxonomy ID from GenomeInfoDb does not match what I have for ",
-                    metadata[it, "Species"], ".")
-          }
+        } else {
+          message("Did not find a taxonomy id for ", metadata[it, "Species"], ".")
         }
+      } else {
+        message("Did not find a genus id for ", metadata[it, "Species"], ".")
+      }
+    } else {
+      id_idx <- all_taxa_ids[["tax_id"]] == metadata[it, "TaxonomyId"]
+      if (sum(id_idx) == 0) {
+        ## No taxonomy ID was found, not sure yet what to do here.
+        ## We will want to search the taxonomy ID using genus/species.
+      } else if (sum(id_idx) == 1) {
+        ## There is a successful match, do nothing.
+        id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
+        if (isTRUE(verbose)) {
+          message("Successful match for metadata: ", metadata[it, "TaxonUnmodified"], "\n",
+                  "             vs. genomeinfodb: ", id_gs)
+        }
+        metadata[it, "Species"] <- id_gs
+      } else {
+        id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
+        if (isTRUE(verbose)) {
+          message("More than 1 match for metadata: ", metadata[it, "TaxonUnmodified"], "\n",
+                  "             vs. genomeinfodb: ", id_gs)
+        }
+        metadata[it, "Species"] <- id_gs[1]
       }
     }
   }
   eupathdb_version <- metadata[1, "SourceVersion"]
   ## A couple changes to try to make the metadata I generate pass
-  ## AnnotationHubData::makeAnnotationHubMetadata()
-  ## AnnotationHubData expects species suffixes to be 'sp.'
-  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
-                                pattern=" sp $",
-                                replacement=" sp",
-                                perl=TRUE)
-  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
-                                pattern=" sp$",
-                                replacement=" sp\\.",
-                                perl=TRUE)
-  ## Having a 'Assemblage' is verboten.
-  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
-                                pattern=" Assemblage",
-                                replacement="",
-                                perl=TRUE)
-  ## Having some species 'like x' is also verboten.
-  metadata[["Species"]] <- gsub(x=metadata[["Species"]],
-                                pattern=" like",
-                                replacement="",
-                                perl=TRUE)
 
   ## An attempt to get as many species from AnnotationHub as possible.
   testing_metadata <- metadata
@@ -265,7 +287,9 @@ trying http next.")
     message("Now there are: ", nrow(testing_metadata), " rows left.")
   }
   valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
-  message("Added ", sum(valid_idx), " species after using only the genus species.")
+  if (isTRUE(verbose)) {
+    message("Added ", sum(valid_idx), " species after using only the genus species.")
+  }
   if (sum(valid_idx) > 0) {
     new_metadata <- testing_metadata[which(valid_idx), ]
     ## Pull out the new valid entries
@@ -273,15 +297,18 @@ trying http next.")
     ## Add those to the valid metadata.
     invalid_metadata <- testing_metadata[which(!valid_idx), ]
     ## Add whatever is left to the set of invalid metadata.
+  } else {
+    invalid_metadata <- testing_metadata[which(!valid_idx), ]
   }
+
   if (nrow(invalid_metadata) > 0) {
     message("Unable to find species names for ", nrow(invalid_metadata), " species.")
     message(toString(invalid_metadata[["Species"]]))
   }
-  metadata <- valid_metadata
 
   if (isTRUE(write_csv)) {
-    granges_metadata <- metadata %>%
+    message("Writing csv files.")
+    granges_metadata <- valid_metadata %>%
       dplyr::mutate(
                Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -289,20 +316,15 @@ transcript information for {.data[['Taxon']]}"),
                RDataClass="GRanges",
                DispatchClass="GRanges",
                ResourceName=.data[["GrangesPkg"]],
-               RDataPath=file.path(
-                 dir, "GRanges", .data[["BiocVersion"]],
-                 glue::glue("{.data[['GrangesPkg']]}")))
-    csv_file <- file.path(
-      path.package("EuPathDB"),
-      "inst", "extdata",
-      glue::glue("GRanges_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+               RDataPath=.data[["GrangesFile"]])
+    csv_file <- glue::glue("GRanges_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
     if (file.exists(csv_file)) {
       readr::write_csv(x=granges_metadata, path=csv_file, append=TRUE)
     } else {
       readr::write_csv(x=granges_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
-    orgdb_metadata <- metadata %>%
+    orgdb_metadata <- valid_metadata %>%
       dplyr::mutate(
                Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -310,20 +332,15 @@ annotations for {.data[['Taxon']]}"),
                RDataClass="OrgDb",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["OrgdbPkg"]],
-               RDataPath=file.path(
-                 dir, "OrgDb", .data[["BiocVersion"]],
-                 glue::glue("{.data[['OrgdbPkg']]}.eg.sqlite")))
-    csv_file <- file.path(
-      path.package("EuPathDB"),
-      "inst", "extdata",
-      glue::glue("OrgDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+               RDataPath=.data[["OrgdbFile"]])
+    csv_file <- glue::glue("OrgDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
     if (file.exists(csv_file)) {
       readr::write_csv(x=orgdb_metadata, path=csv_file, append=TRUE)
     } else {
       readr::write_csv(x=orgdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
-    txdb_metadata <- metadata %>%
+    txdb_metadata <- valid_metadata %>%
       dplyr::mutate(
                Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -331,20 +348,15 @@ Transcript information for {.data[['Taxon']]}"),
                RDataClass="TxDb",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["TxdbPkg"]],
-               RDataPath=file.path(
-                 dir, "TxDb", .data[["BiocVersion"]],
-                 glue::glue("{.data[['TxdbPkg']]}.sqlite")))
-    csv_file <- file.path(
-      path.package("EuPathDB"),
-      "inst", "extdata",
-      glue::glue("TxDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+               RDataPath=.data[["TxdbFile"]])
+    csv_file <- glue::glue("TxDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
     if (file.exists(csv_file)) {
       readr::write_csv(x=txdb_metadata, path=csv_file, append=TRUE)
     } else {
       readr::write_csv(x=txdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
-    organismdbi_metadata <- metadata %>%
+    organismdbi_metadata <- valid_metadata %>%
       dplyr::mutate(
                Title=glue::glue("Combined information for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -352,21 +364,15 @@ Combined information for {.data[['Taxon']]}"),
                RDataClass="OrganismDBI",
                DispatchClass="SQLiteFile",
                ResourceName=.data[["OrganismdbiPkg"]],
-               RDataPath=file.path(
-                 dir, "OrganismDbi", .data[["BiocVersion"]],
-                 glue::glue("{.data[['OrganismdbiPkg']]}"),
-                 "graphInfo.rda"))
-    csv_file <- file.path(
-      path.package("EuPathDB"),
-      "inst", "extdata",
-      glue::glue("OrganismDbi_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+               RDataPath=.data[["OrganismdbiFile"]])
+    csv_file <- glue::glue("OrganismDbi_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
     if (file.exists(csv_file)) {
       readr::write_csv(x=organismdbi_metadata, path=csv_file, append=TRUE)
     } else {
       readr::write_csv(x=organismdbi_metadata, path=csv_file, append=FALSE, col_names=TRUE)
     }
 
-    bsgenome_metadata <- metadata %>%
+    bsgenome_metadata <- valid_metadata %>%
       dplyr::mutate(
                Title=glue::glue("Genome for {.data[['Taxon']]}"),
                Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -374,14 +380,8 @@ Genome for {.data[['Taxon']]}"),
                RDataClass="BSGenome",
                DispatchClass="2bit",
                ResourceName=.data[["BsgenomePkg"]],
-               RDataPath=file.path(
-                 dir, "BSgenome", .data[["BiocVersion"]],
-                 glue::glue("{.data[['BsgenomePkg']]}"),
-                 "single_sequences.2bit"))
-    csv_file <- file.path(
-      path.package("EuPathDB"),
-      "inst", "extdata",
-      glue::glue("BSgenome_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv"))
+               RDataPath=.data[["BsgenomeFile"]])
+    csv_file <- glue::glue("BSgenome_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
     if (file.exists(csv_file)) {
       readr::write_csv(x=bsgenome_metadata, path=csv_file, append=TRUE)
     } else {

@@ -15,6 +15,7 @@
 #' @param entry A metadatum entry.
 #' @param version Choose a specific version of the eupathdb, only really useful
 #'   when downloading files.
+#' @param column Which column to query to get the species name?
 #' @return List of package names and some booleans to see if they have already
 #'   been installed.
 #' @author atb

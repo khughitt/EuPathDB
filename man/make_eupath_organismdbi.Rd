@@ -6,7 +6,7 @@
 \usage{
 make_eupath_organismdbi(entry = NULL, version = NULL,
   dir = "EuPathDB", reinstall = FALSE, kegg_abbreviation = NULL,
-  exclude_join = "ENTREZID")
+  exclude_join = "ENTREZID", copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{A row from the eupathdb metadataframe.}
@@ -24,6 +24,8 @@ joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 variable is intended to exclude columns with common IDs that might
 multi-match spuriously -- I think in the end I killed the idea though,
 perhaps this should be removed or resurrected.}
+
+\item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }
 \value{
 The result of attempting to install the organismDbi package.
