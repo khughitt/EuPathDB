@@ -19,6 +19,7 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
     "single_gene_id" = jsonlite::unbox(gene))
   columns <- c("primary_key", "organism", "orthomcl_link",
                "gene_ortholog_number", "gene_paralog_number")
+  question <- "GenesOrthologousToAGivenGene"
   query_body <- list(
     ## 3 elements, answerSpec, formatting, format.
     "answerSpec" = list(

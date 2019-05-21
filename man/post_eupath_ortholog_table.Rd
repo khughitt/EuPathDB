@@ -5,7 +5,7 @@
 \title{Use the post interface to get ortholog data.}
 \usage{
 post_eupath_ortholog_table(entry = NULL, dir = "EuPathDB",
-  table = "OrthologsLite", overwrite = FALSE)
+  table = "OrthologsLite", gene_ids = NULL, overwrite = FALSE)
 }
 \arguments{
 \item{entry}{The full annotation entry.}

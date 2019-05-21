@@ -1,8 +1,8 @@
 ---
-title: "Accessing EuPathDB Resources using AnnotationHub"
+title: "Generating EuPathDB Bioconductor Packages Locally"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Accessing EuPathDB Resources using AnnotationHub}
+  %\VignetteIndexEntry{Generating EuPathDB Bioconductor Packages Locally}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteKeyword{eupathdb, annotations}
   \usepackage[utf8]{inputenc}
@@ -52,7 +52,8 @@ how one might do those tasks.
 The following shows how one might gather information about Saccharomyces
 cerevisiae from fungidb.org.
 
-```{r example_install}
+```{r 01example_install}
+library(EuPathDB)
 ## Note that some but not all web services have moved to https...
 ## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
 
@@ -67,7 +68,7 @@ Now that we have the canonical name for yeast from fungidb, we can
 create a fresh orgdb package.  I will not actually run this for the vignette
 because it takes a long time and prints a lot to screen.
 
-```{r pkg, eval=FALSE}
+```{r 02pkg, eval=FALSE}
 orgdb_pkg <- make_eupath_orgdb(sc_entry, reinstall=TRUE)
 txdb_pkg <- make_eupath_txdb(sc_entry)
 bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
@@ -87,7 +88,7 @@ As the names suggest, these were derived from fungidb.org revision 43.
 
 ### Another example from the tritrypdb
 
-```{r lmajor, eval=FALSE}
+```{r 03lmajor, eval=FALSE}
 lm_entry <- get_eupath_entry(species="Friedlin", webservice="tritrypdb")
 lm_orgdb <- make_eupath_orgdb(lm_entry, reinstall=TRUE)
 ```
@@ -102,7 +103,7 @@ Because the eupathdb is constantly evolving, the get_eupath_pkgnames() function 
 the metadata generated in download_eupath_metadata() in order to provide a differently
 names package for each eupathdb revision.
 
-```{r extract}
+```{r 04extract}
 orgdb_pkg <- get_eupath_pkgnames(sc_entry)
 sc_orgdb <- orgdb_pkg$orgdb
 ## Here is the name of the current yeast package.
@@ -140,7 +141,7 @@ The load_orgdb_annotation() and load_orgdb_go() are simply wrapper around
 AnnotationDbi in order to fill in the various arguments and more quickly return
 annotation of likely interest.
 
-```{r extract_data}
+```{r 05extract_data}
 ## The columns which begin with strings like 'PATHWAY' or 'INTERPRO' are actually separate
 ## sql tables in the orgdb database, and as such will lead to a hugely redundant data table
 ## if we select them.
@@ -193,7 +194,7 @@ The following attempts to make that easier.  In this instance, the only thing we
 need to provide is a unique substring for the species of interest.  If the
 substring is not unique, this should show the matches and choose the first.
 
-```{r shortcuts}
+```{r 06shortcuts}
 ## The function load_eupath_annotations() provides a shortcut to the above.
 major_annot <- load_eupath_annotations(species="major")
 dim(major_annot)
@@ -206,7 +207,7 @@ A task I find myself needing to do fairly often is to get the set of genes
 orthologous to a given gene.  There are lots of methods to handle this question;
 one of them includes the nice table provided by the eupathdb.  Let us query that.
 
-```{r orthologs, eval=FALSE}
+```{r 07orthologs, eval=FALSE}
 ## A recent EuPathDB update makes it possible to use the 'OrthologsLite' table rather than
 ## Orthologs, which is much faster (by like 1000x), but I am quickly realizing much more
 ## limited in the information it returns, and only exists for a subset of the eupathdb
@@ -223,6 +224,6 @@ summary(lm_ortho)
 
 # Session Information
 
-```{r}
+```{r 08sessioninfo}
 sessionInfo()
 ```

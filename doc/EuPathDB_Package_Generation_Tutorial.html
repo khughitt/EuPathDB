@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+
+<title>Generating EuPathDB Bioconductor Packages Locally</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Generating EuPathDB Bioconductor Packages Locally</h1>
+
+
+
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelector("h1").className = "title";
+});
+</script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+  var links = document.links;  
+  for (var i = 0, linksLength = links.length; i < linksLength; i++)
+    if (links[i].hostname != window.location.hostname)
+      links[i].target = '_blank';
+});
+</script>
+<p><strong>Authors</strong>: <a href="mailto:keith.hughitt@nih.gov">V. Keith Hughitt</a><br /> <strong>Modified:</strong> NA<br /> <strong>Compiled</strong>: Tue May 21 11:49:27 2019</p>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>This tutorial describes how to query and make use of annotations from the <a href="http://eupathdb.org/eupathdb/">EuPathDB : The Eukaryotic Pathogen Genomics Resource</a> and the creation/access of local R packages derived from the EuPathDB.</p>
+</div>
+<div id="available-eupathdb-resources" class="section level1">
+<h1>Available EuPathDB Resources</h1>
+<p>The EuPathDB R package may also be used to generate local copies of some of the resources provided by eupathdb.org. These include:</p>
+<ol style="list-style-type: decimal">
+<li>BSgenome objects (raw genome sequences)</li>
+<li>OrgDB objects (AnnotationDBI accessible tables of the genome/transcriptome annotations)</li>
+<li>TxDB objects and the somewhat interchangeable GRanges objects. (transcript identifications)</li>
+<li>OrganismDBI objects (AnnotationDBI tables with references to other databases like GO/Reactome/etc)</li>
+</ol>
+<p>Because the EuPathDB is constantly updating their resources, it might be of use for one to generate these resources locally. In addition, the EuPathDB R package provides some shortcut functions for gathering data frames(tables) from these resources of annotation data.</p>
+</div>
+<div id="installing-a-new-species-in-your-r-session" class="section level1">
+<h1>Installing a new species in your R session</h1>
+<p>When AnnotationHub and the EupathDB web resources get out of sync, one might want to install and manipulate the newest version of the available Eupath data. The following blocks demonstrate how one might do those tasks.</p>
+<div id="downloading-and-installing-an-arbitrary-species" class="section level2">
+<h2>Downloading and installing an arbitrary species</h2>
+<p>The following shows how one might gather information about Saccharomyces cerevisiae from fungidb.org.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(EuPathDB)</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="co">## Note that some but not all web services have moved to https...</span></a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="co">## tri_meta &lt;- download_eupath_metadata(webservice=&quot;tritrypdb&quot;)</span></a>
+<a class="sourceLine" id="cb1-4" title="4"></a>
+<a class="sourceLine" id="cb1-5" title="5">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
+<pre><code>## Warning: 'BiocInstaller' and 'biocLite()' are deprecated, use the 'BiocManager'
+##   CRAN package instead.</code></pre>
+<pre><code>## Found: Saccharomyces cerevisiae S288c</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">sc_name &lt;-<span class="st"> </span>sc_entry[[<span class="st">&quot;Species&quot;</span>]]</a>
+<a class="sourceLine" id="cb4-2" title="2">sc_entry</a></code></pre></div>
+<pre><code>##     BiocVersion                      Genome NumGenes NumOrthologs
+## 128         3.8 FungiDB-43_ScerevisiaeS288c     6350         5892
+##     SourceType
+## 128        GFF
+##                                                                                                    SourceUrl
+## 128 http://FungiDB.org/common/downloads/release-43/ScerevisiaeS288c/gff/data/FungiDB-43_ScerevisiaeS288c.gff
+##     SourceVersion                        Species TaxonomyId
+## 128            43 Saccharomyces cerevisiae S288C     559292
+##     Coordinate_1_based DataProvider                       Maintainer
+## 128               TRUE      FungiDB Keith Hughitt &lt;khughitt@umd.edu&gt;
+##                                                             Tags
+## 128 Annotation:EuPathDB:Eukaryote:Pathogen:Parasite:Fungus:Fungi
+##                                     BsgenomePkg
+## 128 BSGenome.Saccharomyces.cerevisiae.S288c.v43
+##                                         GrangesPkg
+## 128 GRanges.Saccharomyces.cerevisiae.S288c.v43.rda
+##                                 OrganismdbiPkg
+## 128 fungidb.Saccharomyces.cerevisiae.S288c.v43
+##                            OrgdbPkg
+## 128 org.Scerevisiae.S288c.v43.eg.db
+##                                             TxdbPkg Strain
+## 128 TxDb.Saccharomyces.cerevisiae.S288c.FungiDB.v43  S288c
+##                              Taxon Genus Sp
+## 128 Saccharomyces cerevisiae S288c         
+##                                                                                BsgenomeFile
+## 128 EuPathDB/BSgenome/3.8/BSGenome.Saccharomyces.cerevisiae.S288c.v43/single_sequences.2bit
+##                                                             GrangesFile
+## 128 EuPathDB/GRanges/3.8/GRanges.Saccharomyces.cerevisiae.S288c.v43.rda
+##                                                                       OrganismdbiFile
+## 128 EuPathDB/OrganismDbi/3.8/fungidb.Saccharomyces.cerevisiae.S288c.v43/graphInfo.rda
+##                                                  OrgdbFile
+## 128 EuPathDB/OrgDb/3.8/org.Scerevisiae.S288c.v43.eg.sqlite
+##                                                                     TxdbFile
+## 128 EuPathDB/TxDb/3.8/TxDb.Saccharomyces.cerevisiae.S288c.FungiDB.v43.sqlite
+##                    TaxonUnmodified
+## 128 Saccharomyces cerevisiae S288c</code></pre>
+<div id="creating-the-package" class="section level3">
+<h3>Creating the package</h3>
+<p>Now that we have the canonical name for yeast from fungidb, we can create a fresh orgdb package. I will not actually run this for the vignette because it takes a long time and prints a lot to screen.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_orgdb</span>(sc_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb6-2" title="2">txdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_txdb</span>(sc_entry)</a>
+<a class="sourceLine" id="cb6-3" title="3">bsgenome_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_bsgenome</span>(sc_entry)</a>
+<a class="sourceLine" id="cb6-4" title="4">organ_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_organismdbi</span>(sc_entry)</a></code></pre></div>
+<p>You will have to trust that the above worked in my R session and installed for me packages named:</p>
+<ol style="list-style-type: decimal">
+<li>OrgDB: org.Scerevisiae.v43.eg.db</li>
+<li>OrganismDBI: fungidb.Saccharomyces.cerevisiae.v43</li>
+<li>TxDB: TxDb.Saccharomyces.cerevisiae.FungiDB.v43</li>
+<li>BSgenome: BSGenome.Saccharomyces.cerevisiae.v43</li>
+<li>GRanges: An rda file named GRanges.Saccharomyces.cerevisiae.v43.rda</li>
+</ol>
+<p>As the names suggest, these were derived from fungidb.org revision 43.</p>
+</div>
+<div id="another-example-from-the-tritrypdb" class="section level3">
+<h3>Another example from the tritrypdb</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">lm_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;Friedlin&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
+<a class="sourceLine" id="cb7-2" title="2">lm_orgdb &lt;-<span class="st"> </span><span class="kw">make_eupath_orgdb</span>(lm_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+</div>
+</div>
+<div id="extracting-annotation-data" class="section level2">
+<h2>Extracting annotation data</h2>
+<p>The following demonstrates ways to extract data from the generated orgdb package.</p>
+<div id="choosing-and-loading-a-generated-package" class="section level3">
+<h3>Choosing and loading a generated package</h3>
+<p>Because the eupathdb is constantly evolving, the get_eupath_pkgnames() function will use the metadata generated in download_eupath_metadata() in order to provide a differently names package for each eupathdb revision.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">get_eupath_pkgnames</span>(sc_entry)</a>
+<a class="sourceLine" id="cb8-2" title="2">sc_orgdb &lt;-<span class="st"> </span>orgdb_pkg<span class="op">$</span>orgdb</a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="co">## Here is the name of the current yeast package.</span></a>
+<a class="sourceLine" id="cb8-4" title="4">sc_orgdb</a></code></pre></div>
+<pre><code>## org.Scerevisiae.S288c.v43.eg.db</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"><span class="co">## Thus we see the v41 (as of late 2018), a number which presumably will continue increasing.</span></a>
+<a class="sourceLine" id="cb10-2" title="2"><span class="co">## We can set the version parameter to change this if we have a previous version installed.</span></a>
+<a class="sourceLine" id="cb10-3" title="3"></a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="co">## Now get the set of available columns from it:</span></a>
+<a class="sourceLine" id="cb10-5" title="5"><span class="kw">library</span>(sc_orgdb, <span class="dt">character=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+<pre><code>## Loading required package: AnnotationDbi</code></pre>
+<pre><code>## </code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1">avail_columns &lt;-<span class="st"> </span>AnnotationDbi<span class="op">::</span><span class="kw">columns</span>(<span class="kw">get0</span>(sc_orgdb))</a>
+<a class="sourceLine" id="cb13-2" title="2"><span class="kw">head</span>(avail_columns)</a></code></pre></div>
+<pre><code>## [1] &quot;ANNOT_CDS&quot;                &quot;ANNOT_CDS_LENGTH&quot;        
+## [3] &quot;ANNOT_CHROMOSOME&quot;         &quot;ANNOT_EC_NUMBERS&quot;        
+## [5] &quot;ANNOT_EC_NUMBERS_DERIVED&quot; &quot;ANNOT_EXON_COUNT&quot;</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="co">## There are lots of columns!</span></a>
+<a class="sourceLine" id="cb15-2" title="2"><span class="kw">length</span>(avail_columns)</a></code></pre></div>
+<pre><code>## [1] 119</code></pre>
+<p>The EuPathDB provides quite an astonishing field of information. When creating the OrgDB packages, I prefixed column names of the various data types as follows:</p>
+<ol style="list-style-type: decimal">
+<li>ANNOT: The primary annotations. This includes a wide variety of information from descriptions to number of transmembrane domains.</li>
+<li>GO: The Gene Ontology table.</li>
+<li>INTERPRO: Interpro data from the eupathdb.</li>
+<li>KEGGREST: Cross-references KEGG data using the R KEGGREST package.</li>
+<li>PATHWAY: Pathway data from the eupathdb.</li>
+</ol>
+<p>Still missing from this is the Link out data to the set of papers referencing each gene.</p>
+</div>
+<div id="extracting-data-from-a-package" class="section level3">
+<h3>Extracting data from a package</h3>
+<p>Once we have a package loaded, everything else is an application of the AnnotationDbi interface. Here are a few examples.</p>
+<p>The load_orgdb_annotation() and load_orgdb_go() are simply wrapper around AnnotationDbi in order to fill in the various arguments and more quickly return annotation of likely interest.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="co">## The columns which begin with strings like 'PATHWAY' or 'INTERPRO' are actually separate</span></a>
+<a class="sourceLine" id="cb17-2" title="2"><span class="co">## sql tables in the orgdb database, and as such will lead to a hugely redundant data table</span></a>
+<a class="sourceLine" id="cb17-3" title="3"><span class="co">## if we select them.</span></a>
+<a class="sourceLine" id="cb17-4" title="4">chosen_columns_idx &lt;-<span class="st"> </span><span class="kw">grepl</span>(<span class="dt">x=</span>avail_columns, <span class="dt">pattern=</span><span class="st">&quot;^ANNOT&quot;</span>)</a>
+<a class="sourceLine" id="cb17-5" title="5">chosen_columns &lt;-<span class="st"> </span>avail_columns[chosen_columns_idx]</a>
+<a class="sourceLine" id="cb17-6" title="6"></a>
+<a class="sourceLine" id="cb17-7" title="7"><span class="co">## Now we have a set of columns of interest, let us get a data table/data frame.</span></a>
+<a class="sourceLine" id="cb17-8" title="8">sc_annot &lt;-<span class="st"> </span><span class="kw">load_orgdb_annotations</span>(<span class="dt">orgdb=</span>sc_orgdb, <span class="dt">keytype=</span><span class="st">&quot;gid&quot;</span>, <span class="dt">fields=</span>chosen_columns)</a></code></pre></div>
+<pre><code>## Unable to find CDSNAME, setting it to ANNOT_GENE_NAME.</code></pre>
+<pre><code>## Unable to find CDSCHROM in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSSTRAND in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSSTART in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSEND in the db, removing it.</code></pre>
+<pre><code>## Extracted all gene ids.</code></pre>
+<pre><code>## Attempting to select: ANNOT_GENE_NAME, GENE_TYPE, ANNOT_CDS, ANNOT_CDS_LENGTH, ANNOT_CHROMOSOME, ANNOT_EC_NUMBERS, ANNOT_EC_NUMBERS_DERIVED, ANNOT_EXON_COUNT, ANNOT_FIVE_PRIME_UTR_LENGTH, ANNOT_GENE_ENTREZ_ID, ANNOT_GENE_EXON_COUNT, ANNOT_GENE_HTS_NONCODING_SNPS, ANNOT_GENE_HTS_NONSYN_SYN_RATIO, ANNOT_GENE_HTS_NONSYNONYMOUS_SNPS, ANNOT_GENE_HTS_STOP_CODON_SNPS, ANNOT_GENE_HTS_SYNONYMOUS_SNPS, ANNOT_GENE_LOCATION_TEXT, ANNOT_GENE_NAME, ANNOT_GENE_ORTHOLOG_NUMBER, ANNOT_GENE_ORTHOMCL_NAME, ANNOT_GENE_PARALOG_NUMBER, ANNOT_GENE_PREVIOUS_IDS, ANNOT_GENE_PRODUCT, ANNOT_GENE_SOURCE_ID, ANNOT_GENE_TOTAL_HTS_SNPS, ANNOT_GENE_TRANSCRIPT_COUNT, ANNOT_GENE_TYPE, ANNOT_GO_COMPONENT, ANNOT_GO_FUNCTION, ANNOT_GO_ID_COMPONENT, ANNOT_GO_ID_FUNCTION, ANNOT_GO_ID_PROCESS, ANNOT_GO_PROCESS, ANNOT_HAS_MISSING_TRANSCRIPTS, ANNOT_INTERPRO_DESCRIPTION, ANNOT_INTERPRO_ID, ANNOT_IS_PSEUDO, ANNOT_ISOELECTRIC_POINT, ANNOT_LOCATION_TEXT, ANNOT_MATCHED_RESULT, ANNOT_MOLECULAR_WEIGHT, ANNOT_ORGANISM, ANNOT_PFAM_DESCRIPTION, ANNOT_PFAM_ID, ANNOT_PIRSF_DESCRIPTION, ANNOT_PIRSF_ID, ANNOT_PREDICTED_GO_COMPONENT, ANNOT_PREDICTED_GO_FUNCTION, ANNOT_PREDICTED_GO_ID_COMPONENT, ANNOT_PREDICTED_GO_ID_FUNCTION, ANNOT_PREDICTED_GO_ID_PROCESS, ANNOT_PREDICTED_GO_PROCESS, ANNOT_PROJECT_ID, ANNOT_PROSITEPROFILES_DESCRIPTION, ANNOT_PROSITEPROFILES_ID, ANNOT_PROTEIN_LENGTH, ANNOT_PROTEIN_SEQUENCE, ANNOT_SEQUENCE_ID, ANNOT_SIGNALP_PEPTIDE, ANNOT_SIGNALP_SCORES, ANNOT_SMART_DESCRIPTION, ANNOT_SMART_ID, ANNOT_SOURCE_ID, ANNOT_STRAND, ANNOT_SUPERFAMILY_DESCRIPTION, ANNOT_SUPERFAMILY_ID, ANNOT_THREE_PRIME_UTR_LENGTH, ANNOT_TIGRFAM_DESCRIPTION, ANNOT_TIGRFAM_ID, ANNOT_TM_COUNT, ANNOT_TRANS_FOUND_PER_GENE_INTERNAL, ANNOT_TRANSCRIPT_INDEX_PER_GENE, ANNOT_TRANSCRIPT_LENGTH, ANNOT_TRANSCRIPT_LINK, ANNOT_TRANSCRIPT_PRODUCT, ANNOT_TRANSCRIPT_SEQUENCE, ANNOT_TRANSCRIPTS_FOUND_PER_GENE, ANNOT_UNIPROT_ID, ANNOT_WDK_WEIGHT</code></pre>
+<pre><code>## 'select()' returned 1:1 mapping between keys and columns</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1"><span class="co">## load_orgdb_annotations will fill out separate dataframes for each annotation type,</span></a>
+<a class="sourceLine" id="cb26-2" title="2"><span class="co">## genes, exons, transcripts, etc.  In this case, we only want the genes</span></a>
+<a class="sourceLine" id="cb26-3" title="3"><span class="co">## (The eupathdb does not provide much information for the others.)</span></a>
+<a class="sourceLine" id="cb26-4" title="4">sc_genes &lt;-<span class="st"> </span>sc_annot[[<span class="st">&quot;genes&quot;</span>]]</a>
+<a class="sourceLine" id="cb26-5" title="5"><span class="kw">dim</span>(sc_genes)</a></code></pre></div>
+<pre><code>## [1] 6744   79</code></pre>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1"><span class="kw">head</span>(sc_genes)</a></code></pre></div>
+<pre><code>##         gid annot_gene_name      gene_type
+## Q0045 Q0045            COX1 protein coding
+## Q0050 Q0050             AI1 protein coding
+## Q0055 Q0055             AI2 protein coding
+## Q0060 Q0060             AI3 protein coding
+## Q0065 Q0065             AI4 protein coding
+## Q0070 Q0070       AI5_ALPHA protein coding
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   annot_cds
+## Q0045                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCACCCTGAAGTATATATTTTAATTATTCCTGGATTTGGTATTATTTCACATGTAGTATCAACATATTCTAAAAAACCTGTATTTGGTGAAATTTCAATGGTATATGCTATGGCTTCAATTGGATTATTAGGATTCTTAGTATGATCACATCATATGTATATTGTAGGATTAGATGCAGATCTTAGAGCATATTTCCTATCTGCACTAATGATTATTGCAATTCCAACAGGAATTAAAATTTTCTCATGATTAGCTCTAATCCATGGTGGTTCAATTAGATTAGCACTACCTATGTTATATGCAATTGCATTCTTATTCTTATTCACAATGGGTGGTTTAACTGGTGTTGCCTTAGCTAACGCCTCATTAGATGTAGCATTCCACGATACTTACTACGTGGTGGGACATTTTCACTATGTATTATCAATGGGTGCTATTTTCTCTTTATTTGCAGGATACTATTATTGAAGTCCTCAAATTTTAGGTTTAAACTATAATGAAAAATTAGCTCAAATTCAATTCTGATTAATTTTCATTGGGGCTAATGTTATTTTCTTCCCAATGCATTTTTTAGGTATTAATGGTATGCCTAGAAGAATTCCTGATTATCCTGATGCTTTCGCAGGATGAAATTATGTCGCTTCTATTGGTTCATTCATTGCACTATTATCATTATTCTTATTTATCTATATTTTATATGATCAATTAGTTAATGGATTAAACAATAAAGTTAATAATAAATCAGTTATTTATAATAAAGCACCTGATTTTGTAGAATCTAATCTTATCTTTAATTTAAATACAGTTAAATCTTCATCTATCGAATTCTTATTAACTTCTCCACCAGCTGTACACTCATTTAATACACCAGCTGTACAATCTTAA
+## Q0050                                                             ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGGTGCGCCTCTCAGTGCGTATATTTCGTTGATGCGTCTAGCATTAGTATTATGAATCATCAATAGATACTTAAAACATATGACTAACTCAGTAGGGGCTAACTTTACGGGGACAATAGCATGTCATAAAACACCTATGATTAGTGTAGGTGGAGTTAAGTGTTACATGGTTAGGTTAACGAACTTCTTACAAGTCTTTATCAGGATTACAATTTCCTCTTATCATTTGGATATAGTAAAACAAGTTTGATTATTTTACGTTGAGGTAATCAGATTATGATTCATTGTTTTAGATAGCACAGGCAGTGTGAAAAAGATGAAGGACCTAAATAACACAAAAGGAAATACGAAAAGTGAGGGATCAACTGAAAGAGGAAACTCTGGAGTTGACAGAGGTATAGTAGTACCGAATACTCAAATAAAAATGAGATTTTTAAATCAAGTTAGATACTATTCAGTAAATAATAATTTAAAAATAGGGAAGGATACCAATATTGAGTTATCAAAAGATACAAGTACTTCGGACTTGTTAGAATTTGAGAAATTAGTAATAGATAATATAAATGAGGAAAATATAAATAATAATTTATTAAGTATTATAAAAAACGTAGATATATTAATATTAGCATATAATAGAATTAAGAGTAAACCTGGTAATATAACTCCAGGTACAACATTAGAAACATTAGATGGTATAAATATAATATATTTAAATAAATTATCAAATGAATTAGGAACAGGTAAATTCAAATTTAAACCCATGAGAATAGTTAATATTCCTAAACCTAAAGGTGGTATAAGACCTTTAAGTGTAGGTAATCCAAGAGATAAAATTGTACAAGAAGTTATAAGAATAATTTTAGATACAATTTTTGATAAAAAGATATCAACACATTCACATGGTTTTAGAAAGAATATAAGTTGTCAAACAGCAATTTGAGAAGTTAGAAATATATTTGGTGGAAGTAATTGATTTATTGAAGTAGACTTAAAAAAATGTTTTGATACAATTTCTCATGATTTAATTATTAAAGAATTAAAAAGATATATTTCAGATAAAGGTTTTATTGATTTAGTATATAAATTATTAAGAGCTGGTTATATTGATGAGAAAGGAACTTATCATAAACCTATATTAGGTTTACCTCAAGGATCATTAATTAGTCCTATCTTATGTAATATTGTAATAACATTGGTAGATAATTGATTAGAAGATTATATTAATTTATATAATAAAGGTAAAGTTAAAAAACAACATCCTACATATAAAAAATTATCAAGAATAATTGCAAAAGCTAAAATATTTTCGACAAGATTAAAATTACATAAAGAAAGAGCTAAAGGCCCACTATTTATTTATAATGATCCTAATTTCAAGAGAATAAAATACGTTAGATATGCAGATGATATTTTAATTGGGGTATTAGGTTCAAAAAATGATTGTAAAATAATCAAAAGAGATTTAAACAATTTTTTAAATTCATTAGGTTTAACTATAAATGAAGAAAAAACTTTAATTACTTGTGCAACTGAACTACCAGCAAGATTTTTAGGTTATAATATTTCAATTACACCTTTAAAAAGAATACCTACAGTTACTAAACTAATTAGAGGTAAACTTATTAGAAGTAGAAATACAACTAGACCTATTATTAATGCACCAATTAGAGATATTATCAATAAATTAGCTACTAATGGATATTGTAAGCATAATAAAAATGGTAGAATAGGAGTGCCTACAAGAGTAGGTAGATGACTATATGAAGAACCTAGAACAATTATTAATAATTATAAAGCGTTAGGTAGAGGTATCTTAAATTATTATAAATTAGCTACTAATTATAAAAGATTAAGAGAAAGAATCTATTACGTATTATATTATTCATGTGTATTAACTTTAGCTAGTAAATATAGATTAAAAACAATAAGTAAAACTATTAAAAAATTTGGTTATAATTTAAATATTATTGAAAATGATAAATTAATTGCCAATTTTCCAAGAAATACTTTTGATAATATCAAAAAAATTGAAAATCATGGTATATTTATATATATATCAGAAGCTAAAGTAACTGATCCTTTTGAATATATCGATTCAATTAAATATATATTACCTACAGCTAAAGCTAATTTTAATAAACCTTGTAGTATTTGTAATTCAACTATTGATGTAGAAATACATCATGTTAAACAATTACATAGAGGTATATTAAAAGCACTTAAAGATTATATTCTAGGTAGAATAATTACCATAAACAGAAAACAAATTCCATTATGTAAACAATGTCATATTAAAACACATAAAAATAAATTTAAAAATATAGGACCTGGTATATAA
+## Q0055 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTGTGCGCCGTTTCGCTTAATTTATCACTGTATTGAAGTGTTAATTGATAAACATATCTCTGTTTATTCAATTAATGAAAACTTTACCGTATCATTTTGGTTCTGATTATTAGTAGTAACATACATAGTATTTAGATACGTAAACCATATGGCTTACCCAGTTGGGGCCAACTCAACGGGGACAATAGCATGCCATAAAAGCGCTGGAGTAAAACAGCCAGCGCAAGGTAAGAACTGTCCGATGGCTAGGTTAACGAATTCCTGTAAAGAATGTTTAGGGTTCTCATTAACTCCTTCCCACTTGGGGATTGTGATTCATGCTTATGTATTGGAAGAAGAGGTACACGAGTTAACCAAAAATGAATCATTAGCTTTAAGTAAAAGTTGACATTTGGAGGGCTGTACGAGTTCAAATGGAAAATTAAGAAATACGGGATTGTCCGAAAGGGGAAACCCTGGGGATAACGGAGTCTTCATAGTACCCAAATTTAATTTAAATAAAGTGAGATACTTTAGTACTTTATCTAAATTAAATGCAAGGAAGGAAGACAGTTTAGCGTATTTAACAAAGATTAATACTACGGATTTTTCCGAGTTAAATAAATTAATAGAAAATAATCATAATAAACTTGAAACCATTAATACTAGAATTTTAAAATTAATGTCAGATATTAGAATGTTATTAATTGCTTATAATAAAATTAAAAGTAAGAAAGGTAATATATCTAAAGGTTCTAATAATATTACCTTAGATGGGATTAATATTTCATATTTAAATAAATTATCTAAAGATATTAACACTAATATGTTTAAATTTTCTCCGGTTAGAAGAGTTGAAATTCCTAAAACATCTGGAGGATTTAGACCTTTAAGTGTTGGAAATCCTAGAGAAAAAATTGTACAAGAAAGTATGAGAATAATATTAGAAATTATCTATAATAATAGTTTCTCTTATTATTCTCATGGATTTAGACCTAACTTATCTTGTTTAACAGCTATTATTCAATGTAAAAATTATATGCAATACTGTAATTGATTTATTAAAGTAGATTTAAATAAATGCTTTGATACAATTCCACATAATATGTTAATTAATGTATTAAATGAGAGAATCAAAGATAAAGGTTTCATAGACTTATTATATAAATTATTAAGAGCTGGATATGTTGATAAAAATAATAATTATCATAATACAACTTTAGGAATTCCTCAAGGTAGTGTTGTCAGTCCTATTTTATGTAATATTTTTTTAGATAAATTAGATAAATATTTAGAAAATAAATTTGAGAATGAATTCAATACTGGAAATATGTCTAATAGAGGTAGAAATCCAATTTATAATAGTTTATCATCTAAAATTTATAGATGTAAATTATTATCTGAAAAATTAAAATTGATTAGATTAAGAGACCATTACCAAAGAAATATGGGATCTGATAAAAGTTTTAAAAGAGCTTATTTTGTTAGATATGCTGATGATATTATCATTGGTGTAATGGGTTCTCATAATGATTGTAAAAATATTTTAAACGATATTAATAACTTCTTAAAAGAAAATTTAGGTATGTCAATTAATATAGATAAATCCGTTATTAAACATTCTAAAGAAGGAGTTAGTTTTTTAGGGTATGATGTAAAAGTTACACCTTGAGAAAAAAGACCTTATAGAATGATTAAAAAAGGTGATAATTTTATTAGGGTTAGACATCATACTAGTTTAGTTGTTAATGCCCCTATTAGAAGTATTGTAATAAAATTAAATAAACATGGCTATTGTTCTCATGGTATTTTAGGAAAACCCAGAGGGGTTGGAAGATTAATTCATGAAGAAATGAAAACCATTTTAATGCATTACTTAGCTGTTGGTAGAGGTATTATAAACTATTATAGATTAGCTACCAATTTTACCACATTAAGAGGTAGAATTACATACATTTTATTTTATTCATGTTGTTTAACATTAGCAAGAAAATTTAAATTAAATACTGTTAAGAAAGTTATTTTAAAATTCGGTAAAGTATTAGTTGATCCTCATTCAAAAGTTAGTTTTAGTATTGATGATTTTAAAATTAGACATAAAATAAATATAACTGATTCTAATTATACACCTGATGAAATTTTAGATAGATATAAATATATGTTACCTAGATCTTTATCATTATTTAGTGGTATTTGTCAAATTTGTGGTTCTAAACATGATTTAGAAGTACATCACGTAAGAACATTAAATAATGCTGCCAATAAAATTAAAGATGATTATTTATTAGGTAGAATGATTAAGATAAATAGAAAACAAATTACTATCTGTAAAACATGTCATTTTAAAGTTCATCAAGGTAAATATAATGGTCCAGGTTTATAA
+## Q0060                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACCAAAAAAGATATGAAAGTAATAATAATAATAATCAAGTAATAGAAAATAAAGAATATAATTTAAAATTAAATTATGATAAGTTGGGACCTTATTTAGCTGGATTAATTGAAGGTGATGGAACTATTCTAGTTCAAAATTCATCTTCAATAAAAAAATCTAAATATAGACCGTTAATTGTTGTAGTATTTAAATTAGAAGATTTAGAATTAGCTAATTATTTATGTAATTTAACTAAATGTGGAAAAGTGTATAAAAAAATTAATCGTAATTATGTATTATGACTTATTCATGATTTAAAAGGTGTATATACATTATTAAATATTATTAATGGATATATGAGAACACCTAAATATGAAGCATTTGTTAGAGGTGCTGAATTTATAAATAATTATATTAATTCAACAACAATTCTACATAATAAATTAAAAAATATAGATAATATTAAAATTAAACCATTAGATACATCAGATATTGGTTCAAACGCTTGATTAGCTGGTATGACAGATGCAGATGGTAATTTTTCTATTAATTTAATAAATGGTAAAAATCGTTCTAGTAGAGCAATGCCTTATTATTGTTTAGAATTAAGACAAAATTATCAAAAAAATTCTAATAATAATAATATTAATTTTTCTTATTTTTATATTATGTCTGCAATTGCACTATATTTTAATGTTAATTTATATAGTAGAGAACGTAATTTAAATTTATTAGTATCTCTTAATAATACGTATAAACTATATTATAGTTATAAAGTAATAGTGGCTAATCTATATAAAAATATTAAAGTAATAGAATACTTTAATAAATATTCTTTATTATCATCTAAACACTTAGATTTTTTAGATTGATCTAAATTAGTTATTTTAATTAATAATGAGGGTCAAAGTATAAAACTTAATGGTAGTTGAGAATTAGGTATAAATTTACGTAAAGATTATAATAAAACTAGAACTACGTTTACTTGATCTCATTTAAAAAATACATATTTAGAAAATAAATAA
+## Q0065                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCAAACAGTGGCCCTTATTATTATATTAATAATATATAATGATATGCATTTTTCTAAATGCTGGAAATTATTAAAAAAATGAATTACAAATATTATAAGTCTATTATTTAAAGCCTTATTTGTAAAAATATTCATATCTTATAATAATCAGCAGGATAAGATAATAAATAATCTTATATTAAAAAAAGATAATATTAAAAGATCCTCAGAGACTACAAGAAAAATATTAAATAATTCAATAAATAAAAAATTTAATCAATGATTAGCTGGATTAATTGATGGTGATGGATATTTTGGTATTGTAAGTAAGAAATATGTATCATTAGAAATTCTAGTAGCATTAGAAGATGAAATAGCTTTAAAAGAAATTCAAAATAAATTTGGTGGTTCTATTAAATTAAGATCAGGTGTAAAAGCTATTAGATATAGATTACTTAATAAAACTGGTATAATTAAATTAATTAATGCAGTTAATGGTAATATTAGAAATACTAAAAGATTAGTACAATTTAATAAAGTTTGTATTTTATTAGGTATTGATTTTATTTATCCAATTAAATTAACTAAAGATAATAGTTGATTTGTTGGATTTTTTGATGCTGATGGTACAATTAATTATTCATTTAAAAATAATCATCCTCAATTAACAATTTCTGTAACTAATAAATATTTACAAGATGTACAAGAATATAAAAATATTTTAGGTGGTAATATTTATTTTGATAAATCACAAAATGGTTATTATAAATGATCCATTCAATCAAAAGATATAGTATTAAATTTTATTAATGATTATATTAAAATAAATCCATCAAGAACACTAAAAATAAATAAATTATATTTAAGTAAAGAATTTTATAATTTAAAAGAATTAAAAGCTTATAATAAATCTTCTGATTCAATACAATATAAAGCATGATTAAATTTTGAAAATAAATGAAAAAATAAATAA
+## Q0070                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCACCCTGAAGTATATATTTTAATTATTCCTGGATTTGGTATTATTTCACATGTAGTATCAACATATTCTAAAAAACCTGTATTTGGTGAAATTTCAATGGTATATGCTATGGCTTCAATTGGATTATTAGGATTCTTAGTATGATCACATCATATGTATATTGTAGGATTAGATGCAGATCTTAGAGCATATTTCCTATCTGCACTAATGATTATTGCAATTCCAACAGGAATTAAAATTTTCTCATGATTAATAAATCCCTTTAGCAAGGATAAAAATAAAAATAAAAATAAAAAGTTGATCAGAAATTATCAAAAAATAAATAATAATAATATAATAAAAACATATTTAAATAATAATAATATAATTATAATAAATATATATAAAGGTAATTTATATGATATTTATCCAAGATCAAATAGAAATTATATTCAACCAAATAATATTAATAAAGAATTAGTAGTATATGGTTATAATTTAGAATCTTGTGTTGGTATACCTCTATATACTAATATTGTAAAACATATAGTAGGTATTCCTAATAATATTTTATATATTATAACAGGTATTTTATTAACAGATGGTTGAATTGATTATCTATCTAAAAAAGATTTAGATAAAAAAACAATTATAGAAATTAATTGTAGATTTAGATTAAAACAATCAATAATTCATAGTGAATATTTAATATATGTATTTATATTATTATCACATTATTGTATAAGTTATCCTAAAATAAAAATTGCTAAAGTTAAAGGTAAATCATATAATCAATTAGAATTTTATACTAGATCATTACCATGTTTTACTATTTTAAGATATATATTTTATAATGGTAGAGTAAAAATTGTACCTAATAATTTATATGATTTATTAAATTATGAATCTTTAGCTCATATAATTATATGTGATGGTTCATTTGTAAAAGGTGGAGGTTTATATTTAAATTTACAATCTTTTCTAACTAAAGAATTAATTTTTATTATAAATATTTTAAAAATTAAATTTAATTTAAATTGTCTATTACATAAATCTAGAAATAAATATCTTATTTATATAAGAGTAGAATCTGTTAAAAGATTATTTCCTATAATTTATAAATATATTTTACCTTCTATAAGATATAAATTTGATATTATATTATGACAAAAAAAATATAATATGATTAATTAA
+##       annot_cds_length annot_chromosome                 annot_ec_numbers
+## Q0045           1605.0     Not Assigned   1.9.3.1 (Cytochrome-c oxidase)
+## Q0050           2505.0     Not Assigned                                 
+## Q0055           2565.0     Not Assigned                                 
+## Q0060           1248.0     Not Assigned 3.1.-.- (Acting on ester bonds.)
+## Q0065           1671.0     Not Assigned 3.1.-.- (Acting on ester bonds.)
+## Q0070           1893.0     Not Assigned 3.1.-.- (Acting on ester bonds.)
+##               annot_ec_numbers_derived annot_exon_count
+## Q0045   1.9.3.1 (Cytochrome-c oxidase)                8
+## Q0050                                                 1
+## Q0055                                                 2
+## Q0060 3.1.-.- (Acting on ester bonds.)                3
+## Q0065 3.1.-.- (Acting on ester bonds.)                4
+## Q0070   1.9.3.1 (Cytochrome-c oxidase)                5
+##       annot_five_prime_utr_length annot_gene_entrez_id
+## Q0045                                           854598
+## Q0050                                           854593
+## Q0055                                           854594
+## Q0060                                           854595
+## Q0065                                           854596
+## Q0070                                           854597
+##       annot_gene_exon_count annot_gene_hts_noncoding_snps
+## Q0045                   8.0                           0.0
+## Q0050                   1.0                           0.0
+## Q0055                   2.0                           0.0
+## Q0060                   3.0                           0.0
+## Q0065                   4.0                           0.0
+## Q0070                   5.0                           0.0
+##       annot_gene_hts_nonsyn_syn_ratio annot_gene_hts_nonsynonymous_snps
+## Q0045                             0.0                               0.0
+## Q0050                             0.0                               0.0
+## Q0055                             0.0                               0.0
+## Q0060                             0.0                               0.0
+## Q0065                             0.0                               0.0
+## Q0070                             0.0                               0.0
+##       annot_gene_hts_stop_codon_snps annot_gene_hts_synonymous_snps
+## Q0045                            0.0                            0.0
+## Q0050                            0.0                            0.0
+## Q0055                            0.0                            0.0
+## Q0060                            0.0                            0.0
+## Q0065                            0.0                            0.0
+## Q0070                            0.0                            0.0
+##         annot_gene_location_text annot_gene_ortholog_number
+## Q0045 KP263414:13,818..26,701(+)                       52.0
+## Q0050 KP263414:13,818..16,322(+)                        4.0
+## Q0055 KP263414:13,818..18,830(+)                        4.0
+## Q0060 KP263414:13,818..19,996(+)                       15.0
+## Q0065 KP263414:13,818..21,935(+)                        9.0
+## Q0070 KP263414:13,818..23,167(+)                       52.0
+##       annot_gene_orthomcl_name annot_gene_paralog_number
+## Q0045               OG5_128358                       1.0
+## Q0050               OG5_137048                       1.0
+## Q0055               OG5_137048                       1.0
+## Q0060               OG5_194772                       0.0
+## Q0065               OG5_156903                       0.0
+## Q0070               OG5_128358                       1.0
+##       annot_gene_previous_ids                        annot_gene_product
+## Q0045                                    cytochrome c oxidase subunit 1
+## Q0050                          intron-encoded reverse transcriptase aI1
+## Q0055                          intron-encoded reverse transcriptase aI2
+## Q0060                               intron-encoded DNA endonuclease aI3
+## Q0065                               intron-encoded DNA endonuclease aI4
+## Q0070                         intron-encoded DNA endonuclease aI5 alpha
+##       annot_gene_source_id annot_gene_total_hts_snps
+## Q0045                Q0045                       0.0
+## Q0050                Q0050                       0.0
+## Q0055                Q0055                       0.0
+## Q0060                Q0060                       0.0
+## Q0065                Q0065                       0.0
+## Q0070                Q0070                       0.0
+##       annot_gene_transcript_count annot_gene_type
+## Q0045                         1.0  protein coding
+## Q0050                         1.0  protein coding
+## Q0055                         1.0  protein coding
+## Q0060                         1.0  protein coding
+## Q0065                         1.0  protein coding
+## Q0070                         1.0  protein coding
+##                                                                            annot_go_component
+## Q0045 integral component of membrane;mitochondrial respiratory chain complex IV;mitochondrion
+## Q0050                                                                           mitochondrion
+## Q0055                                                                           mitochondrion
+## Q0060                                mitochondrial respiratory chain complex IV;mitochondrion
+## Q0065                                mitochondrial respiratory chain complex IV;mitochondrion
+## Q0070                                mitochondrial respiratory chain complex IV;mitochondrion
+##                                         annot_go_function
+## Q0045                       cytochrome-c oxidase activity
+## Q0050                RNA-directed DNA polymerase activity
+## Q0055                RNA-directed DNA polymerase activity
+## Q0060 cytochrome-c oxidase activity;endonuclease activity
+## Q0065 cytochrome-c oxidase activity;endonuclease activity
+## Q0070 cytochrome-c oxidase activity;endonuclease activity
+##                  annot_go_id_component  annot_go_id_function
+## Q0045 GO:0016021;GO:0005751;GO:0005739            GO:0004129
+## Q0050                       GO:0005739            GO:0003964
+## Q0055                       GO:0005739            GO:0003964
+## Q0060            GO:0005751;GO:0005739 GO:0004129;GO:0004519
+## Q0065            GO:0005751;GO:0005739 GO:0004129;GO:0004519
+## Q0070            GO:0005751;GO:0005739 GO:0004129;GO:0004519
+##                                          annot_go_id_process
+## Q0045                       GO:0009060;GO:0015990;GO:0006123
+## Q0050            GO:0006278;GO:0006315;GO:0006397;GO:0090615
+## Q0055                       GO:0006315;GO:0006314;GO:0090615
+## Q0060            GO:0009060;GO:0008150;GO:0015990;GO:0006123
+## Q0065 GO:0008380;GO:0009060;GO:0015990;GO:0006314;GO:0006123
+## Q0070            GO:0009060;GO:0015990;GO:0006123;GO:0006316
+##                                                                                                                                          annot_go_process
+## Q0045                            aerobic respiration;electron transport coupled proton transport;mitochondrial electron transport, cytochrome c to oxygen
+## Q0050                                     RNA-dependent DNA biosynthetic process;homing of group II introns;mRNA processing;mitochondrial mRNA processing
+## Q0055                                                                              homing of group II introns;intron homing;mitochondrial mRNA processing
+## Q0060         aerobic respiration;biological_process;electron transport coupled proton transport;mitochondrial electron transport, cytochrome c to oxygen
+## Q0065 RNA splicing;aerobic respiration;electron transport coupled proton transport;intron homing;mitochondrial electron transport, cytochrome c to oxygen
+## Q0070 aerobic respiration;electron transport coupled proton transport;mitochondrial electron transport, cytochrome c to oxygen;movement of group I intron
+##       annot_has_missing_transcripts annot_interpro_description
+## Q0045                            no                        N/A
+## Q0050                            no                        N/A
+## Q0055                            no                        N/A
+## Q0060                            no                        N/A
+## Q0065                            no                        N/A
+## Q0070                            no                        N/A
+##       annot_interpro_id annot_is_pseudo annot_isoelectric_point
+## Q0045               N/A              No                    7.12
+## Q0050               N/A              No                   10.44
+## Q0055               N/A              No                   10.12
+## Q0060               N/A              No                    9.88
+## Q0065               N/A              No                   10.14
+## Q0070               N/A              No                    9.86
+##            annot_location_text annot_matched_result annot_molecular_weight
+## Q0045 KP263414:13818..26701(+)                    Y                58797.0
+## Q0050 KP263414:13818..16322(+)                    Y                96078.0
+## Q0055 KP263414:13818..18830(+)                    Y                98007.0
+## Q0060 KP263414:13818..19996(+)                    Y                47916.0
+## Q0065 KP263414:13818..21935(+)                    Y                63311.0
+## Q0070 KP263414:13818..23167(+)                    Y                72164.0
+##            annot_organism
+## Q0045 S. cerevisiae S288c
+## Q0050 S. cerevisiae S288c
+## Q0055 S. cerevisiae S288c
+## Q0060 S. cerevisiae S288c
+## Q0065 S. cerevisiae S288c
+## Q0070 S. cerevisiae S288c
+##                                                                annot_pfam_description
+## Q0045                                   Cytochrome C and Quinol oxidase polypeptide I
+## Q0050    Reverse transcriptase (RNA-dependent DNA polymerase);Type II intron maturase
+## Q0055    Reverse transcriptase (RNA-dependent DNA polymerase);Type II intron maturase
+## Q0060            Cytochrome C and Quinol oxidase polypeptide I;LAGLIDADG endonuclease
+## Q0065            Cytochrome C and Quinol oxidase polypeptide I;LAGLIDADG endonuclease
+## Q0070 Cytochrome C and Quinol oxidase polypeptide I;LAGLIDADG DNA endonuclease family
+##         annot_pfam_id annot_pirsf_description annot_pirsf_id
+## Q0045         PF00115                     N/A            N/A
+## Q0050 PF00078;PF01348                     N/A            N/A
+## Q0055 PF00078;PF01348                     N/A            N/A
+## Q0060 PF00115;PF00961                     N/A            N/A
+## Q0065 PF00115;PF00961                     N/A            N/A
+## Q0070 PF00115;PF03161                     N/A            N/A
+##                                                                                                            annot_predicted_go_component
+## Q0045 integral component of membrane;membrane;mitochondrial inner membrane;mitochondrion;respiratory chain;respiratory chain complex IV
+## Q0050                                                                                                                     mitochondrion
+## Q0055                                                                                      integral component of membrane;mitochondrion
+## Q0060                                                                             integral component of membrane;membrane;mitochondrion
+## Q0065                                                                                      integral component of membrane;mitochondrion
+## Q0070                                                                             integral component of membrane;membrane;mitochondrion
+##                                                                                 annot_predicted_go_function
+## Q0045                  cytochrome-c oxidase activity;heme binding;metal ion binding;oxidoreductase activity
+## Q0050                                                                                                      
+## Q0055                                                            cytochrome-c oxidase activity;heme binding
+## Q0060 cytochrome-c oxidase activity;endonuclease activity;heme binding;hydrolase activity;nuclease activity
+## Q0065 cytochrome-c oxidase activity;endonuclease activity;heme binding;hydrolase activity;nuclease activity
+## Q0070 cytochrome-c oxidase activity;endonuclease activity;heme binding;hydrolase activity;nuclease activity
+##                                         annot_predicted_go_id_component
+## Q0045 GO:0016021;GO:0016020;GO:0005743;GO:0005739;GO:0070469;GO:0045277
+## Q0050                                                        GO:0005739
+## Q0055                                             GO:0016021;GO:0005739
+## Q0060                                  GO:0016021;GO:0016020;GO:0005739
+## Q0065                                             GO:0016021;GO:0005739
+## Q0070                                  GO:0016021;GO:0016020;GO:0005739
+##                               annot_predicted_go_id_function
+## Q0045            GO:0004129;GO:0020037;GO:0046872;GO:0016491
+## Q0050                                                       
+## Q0055                                  GO:0004129;GO:0020037
+## Q0060 GO:0004129;GO:0004519;GO:0020037;GO:0016787;GO:0004518
+## Q0065 GO:0004129;GO:0004519;GO:0020037;GO:0016787;GO:0004518
+## Q0070 GO:0004129;GO:0004519;GO:0020037;GO:0016787;GO:0004518
+##                                           annot_predicted_go_id_process
+## Q0045                                  GO:0009060;GO:0055114;GO:0006119
+## Q0050                                             GO:0006397;GO:0055114
+## Q0055 GO:0006278;GO:0009060;GO:0022900;GO:0006397;GO:0055114;GO:1902600
+## Q0060 GO:0008380;GO:0009060;GO:0006314;GO:0006397;GO:0090305;GO:0055114
+## Q0065 GO:0008380;GO:0009060;GO:0006314;GO:0006397;GO:0090305;GO:0055114
+## Q0070 GO:0008380;GO:0009060;GO:0006314;GO:0006397;GO:0090305;GO:0055114
+##                                                                                                                                           annot_predicted_go_process
+## Q0045                                                                                      aerobic respiration;oxidation-reduction process;oxidative phosphorylation
+## Q0050                                                                                                                    mRNA processing;oxidation-reduction process
+## Q0055 RNA-dependent DNA biosynthetic process;aerobic respiration;electron transport chain;mRNA processing;oxidation-reduction process;proton transmembrane transport
+## Q0060                         RNA splicing;aerobic respiration;intron homing;mRNA processing;nucleic acid phosphodiester bond hydrolysis;oxidation-reduction process
+## Q0065                         RNA splicing;aerobic respiration;intron homing;mRNA processing;nucleic acid phosphodiester bond hydrolysis;oxidation-reduction process
+## Q0070                         RNA splicing;aerobic respiration;intron homing;mRNA processing;nucleic acid phosphodiester bond hydrolysis;oxidation-reduction process
+##       annot_project_id
+## Q0045          FungiDB
+## Q0050          FungiDB
+## Q0055          FungiDB
+## Q0060          FungiDB
+## Q0065          FungiDB
+## Q0070          FungiDB
+##                                                               annot_prositeprofiles_description
+## Q0045                                                     Cytochrome oxidase subunit I  profile
+## Q0050                                       Reverse transcriptase (RT) catalytic domain profile
+## Q0055 Cytochrome oxidase subunit I  profile;Reverse transcriptase (RT) catalytic domain profile
+## Q0060                                                     Cytochrome oxidase subunit I  profile
+## Q0065                                                     Cytochrome oxidase subunit I  profile
+## Q0070                                                     Cytochrome oxidase subunit I  profile
+##       annot_prositeprofiles_id annot_protein_length
+## Q0045                  PS50855                  534
+## Q0050                  PS50878                  834
+## Q0055          PS50855;PS50878                  854
+## Q0060                  PS50855                  415
+## Q0065                  PS50855                  556
+## Q0070                  PS50855                  630
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       annot_protein_sequence
+## Q0045                                                                                                                                                                                                                                                                                                                                 MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNVLVVGHAVLMIFFLVMPALIGGFGNYLLPLMIGATDTAFPRINNIAFWVLPMGLVCLVTSTLVESGAGTGWTVYPPLSSIQAHSGPSVDLAIFALHLTSISSLLGAINFIVTTLNMRTNGMTMHKLPLFVWSIFITAFLLLLSLPVLSAGITMLLLDRNFNTSFFEVSGGGDPILYEHLFWFFGHPEVYILIIPGFGIISHVVSTYSKKPVFGEISMVYAMASIGLLGFLVWSHHMYIVGLDADTRAYFTSATMIIAIPTGIKIFSWLATIHGGSIRLATPMLYAIAFLFLFTMGGLTGVALANASLDVAFHDTYYVVGHFHYVLSMGAIFSLFAGYYYWSPQILGLNYNEKLAQIQFWLIFIGANVIFFPMHFLGINGMPRRIPDYPDAFAGWNYVASIGSFIATLSLFLFIYILYDQLVNGLNNKVNNKSVIYNKAPDFVESNTIFNLNTVKSSSIEFLLTSPPAVHSFNTPAVQS
+## Q0050                     MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNGAPTSAYISLMRTALVLWIINRYLKHMTNSVGANFTGTMACHKTPMISVGGVKCYMVRLTNFLQVFIRITISSYHLDMVKQVWLFYVEVIRLWFIVLDSTGSVKKMKDTNNTKGNTKSEGSTERGNSGVDRGMVVPNTQMKMRFLNQVRYYSVNNNLKMGKDTNIELSKDTSTSDLLEFEKLVMDNMNEENMNNNLLSIMKNVDMLMLAYNRIKSKPGNMTPGTTLETLDGMNMMYLNKLSNELGTGKFKFKPMRMVNIPKPKGGMRPLSVGNPRDKIVQEVMRMILDTIFDKKMSTHSHGFRKNMSCQTAIWEVRNMFGGSNWFIEVDLKKCFDTISHDLIIKELKRYISDKGFIDLVYKLLRAGYIDEKGTYHKPMLGLPQGSLISPILCNIVMTLVDNWLEDYINLYNKGKVKKQHPTYKKLSRMIAKAKMFSTRLKLHKERAKGPTFIYNDPNFKRMKYVRYADDILIGVLGSKNDCKMIKRDLNNFLNSLGLTMNEEKTLITCATETPARFLGYNISITPLKRMPTVTKTIRGKTIRSRNTTRPIINAPIRDIINKLATNGYCKHNKNGRMGVPTRVGRWTYEEPRTIINNYKALGRGILNYYKLATNYKRLRERIYYVLYYSCVLTLASKYRLKTMSKTIKKFGYNLNIIENDKLIANFPRNTFDNIKKIENHGMFMYMSEAKVTDPFEYIDSIKYMLPTAKANFNKPCSICNSTIDVEMHHVKQLHRGMLKATKDYITGRMITMNRKQIPLCKQCHIKTHKNKFKNMGPGM
+## Q0055 MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNVLVVGHAVLMIFCAPFRLIYHCIEVLIDKHISVYSINENFTVSFWFWLLVVTYMVFRYVNHMAYPVGANSTGTMACHKSAGVKQPAQGKNCPMARLTNSCKECLGFSLTPSHLGIVIHAYVLEEEVHELTKNESLALSKSWHLEGCTSSNGKLRNTGLSERGNPGDNGVFMVPKFNLNKVRYFSTLSKLNARKEDSLAYLTKINTTDFSELNKLMENNHNKTETINTRILKLMSDIRMLLIAYNKIKSKKGNMSKGSNNITLDGINISYLNKLSKDINTNMFKFSPVRRVEIPKTSGGFRPLSVGNPREKIVQESMRMMLEIIYNNSFSYYSHGFRPNLSCLTAIIQCKNYMQYCNWFIKVDLNKCFDTIPHNMLINVLNERIKDKGFMDLLYKLLRAGYVDKNNNYHNTTLGIPQGSVVSPILCNIFLDKLDKYLENKFENEFNTGNMSNRGRNPIYNSLSSKIYRCKLLSEKLKLIRLRDHYQRNMGSDKSFKRAYFVRYADDIIIGVMGSHNDCKNILNDINNFLKENLGMSINMDKSVIKHSKEGVSFLGYDVKVTPWEKRPYRMIKKGDNFIRVRHHTSLVVNAPIRSIVMKLNKHGYCSHGILGKPRGVGRLIHEEMKTILMHYLAVGRGIMNYYRLATNFTTLRGRITYILFYSCCLTLARKFKLNTVKKVILKFGKVLVDPHSKVSFSIDDFKIRHKMNMTDSNYTPDEILDRYKYMLPRSLSLFSGICQICGSKHDLEVHHVRTLNNAANKIKDDYLLGRMIKMNRKQITICKTCHFKVHQGKYNGPGL
+## Q0060                                                                                                                                                                                                                                                                                                                                                                                                                                                        MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNVLVVGHAVLMIFFLVMPALIGGFGNQKRYESNNNNNQVMENKEYNLKLNYDKLGPYLAGLIEGDGTITVQNSSSMKKSKYRPLIVVVFKLEDLELANYLCNLTKCGKVYKKINRNYVLWTIHDLKGVYTLLNIINGYMRTPKYEAFVRGAEFMNNYINSTTITHNKLKNMDNIKIKPLDTSDIGSNAWLAGMTDADGNFSINLMNGKNRSSRAMPYYCLELRQNYQKNSNNNNINFSYFYIMSAIATYFNVNLYSRERNLNLLVSTNNTYKTYYSYKVMVANTYKNIKVMEYFNKYSLLSSKHLDFLDWSKLVILINNEGQSMKTNGSWELGMNLRKDYNKTRTTFTWSHLKNTYLENK
+## Q0065                                                                                                                                                                                                                                                                                                           MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNVLVVGHAVLMIFFLVMPALIGGFGNYLLPLMIGATDTAFPRINNIAFWVLPMGLVCLVTSTLVESGAGTGWTVYPPLSSIQAHSGPSVDLAIFALHLTSISSLLGAINFIVTTLNMRTNGMTMHKLPLFVWSIFITAFLLLLSLPVLSAGITMLLLDRNFNTSFFEVSGGGDPILYEHLFWFFGQTVATIIMLMMYNDMHFSKCWKLLKKWITNIMSTLFKALFVKMFMSYNNQQDKMMNNTMLKKDNIKRSSETTRKMLNNSMNKKFNQWLAGLIDGDGYFGIVSKKYVSLEITVALEDEMALKEIQNKFGGSIKLRSGVKAIRYRLTNKTGMIKLINAVNGNIRNTKRLVQFNKVCILLGIDFIYPIKLTKDNSWFVGFFDADGTINYSFKNNHPQLTISVTNKYLQDVQEYKNILGGNIYFDKSQNGYYKWSIQSKDMVLNFINDYIKMNPSRTTKMNKLYLSKEFYNLKELKAYNKSSDSMQYKAWLNFENKWKNK
+## Q0070                                                                                                                                                                                                                                 MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSLIIRLELAAPGSQYLHGNSQLFNVLVVGHAVLMIFFLVMPALIGGFGNYLLPLMIGATDTAFPRINNIAFWVLPMGLVCLVTSTLVESGAGTGWTVYPPLSSIQAHSGPSVDLAIFALHLTSISSLLGAINFIVTTLNMRTNGMTMHKLPLFVWSIFITAFLLLLSLPVLSAGITMLLLDRNFNTSFFEVSGGGDPILYEHLFWFFGHPEVYILIIPGFGIISHVVSTYSKKPVFGEISMVYAMASIGLLGFLVWSHHMYIVGLDADTRAYFTSATMIIAIPTGIKIFSWLMNPFSKDKNKNKNKKLIRNYQKMNNNNMMKTYLNNNNMIMMNMYKGNLYDIYPRSNRNYIQPNNINKELVVYGYNLESCVGMPTYTNIVKHMVGIPNNILYIMTGILLTDGWIDYTSKKDLDKKTIMEINCRFRLKQSMIHSEYLMYVFMLLSHYCMSYPKMKIAKVKGKSYNQLEFYTRSLPCFTILRYMFYNGRVKIVPNNLYDLLNYESLAHMIMCDGSFVKGGGLYLNLQSFTTKELIFIMNILKIKFNLNCTLHKSRNKYTIYMRVESVKRLFPMIYKYILPSMRYKFDIMLWQKKYNMIN
+##       annot_sequence_id
+## Q0045          KP263414
+## Q0050          KP263414
+## Q0055          KP263414
+## Q0060          KP263414
+## Q0065          KP263414
+## Q0070          KP263414
+##                                                                 annot_signalp_peptide
+## Q0045 NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+## Q0050 HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+## Q0055 HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+## Q0060 HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+## Q0065 HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+## Q0070 HMM: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL, NN: MVQRWLYSTNAKDIAVLYFMLAIFSGMAGTAMSL
+##                      annot_signalp_scores annot_smart_description
+## Q0045 NN Sum: 3, NN D: .54, HMM Prob: .72                     N/A
+## Q0050 NN Sum: 3, NN D: .53, HMM Prob: .72                        
+## Q0055 NN Sum: 3, NN D: .54, HMM Prob: .72                        
+## Q0060 NN Sum: 3, NN D: .54, HMM Prob: .72                     N/A
+## Q0065 NN Sum: 3, NN D: .54, HMM Prob: .72                     N/A
+## Q0070 NN Sum: 3, NN D: .54, HMM Prob: .72                     N/A
+##       annot_smart_id annot_source_id annot_strand
+## Q0045            N/A     Q0045-t26_1      forward
+## Q0050        SM00507     Q0050-t26_1      forward
+## Q0055        SM00507     Q0055-t26_1      forward
+## Q0060            N/A     Q0060-t26_1      forward
+## Q0065            N/A     Q0065-t26_1      forward
+## Q0070            N/A     Q0070-t26_1      forward
+##                                  annot_superfamily_description
+## Q0045                      Cytochrome c oxidase subunit I-like
+## Q0050  DNA/RNA polymerases;Cytochrome c oxidase subunit I-like
+## Q0055  DNA/RNA polymerases;Cytochrome c oxidase subunit I-like
+## Q0060 Homing endonucleases;Cytochrome c oxidase subunit I-like
+## Q0065 Homing endonucleases;Cytochrome c oxidase subunit I-like
+## Q0070 Homing endonucleases;Cytochrome c oxidase subunit I-like
+##       annot_superfamily_id annot_three_prime_utr_length
+## Q0045             SSF81442                             
+## Q0050    SSF56672;SSF81442                             
+## Q0055    SSF56672;SSF81442                             
+## Q0060    SSF55608;SSF81442                             
+## Q0065    SSF55608;SSF81442                             
+## Q0070    SSF55608;SSF81442                             
+##       annot_tigrfam_description annot_tigrfam_id annot_tm_count
+## Q0045                       N/A              N/A             12
+## Q0050                       N/A              N/A              1
+## Q0055                       N/A              N/A              3
+## Q0060                       N/A              N/A              3
+## Q0065                       N/A              N/A              6
+## Q0070                       N/A              N/A             10
+##       annot_trans_found_per_gene_internal annot_transcript_index_per_gene
+## Q0045                                   1                               1
+## Q0050                                   1                               1
+## Q0055                                   1                               1
+## Q0060                                   1                               1
+## Q0065                                   1                               1
+## Q0070                                   1                               1
+##       annot_transcript_length annot_transcript_link
+## Q0045                  1605.0           Q0045-t26_1
+## Q0050                  2505.0           Q0050-t26_1
+## Q0055                  2565.0           Q0055-t26_1
+## Q0060                  1248.0           Q0060-t26_1
+## Q0065                  1671.0           Q0065-t26_1
+## Q0070                  1893.0           Q0070-t26_1
+##                        annot_transcript_product
+## Q0045            cytochrome c oxidase subunit 1
+## Q0050  intron-encoded reverse transcriptase aI1
+## Q0055  intron-encoded reverse transcriptase aI2
+## Q0060       intron-encoded DNA endonuclease aI3
+## Q0065       intron-encoded DNA endonuclease aI4
+## Q0070 intron-encoded DNA endonuclease aI5 alpha
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   annot_transcript_sequence
+## Q0045                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCACCCTGAAGTATATATTTTAATTATTCCTGGATTTGGTATTATTTCACATGTAGTATCAACATATTCTAAAAAACCTGTATTTGGTGAAATTTCAATGGTATATGCTATGGCTTCAATTGGATTATTAGGATTCTTAGTATGATCACATCATATGTATATTGTAGGATTAGATGCAGATCTTAGAGCATATTTCCTATCTGCACTAATGATTATTGCAATTCCAACAGGAATTAAAATTTTCTCATGATTAGCTCTAATCCATGGTGGTTCAATTAGATTAGCACTACCTATGTTATATGCAATTGCATTCTTATTCTTATTCACAATGGGTGGTTTAACTGGTGTTGCCTTAGCTAACGCCTCATTAGATGTAGCATTCCACGATACTTACTACGTGGTGGGACATTTTCACTATGTATTATCAATGGGTGCTATTTTCTCTTTATTTGCAGGATACTATTATTGAAGTCCTCAAATTTTAGGTTTAAACTATAATGAAAAATTAGCTCAAATTCAATTCTGATTAATTTTCATTGGGGCTAATGTTATTTTCTTCCCAATGCATTTTTTAGGTATTAATGGTATGCCTAGAAGAATTCCTGATTATCCTGATGCTTTCGCAGGATGAAATTATGTCGCTTCTATTGGTTCATTCATTGCACTATTATCATTATTCTTATTTATCTATATTTTATATGATCAATTAGTTAATGGATTAAACAATAAAGTTAATAATAAATCAGTTATTTATAATAAAGCACCTGATTTTGTAGAATCTAATCTTATCTTTAATTTAAATACAGTTAAATCTTCATCTATCGAATTCTTATTAACTTCTCCACCAGCTGTACACTCATTTAATACACCAGCTGTACAATCTTAA
+## Q0050                                                             ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGGTGCGCCTCTCAGTGCGTATATTTCGTTGATGCGTCTAGCATTAGTATTATGAATCATCAATAGATACTTAAAACATATGACTAACTCAGTAGGGGCTAACTTTACGGGGACAATAGCATGTCATAAAACACCTATGATTAGTGTAGGTGGAGTTAAGTGTTACATGGTTAGGTTAACGAACTTCTTACAAGTCTTTATCAGGATTACAATTTCCTCTTATCATTTGGATATAGTAAAACAAGTTTGATTATTTTACGTTGAGGTAATCAGATTATGATTCATTGTTTTAGATAGCACAGGCAGTGTGAAAAAGATGAAGGACCTAAATAACACAAAAGGAAATACGAAAAGTGAGGGATCAACTGAAAGAGGAAACTCTGGAGTTGACAGAGGTATAGTAGTACCGAATACTCAAATAAAAATGAGATTTTTAAATCAAGTTAGATACTATTCAGTAAATAATAATTTAAAAATAGGGAAGGATACCAATATTGAGTTATCAAAAGATACAAGTACTTCGGACTTGTTAGAATTTGAGAAATTAGTAATAGATAATATAAATGAGGAAAATATAAATAATAATTTATTAAGTATTATAAAAAACGTAGATATATTAATATTAGCATATAATAGAATTAAGAGTAAACCTGGTAATATAACTCCAGGTACAACATTAGAAACATTAGATGGTATAAATATAATATATTTAAATAAATTATCAAATGAATTAGGAACAGGTAAATTCAAATTTAAACCCATGAGAATAGTTAATATTCCTAAACCTAAAGGTGGTATAAGACCTTTAAGTGTAGGTAATCCAAGAGATAAAATTGTACAAGAAGTTATAAGAATAATTTTAGATACAATTTTTGATAAAAAGATATCAACACATTCACATGGTTTTAGAAAGAATATAAGTTGTCAAACAGCAATTTGAGAAGTTAGAAATATATTTGGTGGAAGTAATTGATTTATTGAAGTAGACTTAAAAAAATGTTTTGATACAATTTCTCATGATTTAATTATTAAAGAATTAAAAAGATATATTTCAGATAAAGGTTTTATTGATTTAGTATATAAATTATTAAGAGCTGGTTATATTGATGAGAAAGGAACTTATCATAAACCTATATTAGGTTTACCTCAAGGATCATTAATTAGTCCTATCTTATGTAATATTGTAATAACATTGGTAGATAATTGATTAGAAGATTATATTAATTTATATAATAAAGGTAAAGTTAAAAAACAACATCCTACATATAAAAAATTATCAAGAATAATTGCAAAAGCTAAAATATTTTCGACAAGATTAAAATTACATAAAGAAAGAGCTAAAGGCCCACTATTTATTTATAATGATCCTAATTTCAAGAGAATAAAATACGTTAGATATGCAGATGATATTTTAATTGGGGTATTAGGTTCAAAAAATGATTGTAAAATAATCAAAAGAGATTTAAACAATTTTTTAAATTCATTAGGTTTAACTATAAATGAAGAAAAAACTTTAATTACTTGTGCAACTGAACTACCAGCAAGATTTTTAGGTTATAATATTTCAATTACACCTTTAAAAAGAATACCTACAGTTACTAAACTAATTAGAGGTAAACTTATTAGAAGTAGAAATACAACTAGACCTATTATTAATGCACCAATTAGAGATATTATCAATAAATTAGCTACTAATGGATATTGTAAGCATAATAAAAATGGTAGAATAGGAGTGCCTACAAGAGTAGGTAGATGACTATATGAAGAACCTAGAACAATTATTAATAATTATAAAGCGTTAGGTAGAGGTATCTTAAATTATTATAAATTAGCTACTAATTATAAAAGATTAAGAGAAAGAATCTATTACGTATTATATTATTCATGTGTATTAACTTTAGCTAGTAAATATAGATTAAAAACAATAAGTAAAACTATTAAAAAATTTGGTTATAATTTAAATATTATTGAAAATGATAAATTAATTGCCAATTTTCCAAGAAATACTTTTGATAATATCAAAAAAATTGAAAATCATGGTATATTTATATATATATCAGAAGCTAAAGTAACTGATCCTTTTGAATATATCGATTCAATTAAATATATATTACCTACAGCTAAAGCTAATTTTAATAAACCTTGTAGTATTTGTAATTCAACTATTGATGTAGAAATACATCATGTTAAACAATTACATAGAGGTATATTAAAAGCACTTAAAGATTATATTCTAGGTAGAATAATTACCATAAACAGAAAACAAATTCCATTATGTAAACAATGTCATATTAAAACACATAAAAATAAATTTAAAAATATAGGACCTGGTATATAA
+## Q0055 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTGTGCGCCGTTTCGCTTAATTTATCACTGTATTGAAGTGTTAATTGATAAACATATCTCTGTTTATTCAATTAATGAAAACTTTACCGTATCATTTTGGTTCTGATTATTAGTAGTAACATACATAGTATTTAGATACGTAAACCATATGGCTTACCCAGTTGGGGCCAACTCAACGGGGACAATAGCATGCCATAAAAGCGCTGGAGTAAAACAGCCAGCGCAAGGTAAGAACTGTCCGATGGCTAGGTTAACGAATTCCTGTAAAGAATGTTTAGGGTTCTCATTAACTCCTTCCCACTTGGGGATTGTGATTCATGCTTATGTATTGGAAGAAGAGGTACACGAGTTAACCAAAAATGAATCATTAGCTTTAAGTAAAAGTTGACATTTGGAGGGCTGTACGAGTTCAAATGGAAAATTAAGAAATACGGGATTGTCCGAAAGGGGAAACCCTGGGGATAACGGAGTCTTCATAGTACCCAAATTTAATTTAAATAAAGTGAGATACTTTAGTACTTTATCTAAATTAAATGCAAGGAAGGAAGACAGTTTAGCGTATTTAACAAAGATTAATACTACGGATTTTTCCGAGTTAAATAAATTAATAGAAAATAATCATAATAAACTTGAAACCATTAATACTAGAATTTTAAAATTAATGTCAGATATTAGAATGTTATTAATTGCTTATAATAAAATTAAAAGTAAGAAAGGTAATATATCTAAAGGTTCTAATAATATTACCTTAGATGGGATTAATATTTCATATTTAAATAAATTATCTAAAGATATTAACACTAATATGTTTAAATTTTCTCCGGTTAGAAGAGTTGAAATTCCTAAAACATCTGGAGGATTTAGACCTTTAAGTGTTGGAAATCCTAGAGAAAAAATTGTACAAGAAAGTATGAGAATAATATTAGAAATTATCTATAATAATAGTTTCTCTTATTATTCTCATGGATTTAGACCTAACTTATCTTGTTTAACAGCTATTATTCAATGTAAAAATTATATGCAATACTGTAATTGATTTATTAAAGTAGATTTAAATAAATGCTTTGATACAATTCCACATAATATGTTAATTAATGTATTAAATGAGAGAATCAAAGATAAAGGTTTCATAGACTTATTATATAAATTATTAAGAGCTGGATATGTTGATAAAAATAATAATTATCATAATACAACTTTAGGAATTCCTCAAGGTAGTGTTGTCAGTCCTATTTTATGTAATATTTTTTTAGATAAATTAGATAAATATTTAGAAAATAAATTTGAGAATGAATTCAATACTGGAAATATGTCTAATAGAGGTAGAAATCCAATTTATAATAGTTTATCATCTAAAATTTATAGATGTAAATTATTATCTGAAAAATTAAAATTGATTAGATTAAGAGACCATTACCAAAGAAATATGGGATCTGATAAAAGTTTTAAAAGAGCTTATTTTGTTAGATATGCTGATGATATTATCATTGGTGTAATGGGTTCTCATAATGATTGTAAAAATATTTTAAACGATATTAATAACTTCTTAAAAGAAAATTTAGGTATGTCAATTAATATAGATAAATCCGTTATTAAACATTCTAAAGAAGGAGTTAGTTTTTTAGGGTATGATGTAAAAGTTACACCTTGAGAAAAAAGACCTTATAGAATGATTAAAAAAGGTGATAATTTTATTAGGGTTAGACATCATACTAGTTTAGTTGTTAATGCCCCTATTAGAAGTATTGTAATAAAATTAAATAAACATGGCTATTGTTCTCATGGTATTTTAGGAAAACCCAGAGGGGTTGGAAGATTAATTCATGAAGAAATGAAAACCATTTTAATGCATTACTTAGCTGTTGGTAGAGGTATTATAAACTATTATAGATTAGCTACCAATTTTACCACATTAAGAGGTAGAATTACATACATTTTATTTTATTCATGTTGTTTAACATTAGCAAGAAAATTTAAATTAAATACTGTTAAGAAAGTTATTTTAAAATTCGGTAAAGTATTAGTTGATCCTCATTCAAAAGTTAGTTTTAGTATTGATGATTTTAAAATTAGACATAAAATAAATATAACTGATTCTAATTATACACCTGATGAAATTTTAGATAGATATAAATATATGTTACCTAGATCTTTATCATTATTTAGTGGTATTTGTCAAATTTGTGGTTCTAAACATGATTTAGAAGTACATCACGTAAGAACATTAAATAATGCTGCCAATAAAATTAAAGATGATTATTTATTAGGTAGAATGATTAAGATAAATAGAAAACAAATTACTATCTGTAAAACATGTCATTTTAAAGTTCATCAAGGTAAATATAATGGTCCAGGTTTATAA
+## Q0060                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACCAAAAAAGATATGAAAGTAATAATAATAATAATCAAGTAATAGAAAATAAAGAATATAATTTAAAATTAAATTATGATAAGTTGGGACCTTATTTAGCTGGATTAATTGAAGGTGATGGAACTATTCTAGTTCAAAATTCATCTTCAATAAAAAAATCTAAATATAGACCGTTAATTGTTGTAGTATTTAAATTAGAAGATTTAGAATTAGCTAATTATTTATGTAATTTAACTAAATGTGGAAAAGTGTATAAAAAAATTAATCGTAATTATGTATTATGACTTATTCATGATTTAAAAGGTGTATATACATTATTAAATATTATTAATGGATATATGAGAACACCTAAATATGAAGCATTTGTTAGAGGTGCTGAATTTATAAATAATTATATTAATTCAACAACAATTCTACATAATAAATTAAAAAATATAGATAATATTAAAATTAAACCATTAGATACATCAGATATTGGTTCAAACGCTTGATTAGCTGGTATGACAGATGCAGATGGTAATTTTTCTATTAATTTAATAAATGGTAAAAATCGTTCTAGTAGAGCAATGCCTTATTATTGTTTAGAATTAAGACAAAATTATCAAAAAAATTCTAATAATAATAATATTAATTTTTCTTATTTTTATATTATGTCTGCAATTGCACTATATTTTAATGTTAATTTATATAGTAGAGAACGTAATTTAAATTTATTAGTATCTCTTAATAATACGTATAAACTATATTATAGTTATAAAGTAATAGTGGCTAATCTATATAAAAATATTAAAGTAATAGAATACTTTAATAAATATTCTTTATTATCATCTAAACACTTAGATTTTTTAGATTGATCTAAATTAGTTATTTTAATTAATAATGAGGGTCAAAGTATAAAACTTAATGGTAGTTGAGAATTAGGTATAAATTTACGTAAAGATTATAATAAAACTAGAACTACGTTTACTTGATCTCATTTAAAAAATACATATTTAGAAAATAAATAA
+## Q0065                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCAAACAGTGGCCCTTATTATTATATTAATAATATATAATGATATGCATTTTTCTAAATGCTGGAAATTATTAAAAAAATGAATTACAAATATTATAAGTCTATTATTTAAAGCCTTATTTGTAAAAATATTCATATCTTATAATAATCAGCAGGATAAGATAATAAATAATCTTATATTAAAAAAAGATAATATTAAAAGATCCTCAGAGACTACAAGAAAAATATTAAATAATTCAATAAATAAAAAATTTAATCAATGATTAGCTGGATTAATTGATGGTGATGGATATTTTGGTATTGTAAGTAAGAAATATGTATCATTAGAAATTCTAGTAGCATTAGAAGATGAAATAGCTTTAAAAGAAATTCAAAATAAATTTGGTGGTTCTATTAAATTAAGATCAGGTGTAAAAGCTATTAGATATAGATTACTTAATAAAACTGGTATAATTAAATTAATTAATGCAGTTAATGGTAATATTAGAAATACTAAAAGATTAGTACAATTTAATAAAGTTTGTATTTTATTAGGTATTGATTTTATTTATCCAATTAAATTAACTAAAGATAATAGTTGATTTGTTGGATTTTTTGATGCTGATGGTACAATTAATTATTCATTTAAAAATAATCATCCTCAATTAACAATTTCTGTAACTAATAAATATTTACAAGATGTACAAGAATATAAAAATATTTTAGGTGGTAATATTTATTTTGATAAATCACAAAATGGTTATTATAAATGATCCATTCAATCAAAAGATATAGTATTAAATTTTATTAATGATTATATTAAAATAAATCCATCAAGAACACTAAAAATAAATAAATTATATTTAAGTAAAGAATTTTATAATTTAAAAGAATTAAAAGCTTATAATAAATCTTCTGATTCAATACAATATAAAGCATGATTAAATTTTGAAAATAAATGAAAAAATAAATAA
+## Q0070                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ATGGTACAAAGATGATTATATTCAACAAATGCAAAAGATATTGCAGTATTATATTTTATGTTAGCTATTTTTAGTGGTATGGCAGGAACAGCAATGTCTTTAATCATTAGATTAGAATTAGCTGCACCTGGTTCACAATATTTACATGGTAATTCACAATTATTTAATGTTTTAGTAGTTGGTCATGCTGTATTAATGATTTTCTTCTTAGTAATGCCTGCTTTAATTGGAGGTTTTGGTAACTATTTATTACCATTAATAATTGGAGCTACAGATACAGCATTTCCAAGAATTAATAACATTGCTTTTTGAGTATTACCTATGGGGTTAGTATGTTTAGTTACATCAACTTTAGTAGAATCAGGTGCTGGTACAGGGTGAACTGTCTATCCACCATTATCATCTATTCAGGCACATTCAGGACCTAGTGTAGATTTAGCAATTTTTGCATTACATTTAACATCAATTTCATCATTATTAGGTGCTATTAATTTCATTGTAACAACATTAAATATGAGAACAAATGGTATGACAATGCATAAATTACCATTATTTGTATGATCAATTTTCATTACAGCGTTCTTATTATTATTATCATTACCTGTATTATCTGCTGGTATTACAATGTTATTATTAGATAGAAACTTCAATACTTCATTCTTTGAAGTATCAGGAGGTGGTGACCCAATCTTATACGAGCATTTATTTTGATTCTTTGGTCACCCTGAAGTATATATTTTAATTATTCCTGGATTTGGTATTATTTCACATGTAGTATCAACATATTCTAAAAAACCTGTATTTGGTGAAATTTCAATGGTATATGCTATGGCTTCAATTGGATTATTAGGATTCTTAGTATGATCACATCATATGTATATTGTAGGATTAGATGCAGATCTTAGAGCATATTTCCTATCTGCACTAATGATTATTGCAATTCCAACAGGAATTAAAATTTTCTCATGATTAATAAATCCCTTTAGCAAGGATAAAAATAAAAATAAAAATAAAAAGTTGATCAGAAATTATCAAAAAATAAATAATAATAATATAATAAAAACATATTTAAATAATAATAATATAATTATAATAAATATATATAAAGGTAATTTATATGATATTTATCCAAGATCAAATAGAAATTATATTCAACCAAATAATATTAATAAAGAATTAGTAGTATATGGTTATAATTTAGAATCTTGTGTTGGTATACCTCTATATACTAATATTGTAAAACATATAGTAGGTATTCCTAATAATATTTTATATATTATAACAGGTATTTTATTAACAGATGGTTGAATTGATTATCTATCTAAAAAAGATTTAGATAAAAAAACAATTATAGAAATTAATTGTAGATTTAGATTAAAACAATCAATAATTCATAGTGAATATTTAATATATGTATTTATATTATTATCACATTATTGTATAAGTTATCCTAAAATAAAAATTGCTAAAGTTAAAGGTAAATCATATAATCAATTAGAATTTTATACTAGATCATTACCATGTTTTACTATTTTAAGATATATATTTTATAATGGTAGAGTAAAAATTGTACCTAATAATTTATATGATTTATTAAATTATGAATCTTTAGCTCATATAATTATATGTGATGGTTCATTTGTAAAAGGTGGAGGTTTATATTTAAATTTACAATCTTTTCTAACTAAAGAATTAATTTTTATTATAAATATTTTAAAAATTAAATTTAATTTAAATTGTCTATTACATAAATCTAGAAATAAATATCTTATTTATATAAGAGTAGAATCTGTTAAAAGATTATTTCCTATAATTTATAAATATATTTTACCTTCTATAAGATATAAATTTGATATTATATTATGACAAAAAAAATATAATATGATTAATTAA
+##       annot_transcripts_found_per_gene annot_uniprot_id annot_wdk_weight
+## Q0045                           1 of 1           P00401                0
+## Q0050                           1 of 1           P03875                0
+## Q0055                           1 of 1           P03876                0
+## Q0060                           1 of 1           P03877                0
+## Q0065                           1 of 1           P03878                0
+## Q0070                           1 of 1           Q9ZZX1                0</code></pre>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" title="1"><span class="co">## Yay! We have data about S. cerevisiae!</span></a>
+<a class="sourceLine" id="cb30-2" title="2"></a>
+<a class="sourceLine" id="cb30-3" title="3">chosen_columns_idx &lt;-<span class="st"> </span><span class="kw">grepl</span>(<span class="dt">x=</span>avail_columns, <span class="dt">pattern=</span><span class="st">&quot;^GO&quot;</span>)</a>
+<a class="sourceLine" id="cb30-4" title="4">chosen_columns &lt;-<span class="st"> </span>avail_columns[chosen_columns_idx]</a>
+<a class="sourceLine" id="cb30-5" title="5">sc_go &lt;-<span class="st"> </span><span class="kw">load_orgdb_go</span>(sc_orgdb, <span class="dt">columns=</span>chosen_columns)</a></code></pre></div>
+<pre><code>## Loading required namespace: GO.db</code></pre>
+<pre><code>## </code></pre>
+<pre><code>## This is an orgdb, good.</code></pre>
+<pre><code>## 'select()' returned 1:many mapping between keys and columns</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" title="1"><span class="kw">head</span>(sc_go)</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 11
+##   GID   GO_EVIDENCE_CODE GO_ID GO_IS_NOT GO_ONTOLOGY GO_REFERENCE
+##   &lt;chr&gt; &lt;chr&gt;            &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;       &lt;chr&gt;       
+## 1 Q0045 IEA              GO:0… N/A       Biological… SGD_REF:S00…
+## 2 Q0045 IBA              GO:0… N/A       Biological… PMID:218736…
+## 3 Q0045 IDA              GO:0… N/A       Biological… PMID:133105…
+## 4 Q0045 IBA              GO:0… N/A       Biological… PMID:218736…
+## 5 Q0045 IEA              GO:0… N/A       Biological… SGD_REF:S00…
+## 6 Q0045 IEA              GO:0… N/A       Biological… N/A         
+## # … with 5 more variables: GO_SORT_KEY &lt;chr&gt;, GO_SOURCE &lt;chr&gt;,
+## #   GO_SUPPORT_FOR_EVIDENCE_CODE_ASSIGNMENT &lt;chr&gt;, GO_TERM_NAME &lt;chr&gt;,
+## #   GO_TRANSCRIPT_ID_S &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1"><span class="co">## Yay Gene ontology data for Crithidia!</span></a>
+<a class="sourceLine" id="cb37-2" title="2"></a>
+<a class="sourceLine" id="cb37-3" title="3">chosen_columns_idx &lt;-<span class="st"> </span><span class="kw">grepl</span>(<span class="dt">x=</span>avail_columns, <span class="dt">pattern=</span><span class="st">&quot;^INTERPRO&quot;</span>)</a>
+<a class="sourceLine" id="cb37-4" title="4">chosen_columns &lt;-<span class="st"> </span>avail_columns[chosen_columns_idx]</a>
+<a class="sourceLine" id="cb37-5" title="5">sc_interpro &lt;-<span class="st"> </span><span class="kw">load_orgdb_go</span>(sc_orgdb, <span class="dt">columns=</span>chosen_columns)</a></code></pre></div>
+<pre><code>## This is an orgdb, good.
+## 'select()' returned 1:many mapping between keys and columns</code></pre>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1"><span class="kw">head</span>(sc_interpro)</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 10
+##   GID   INTERPRO_DESCRI… INTERPRO_E_VALUE INTERPRO_END_MIN INTERPRO_ID
+##   &lt;chr&gt; &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;      
+## 1 Q0045 Cytochrome C an… 0.0              460              IPR000883  
+## 2 Q0045 Cytochrome oxid… 110.0            534              IPR023616  
+## 3 Q0045 Cytochrome c ox… 0.0              529              IPR036927  
+## 4 Q0050 Reverse transcr… 5.6e-39          577              IPR000477  
+## 5 Q0050 Type II intron … 1.4e-53          759              IPR024937  
+## 6 Q0050 Reverse transcr… 46.0             577              IPR000477  
+## # … with 5 more variables: INTERPRO_NAME &lt;chr&gt;, INTERPRO_PRIMARY_ID &lt;chr&gt;,
+## #   INTERPRO_SECONDARY_ID &lt;chr&gt;, INTERPRO_START_MIN &lt;chr&gt;,
+## #   INTERPRO_TRANSCRIPT_ID_S &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1"><span class="co">## Interpro data for Crithidia!</span></a>
+<a class="sourceLine" id="cb41-2" title="2"></a>
+<a class="sourceLine" id="cb41-3" title="3">chosen_columns_idx &lt;-<span class="st"> </span><span class="kw">grepl</span>(<span class="dt">x=</span>avail_columns, <span class="dt">pattern=</span><span class="st">&quot;^PATHWAY&quot;</span>)</a>
+<a class="sourceLine" id="cb41-4" title="4">chosen_columns &lt;-<span class="st"> </span>avail_columns[chosen_columns_idx]</a>
+<a class="sourceLine" id="cb41-5" title="5">sc_path &lt;-<span class="st"> </span><span class="kw">load_orgdb_go</span>(sc_orgdb, <span class="dt">columns=</span>chosen_columns)</a></code></pre></div>
+<pre><code>## This is an orgdb, good.
+## 'select()' returned 1:many mapping between keys and columns</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" title="1"><span class="kw">head</span>(sc_path)</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 8
+##   GID   PATHWAY_EC_NUMB… PATHWAY_EXACT_E… PATHWAY_EXPASY_… PATHWAY_ID
+##   &lt;chr&gt; &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;     
+## 1 Q0045 1.9.3.1          Yes              http://enzyme.e… aerobic r…
+## 2 Q0045 1.9.3.1          Yes              http://enzyme.e… arsenite …
+## 3 Q0045 1.-.-.-          No               http://enzyme.e… sesamin b…
+## 4 Q0045 1.-.-.-          No               http://enzyme.e… hypoglyci…
+## 5 Q0045 1.-.-.-          No               http://enzyme.e… 6-methoxy…
+## 6 Q0045 1.-.-.-          No               http://enzyme.e… sorgoleon…
+## # … with 3 more variables: PATHWAY_REACTIONS_MATCHING_EC_NUMBER &lt;chr&gt;,
+## #   PATHWAY_SOURCE &lt;chr&gt;, PATHWAY_SOURCE_ID &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" title="1"><span class="co">## Pathway data for Crithidia!</span></a>
+<a class="sourceLine" id="cb45-2" title="2"></a>
+<a class="sourceLine" id="cb45-3" title="3"><span class="co">## This does not work for the moment because of some oddities with</span></a>
+<a class="sourceLine" id="cb45-4" title="4"><span class="co">## the various tables at the eupathdb.  I have an email query with them</span></a>
+<a class="sourceLine" id="cb45-5" title="5"><span class="co">## regarding it.</span></a>
+<a class="sourceLine" id="cb45-6" title="6"><span class="co">##chosen_columns_idx &lt;- grepl(x=avail_columns, pattern=&quot;^ORTHOLOG&quot;)</span></a>
+<a class="sourceLine" id="cb45-7" title="7"><span class="co">##chosen_columns &lt;- avail_columns[chosen_columns_idx]</span></a>
+<a class="sourceLine" id="cb45-8" title="8"><span class="co">##chosen_columns &lt;- c(chosen_columns, &quot;ORGANISM&quot;)</span></a>
+<a class="sourceLine" id="cb45-9" title="9"><span class="co">##crit_ortho &lt;- load_orgdb_go(sc_orgdb, columns=chosen_columns)</span></a>
+<a class="sourceLine" id="cb45-10" title="10"><span class="co">##head(crit_ortho)</span></a>
+<a class="sourceLine" id="cb45-11" title="11"><span class="co">## Orthologs!</span></a></code></pre></div>
+</div>
+<div id="shortcut-methods" class="section level3">
+<h3>Shortcut methods</h3>
+<p>Remembering the keytype and package names and everything can be annoying. The following attempts to make that easier. In this instance, the only thing we need to provide is a unique substring for the species of interest. If the substring is not unique, this should show the matches and choose the first.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" title="1"><span class="co">## The function load_eupath_annotations() provides a shortcut to the above.</span></a>
+<a class="sourceLine" id="cb46-2" title="2">major_annot &lt;-<span class="st"> </span><span class="kw">load_eupath_annotations</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>)</a></code></pre></div>
+<pre><code>## Found the following hits: Leishmania major strain Friedlin, Leishmania major strain LV39c5, Leishmania major strain SD 75.1, choosing the first.</code></pre>
+<pre><code>## Using: Leishmania major strain Friedlin.</code></pre>
+<pre><code>## </code></pre>
+<pre><code>## Returning fields which start with 'annot'</code></pre>
+<pre><code>## Unable to find CDSNAME, setting it to ANNOT_GENE_NAME.</code></pre>
+<pre><code>## Unable to find CDSCHROM in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSSTRAND in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSSTART in the db, removing it.</code></pre>
+<pre><code>## Unable to find CDSEND in the db, removing it.</code></pre>
+<pre><code>## Extracted all gene ids.</code></pre>
+<pre><code>## Attempting to select: ANNOT_GENE_NAME, GENE_TYPE, GID, ANNOT_BFD3_CDS, ANNOT_BFD3_MODEL, ANNOT_BFD6_CDS, ANNOT_BFD6_MODEL, ANNOT_CDS, ANNOT_CDS_LENGTH, ANNOT_CHROMOSOME, ANNOT_DIF_CDS, ANNOT_DIF_MODEL, ANNOT_EC_NUMBERS, ANNOT_EC_NUMBERS_DERIVED, ANNOT_EXON_COUNT, ANNOT_FC_BFD3_CDS, ANNOT_FC_BFD3_MODEL, ANNOT_FC_BFD6_CDS, ANNOT_FC_BFD6_MODEL, ANNOT_FC_DIF_CDS, ANNOT_FC_DIF_MODEL, ANNOT_FC_PF_CDS, ANNOT_FC_PF_MODEL, ANNOT_FIVE_PRIME_UTR_LENGTH, ANNOT_GENE_ENTREZ_ID, ANNOT_GENE_EXON_COUNT, ANNOT_GENE_HTS_NONCODING_SNPS, ANNOT_GENE_HTS_NONSYN_SYN_RATIO, ANNOT_GENE_HTS_NONSYNONYMOUS_SNPS, ANNOT_GENE_HTS_STOP_CODON_SNPS, ANNOT_GENE_HTS_SYNONYMOUS_SNPS, ANNOT_GENE_LOCATION_TEXT, ANNOT_GENE_NAME, ANNOT_GENE_ORTHOLOG_NUMBER, ANNOT_GENE_ORTHOMCL_NAME, ANNOT_GENE_PARALOG_NUMBER, ANNOT_GENE_PREVIOUS_IDS, ANNOT_GENE_PRODUCT, ANNOT_GENE_SOURCE_ID, ANNOT_GENE_TOTAL_HTS_SNPS, ANNOT_GENE_TRANSCRIPT_COUNT, ANNOT_GENE_TYPE, ANNOT_GO_COMPONENT, ANNOT_GO_FUNCTION, ANNOT_GO_ID_COMPONENT, ANNOT_GO_ID_FUNCTION, ANNOT_GO_ID_PROCESS, ANNOT_GO_PROCESS, ANNOT_HAS_MISSING_TRANSCRIPTS, ANNOT_INTERPRO_DESCRIPTION, ANNOT_INTERPRO_ID, ANNOT_IS_PSEUDO, ANNOT_ISOELECTRIC_POINT, ANNOT_LOCATION_TEXT, ANNOT_MATCHED_RESULT, ANNOT_MOLECULAR_WEIGHT, ANNOT_NO_TET_CDS, ANNOT_NO_TET_MODEL, ANNOT_ORGANISM, ANNOT_PF_CDS, ANNOT_PF_MODEL, ANNOT_PFAM_DESCRIPTION, ANNOT_PFAM_ID, ANNOT_PIRSF_DESCRIPTION, ANNOT_PIRSF_ID, ANNOT_PREDICTED_GO_COMPONENT, ANNOT_PREDICTED_GO_FUNCTION, ANNOT_PREDICTED_GO_ID_COMPONENT, ANNOT_PREDICTED_GO_ID_FUNCTION, ANNOT_PREDICTED_GO_ID_PROCESS, ANNOT_PREDICTED_GO_PROCESS, ANNOT_PROJECT_ID, ANNOT_PROSITEPROFILES_DESCRIPTION, ANNOT_PROSITEPROFILES_ID, ANNOT_PROTEIN_LENGTH, ANNOT_PROTEIN_SEQUENCE, ANNOT_SEQUENCE_ID, ANNOT_SIGNALP_PEPTIDE, ANNOT_SIGNALP_SCORES, ANNOT_SMART_DESCRIPTION, ANNOT_SMART_ID, ANNOT_SOURCE_ID, ANNOT_STRAND, ANNOT_SUPERFAMILY_DESCRIPTION, ANNOT_SUPERFAMILY_ID, ANNOT_THREE_PRIME_UTR_LENGTH, ANNOT_TIGRFAM_DESCRIPTION, ANNOT_TIGRFAM_ID, ANNOT_TM_COUNT, ANNOT_TRANS_FOUND_PER_GENE_INTERNAL, ANNOT_TRANSCRIPT_INDEX_PER_GENE, ANNOT_TRANSCRIPT_LENGTH, ANNOT_TRANSCRIPT_LINK, ANNOT_TRANSCRIPT_PRODUCT, ANNOT_TRANSCRIPT_SEQUENCE, ANNOT_TRANSCRIPTS_FOUND_PER_GENE, ANNOT_UNIPROT_ID, ANNOT_URI, ANNOT_WDK_WEIGHT</code></pre>
+<pre><code>## 'select()' returned 1:many mapping between keys and columns</code></pre>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb59-1" title="1"><span class="kw">dim</span>(major_annot)</a></code></pre></div>
+<pre><code>## [1] 18238    97</code></pre>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb61-1" title="1"><span class="co">## This provides the same information as the results of the select up above.</span></a></code></pre></div>
+</div>
+<div id="shortcut-orthologs" class="section level3">
+<h3>Shortcut orthologs</h3>
+<p>A task I find myself needing to do fairly often is to get the set of genes orthologous to a given gene. There are lots of methods to handle this question; one of them includes the nice table provided by the eupathdb. Let us query that.</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb62-1" title="1"><span class="co">## A recent EuPathDB update makes it possible to use the 'OrthologsLite' table rather than</span></a>
+<a class="sourceLine" id="cb62-2" title="2"><span class="co">## Orthologs, which is much faster (by like 1000x), but I am quickly realizing much more</span></a>
+<a class="sourceLine" id="cb62-3" title="3"><span class="co">## limited in the information it returns, and only exists for a subset of the eupathdb</span></a>
+<a class="sourceLine" id="cb62-4" title="4"><span class="co">## projects.  As a result, I might just drop its usage and force the much slower queries</span></a>
+<a class="sourceLine" id="cb62-5" title="5"><span class="co">## to the more complete table...</span></a>
+<a class="sourceLine" id="cb62-6" title="6">major_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
+<a class="sourceLine" id="cb62-7" title="7">major_pkg &lt;-<span class="st"> </span><span class="kw">get_eupath_pkgnames</span>(major_entry)</a>
+<a class="sourceLine" id="cb62-8" title="8">major_orgdb &lt;-<span class="st"> </span>major_pkg<span class="op">$</span>orgdb</a>
+<a class="sourceLine" id="cb62-9" title="9">lm_ortho &lt;-<span class="st"> </span><span class="kw">extract_eupath_orthologs</span>(major_orgdb)</a>
+<a class="sourceLine" id="cb62-10" title="10"><span class="kw">dim</span>(lm_ortho)</a>
+<a class="sourceLine" id="cb62-11" title="11"><span class="kw">head</span>(lm_ortho)</a>
+<a class="sourceLine" id="cb62-12" title="12"><span class="kw">summary</span>(lm_ortho)</a></code></pre></div>
+</div>
+</div>
+</div>
+<div id="session-information" class="section level1">
+<h1>Session Information</h1>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb63-1" title="1"><span class="kw">sessionInfo</span>()</a></code></pre></div>
+<pre><code>## R version 3.6.0 (2019-04-26)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Devuan GNU/Linux beowulf/ceres
+## 
+## Matrix products: default
+## BLAS:   /usr/lib/x86_64-linux-gnu/openblas/libblas.so.3
+## LAPACK: /usr/lib/x86_64-linux-gnu/libopenblasp-r0.3.5.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.utf8       LC_NUMERIC=C             
+##  [3] LC_TIME=en_US.utf8        LC_COLLATE=en_US.utf8    
+##  [5] LC_MONETARY=en_US.utf8    LC_MESSAGES=en_US.utf8   
+##  [7] LC_PAPER=en_US.utf8       LC_NAME=C                
+##  [9] LC_ADDRESS=C              LC_TELEPHONE=C           
+## [11] LC_MEASUREMENT=en_US.utf8 LC_IDENTIFICATION=C      
+## 
+## attached base packages:
+## [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+## [8] methods   base     
+## 
+## other attached packages:
+##  [1] org.Lmajor.Friedlin.v43.eg.db_2019.05  
+##  [2] org.Scerevisiae.S288c.v43.eg.db_2019.05
+##  [3] AnnotationDbi_1.46.0                   
+##  [4] futile.logger_1.4.3                    
+##  [5] EuPathDB_1.5.0                         
+##  [6] AnnotationHub_2.16.0                   
+##  [7] BiocFileCache_1.8.0                    
+##  [8] dbplyr_1.4.0                           
+##  [9] GenomeInfoDbData_1.2.1                 
+## [10] GenomicRanges_1.36.0                   
+## [11] GenomeInfoDb_1.20.0                    
+## [12] IRanges_2.18.0                         
+## [13] S4Vectors_0.22.0                       
+## [14] Biobase_2.44.0                         
+## [15] BiocGenerics_0.30.0                    
+## [16] BiocStyle_2.12.0                       
+## 
+## loaded via a namespace (and not attached):
+##   [1] rprojroot_1.3-2               XVector_0.24.0               
+##   [3] fs_1.3.1                      remotes_2.0.4                
+##   [5] bit64_0.9-7                   interactiveDisplayBase_1.22.0
+##   [7] fansi_0.4.0                   xml2_1.2.0                   
+##   [9] codetools_0.2-16              knitr_1.23                   
+##  [11] zeallot_0.1.0                 pkgload_1.0.2                
+##  [13] jsonlite_1.6                  Rsamtools_2.0.0              
+##  [15] GO.db_3.8.2                   graph_1.62.0                 
+##  [17] shiny_1.3.2                   BiocManager_1.30.4           
+##  [19] compiler_3.6.0                httr_1.4.0                   
+##  [21] backports_1.1.4               assertthat_0.2.1             
+##  [23] Matrix_1.2-17                 cli_1.1.0                    
+##  [25] later_0.8.0                   formatR_1.6                  
+##  [27] htmltools_0.3.6               prettyunits_1.0.2            
+##  [29] tools_3.6.0                   glue_1.3.1                   
+##  [31] dplyr_0.8.1                   rappdirs_0.3.1               
+##  [33] Rcpp_1.0.1                    vctrs_0.1.0                  
+##  [35] Biostrings_2.52.0             rtracklayer_1.44.0           
+##  [37] iterators_1.0.10              xfun_0.7                     
+##  [39] stringr_1.4.0                 ps_1.3.0                     
+##  [41] testthat_2.1.1                rvest_0.3.4                  
+##  [43] mime_0.6                      devtools_2.0.2               
+##  [45] XML_3.98-1.19                 zlibbioc_1.30.0              
+##  [47] BiocInstaller_1.32.1          rBiopaxParser_2.24.0         
+##  [49] hms_0.4.2                     promises_1.0.1               
+##  [51] SummarizedExperiment_1.14.0   RBGL_1.60.0                  
+##  [53] lambda.r_1.2.3                yaml_2.2.0                   
+##  [55] curl_3.3                      memoise_1.1.0                
+##  [57] biomaRt_2.40.0                stringi_1.4.3                
+##  [59] RSQLite_2.1.1                 desc_1.2.0                   
+##  [61] foreach_1.4.4                 GenomicFeatures_1.36.0       
+##  [63] pkgbuild_1.0.3                BiocParallel_1.18.0          
+##  [65] rlang_0.3.4                   pkgconfig_2.0.2              
+##  [67] bitops_1.0-6                  matrixStats_0.54.0           
+##  [69] evaluate_0.13                 lattice_0.20-38              
+##  [71] purrr_0.3.2                   GenomicAlignments_1.20.0     
+##  [73] bit_1.1-14                    processx_3.3.1               
+##  [75] tidyselect_0.2.5              AnnotationForge_1.26.0       
+##  [77] magrittr_1.5                  R6_2.4.0                     
+##  [79] RUnit_0.4.32                  DelayedArray_0.10.0          
+##  [81] DBI_1.0.0                     pillar_1.4.0                 
+##  [83] withr_2.1.2                   biocViews_1.52.0             
+##  [85] RCurl_1.95-4.12               tibble_2.1.1                 
+##  [87] crayon_1.3.4                  futile.options_1.0.1         
+##  [89] utf8_1.1.4                    OrganismDbi_1.26.0           
+##  [91] rmarkdown_1.12                progress_1.2.2               
+##  [93] usethis_1.5.0                 grid_3.6.0                   
+##  [95] data.table_1.12.2             blob_1.1.1                   
+##  [97] callr_3.2.0                   digest_0.6.19                
+##  [99] xtable_1.8-4                  httpuv_1.5.1                 
+## [101] AnnotationHubData_1.14.0      sessioninfo_1.1.1</code></pre>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
