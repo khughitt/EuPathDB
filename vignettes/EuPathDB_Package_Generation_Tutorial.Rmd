@@ -1,0 +1,229 @@
+---
+title: "Generating EuPathDB Bioconductor Packages Locally"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Generating EuPathDB Bioconductor Packages Locally}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeyword{eupathdb, annotations}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r style, echo=FALSE, results='asis', message=FALSE}
+BiocStyle::markdown()
+```
+
+**Authors**: [V. Keith Hughitt](mailto:keith.hughitt@nih.gov)<br />
+**Modified:** `r file.info("EuPathDB.Rmd")$mtime`<br />
+**Compiled**: `r date()`
+
+# Overview
+
+This tutorial describes how to query and make use of annotations from the
+[EuPathDB : The Eukaryotic Pathogen Genomics
+Resource](http://eupathdb.org/eupathdb/) and the creation/access of local R
+packages derived from the EuPathDB.
+
+# Available EuPathDB Resources
+
+The EuPathDB R package may also be used to generate local copies of some of the
+resources provided by eupathdb.org.  These include:
+
+1.  BSgenome objects (raw genome sequences)
+2.  OrgDB objects (AnnotationDBI accessible tables of the genome/transcriptome
+    annotations)
+3.  TxDB objects and the somewhat interchangeable GRanges objects. (transcript
+    identifications)
+4.  OrganismDBI objects (AnnotationDBI tables with references to other databases
+    like GO/Reactome/etc)
+
+Because the EuPathDB is constantly updating their resources, it might be of use
+for one to generate these resources locally.  In addition, the EuPathDB R
+package provides some shortcut functions for gathering data frames(tables) from
+these resources of annotation data.
+
+# Installing a new species in your R session
+
+When AnnotationHub and the EupathDB web resources get out of sync, one might want to install
+and manipulate the newest version of the available Eupath data.  The following blocks demonstrate
+how one might do those tasks.
+
+## Downloading and installing an arbitrary species
+
+The following shows how one might gather information about Saccharomyces
+cerevisiae from fungidb.org.
+
+```{r 01example_install}
+library(EuPathDB)
+## Note that some but not all web services have moved to https...
+## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
+
+sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
+sc_name <- sc_entry[["Species"]]
+sc_entry
+```
+
+### Creating the package
+
+Now that we have the canonical name for yeast from fungidb, we can
+create a fresh orgdb package.  I will not actually run this for the vignette
+because it takes a long time and prints a lot to screen.
+
+```{r 02pkg, eval=FALSE}
+orgdb_pkg <- make_eupath_orgdb(sc_entry, reinstall=TRUE)
+txdb_pkg <- make_eupath_txdb(sc_entry)
+bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
+organ_pkg <- make_eupath_organismdbi(sc_entry)
+```
+
+You will have to trust that the above worked in my R session and installed for
+me packages named:
+
+1.  OrgDB: org.Scerevisiae.v43.eg.db
+2.  OrganismDBI: fungidb.Saccharomyces.cerevisiae.v43
+3.  TxDB: TxDb.Saccharomyces.cerevisiae.FungiDB.v43
+4.  BSgenome: BSGenome.Saccharomyces.cerevisiae.v43
+5.  GRanges: An rda file named GRanges.Saccharomyces.cerevisiae.v43.rda
+
+As the names suggest, these were derived from fungidb.org revision 43.
+
+### Another example from the tritrypdb
+
+```{r 03lmajor, eval=FALSE}
+lm_entry <- get_eupath_entry(species="Friedlin", webservice="tritrypdb")
+lm_orgdb <- make_eupath_orgdb(lm_entry, reinstall=TRUE)
+```
+
+## Extracting annotation data
+
+The following demonstrates ways to extract data from the generated orgdb package.
+
+### Choosing and loading a generated package
+
+Because the eupathdb is constantly evolving, the get_eupath_pkgnames() function will use
+the metadata generated in download_eupath_metadata() in order to provide a differently
+names package for each eupathdb revision.
+
+```{r 04extract}
+orgdb_pkg <- get_eupath_pkgnames(sc_entry)
+sc_orgdb <- orgdb_pkg$orgdb
+## Here is the name of the current yeast package.
+sc_orgdb
+## Thus we see the v41 (as of late 2018), a number which presumably will continue increasing.
+## We can set the version parameter to change this if we have a previous version installed.
+
+## Now get the set of available columns from it:
+library(sc_orgdb, character=TRUE)
+avail_columns <- AnnotationDbi::columns(get0(sc_orgdb))
+head(avail_columns)
+## There are lots of columns!
+length(avail_columns)
+```
+
+The EuPathDB provides quite an astonishing field of information.  When creating
+the OrgDB packages, I prefixed column names of the various data types as follows:
+
+1.  ANNOT: The primary annotations.  This includes a wide variety of information
+    from descriptions to number of transmembrane domains.
+2.  GO: The Gene Ontology table.
+3.  INTERPRO: Interpro data from the eupathdb.
+4.  KEGGREST: Cross-references KEGG data using the R KEGGREST package.
+5.  PATHWAY: Pathway data from the eupathdb.
+
+Still missing from this is the Link out data to the set of papers referencing
+each gene.
+
+### Extracting data from a package
+
+Once we have a package loaded, everything else is an application of the
+AnnotationDbi interface.  Here are a few examples.
+
+The load_orgdb_annotation() and load_orgdb_go() are simply wrapper around
+AnnotationDbi in order to fill in the various arguments and more quickly return
+annotation of likely interest.
+
+```{r 05extract_data}
+## The columns which begin with strings like 'PATHWAY' or 'INTERPRO' are actually separate
+## sql tables in the orgdb database, and as such will lead to a hugely redundant data table
+## if we select them.
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^ANNOT")
+chosen_columns <- avail_columns[chosen_columns_idx]
+
+## Now we have a set of columns of interest, let us get a data table/data frame.
+sc_annot <- load_orgdb_annotations(orgdb=sc_orgdb, keytype="gid", fields=chosen_columns)
+## load_orgdb_annotations will fill out separate dataframes for each annotation type,
+## genes, exons, transcripts, etc.  In this case, we only want the genes
+## (The eupathdb does not provide much information for the others.)
+sc_genes <- sc_annot[["genes"]]
+dim(sc_genes)
+head(sc_genes)
+## Yay! We have data about S. cerevisiae!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^GO")
+chosen_columns <- avail_columns[chosen_columns_idx]
+sc_go <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
+head(sc_go)
+## Yay Gene ontology data for Crithidia!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^INTERPRO")
+chosen_columns <- avail_columns[chosen_columns_idx]
+sc_interpro <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
+head(sc_interpro)
+## Interpro data for Crithidia!
+
+chosen_columns_idx <- grepl(x=avail_columns, pattern="^PATHWAY")
+chosen_columns <- avail_columns[chosen_columns_idx]
+sc_path <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
+head(sc_path)
+## Pathway data for Crithidia!
+
+## This does not work for the moment because of some oddities with
+## the various tables at the eupathdb.  I have an email query with them
+## regarding it.
+##chosen_columns_idx <- grepl(x=avail_columns, pattern="^ORTHOLOG")
+##chosen_columns <- avail_columns[chosen_columns_idx]
+##chosen_columns <- c(chosen_columns, "ORGANISM")
+##crit_ortho <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
+##head(crit_ortho)
+## Orthologs!
+```
+
+### Shortcut methods
+
+Remembering the keytype and package names and everything can be annoying.
+The following attempts to make that easier.  In this instance, the only thing we
+need to provide is a unique substring for the species of interest.  If the
+substring is not unique, this should show the matches and choose the first.
+
+```{r 06shortcuts}
+## The function load_eupath_annotations() provides a shortcut to the above.
+major_annot <- load_eupath_annotations(species="major")
+dim(major_annot)
+## This provides the same information as the results of the select up above.
+```
+
+### Shortcut orthologs
+
+A task I find myself needing to do fairly often is to get the set of genes
+orthologous to a given gene.  There are lots of methods to handle this question;
+one of them includes the nice table provided by the eupathdb.  Let us query that.
+
+```{r 07orthologs, eval=FALSE}
+## A recent EuPathDB update makes it possible to use the 'OrthologsLite' table rather than
+## Orthologs, which is much faster (by like 1000x), but I am quickly realizing much more
+## limited in the information it returns, and only exists for a subset of the eupathdb
+## projects.  As a result, I might just drop its usage and force the much slower queries
+## to the more complete table...
+major_entry <- get_eupath_entry(species="major", webservice="tritrypdb")
+major_pkg <- get_eupath_pkgnames(major_entry)
+major_orgdb <- major_pkg$orgdb
+lm_ortho <- extract_eupath_orthologs(major_orgdb)
+dim(lm_ortho)
+head(lm_ortho)
+summary(lm_ortho)
+```
+
+# Session Information
+
+```{r 08sessioninfo}
+sessionInfo()
+```

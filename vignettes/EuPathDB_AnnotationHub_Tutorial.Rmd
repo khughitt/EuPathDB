@@ -1,0 +1,215 @@
+---
+title: "Accessing EuPathDB Resources using AnnotationHub"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Accessing EuPathDB Resources using AnnotationHub}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeyword{eupathdb, annotations}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r style, echo=FALSE, results='asis', message=FALSE}
+BiocStyle::markdown()
+```
+
+**Authors**: [V. Keith Hughitt](mailto:keith.hughitt@nih.gov)<br />
+**Modified:** `r file.info("EuPathDB.Rmd")$mtime`<br />
+**Compiled**: `r date()`
+
+# Overview
+
+This tutorial describes how to query and make use of annotations retrieved from
+[EuPathDB : The Eukaryotic Pathogen Genomics Resource](http://eupathdb.org/eupathdb/)
+using [AnnotationHub](http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html).
+
+For more information on using AnnotationHub, check out the AnnotationHub vignettes:
+
+- [AnnotationHub: Access the AnnotationHub Web Service](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
+- [AnnotationHub How-To’s](http://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
+
+The resources described in this tutorial were generating using GFF files and web API requests made
+to the various EuPathDB databases (TriTrypDB, ToxoDB, etc.) Only organisms with annotated genomes
+(those for which GFF files are available) are accessible through AnnotationHub.
+
+The two main resources provided are:
+
+- [OrgDb](https://www.bioconductor.org/help/workflows/annotation/annotation/#OrgDb)
+- [GRanges](http://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+
+OrgDb objects for an organism include basic gene-level information such as:
+
+- Gene ID
+- Gene description
+- Chromosome number
+- GO terms associated with gene
+- KEGG Pathways associated with gene
+- Etc.
+
+For some organisms, [InterPro](https://www.ebi.ac.uk/interpro/) protein domain information is also
+available (in some cases, however, even though InterPro domain information is available through
+EuPathDB, it is too large to be included in the current AnnotationHub resources).
+
+For more information about working with Bioconductor annotation resources, see:
+
+- [Genomic Annotation Resources in Bioconductor ](https://www.bioconductor.org/help/workflows/annotation/annotation/)
+
+# Installation
+
+If you don't already have AnnotationHub installed on your system, use
+`BiocManager::install` to install the package:
+
+```{r 01install_pkgs, eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install("AnnotationHub")
+```
+
+# Getting started
+
+To begin, let's create a new `AnnotationHub` connection and use it to query
+AnnotationHub for all EuPathDB resources.
+
+```{r 02load_ah}
+library("EuPathDB")
+library("AnnotationHub")
+
+# create an AnnotationHub connection
+ah <- AnnotationHub()
+
+# search for all EuPathDB resources
+meta <- query(ah, "EuPathDB")
+
+length(meta)
+head(meta)
+
+# types of EuPathDB data available
+table(meta$rdataclass)
+
+# distribution of resources by specific databases
+table(meta$dataprovider)
+
+# list of organisms for which resources are available
+length(unique(meta$species))
+head(unique(meta$species))
+```
+
+# Working with EuPathDB OrgDb resources
+
+Next, we will see how you can query AnnotationHub for EuPathDB OrgDb resources.
+
+To begin, create an AnnotationHub connection, if you have not already done so, as shown in the
+section above.
+
+You can now use the `query` function to search for your organism of interest and store the result
+as follows:
+
+```{r 03query_major}
+res <- query(ah, c("OrgDb", "Leishmania major strain Friedlin"))
+res
+```
+
+The result includes a single record, "AH56967". The record can be accessed from the result variable
+using list-like indexing:
+
+Hmm it appears that something at annotationhub is being updated and all my queries are getting
+returned 403, Forbidden.  I will for the moment stop the following blocks from running.
+
+```{r 04get_orgdb, eval=FALSE}
+chosen_ah <- res[[2]]
+chosen_ah
+```
+
+We can see that we now have an OrgDb instance, and as such, we can use the usual methods available
+for working this OrgDb objects, including:
+
+- `columns()`
+- `keys()`
+- `select()`
+
+```{r 05query_major_columns, eval=FALSE}
+# list available fields to retrieve
+columns(orgdb)
+
+# create a vector containing all gene ids for the organism
+gids <- keys(orgdb, keytype="GID")
+head(gids)
+
+# retrieve the chromosome, description, and biotype for each gene
+dat <- select(orgdb, keys=gids, keytype="GID", columns=c("CHR", "TYPE", "GENEDESCRIPTION"))
+
+head(dat)
+
+table(dat$TYPE)
+table(dat$CHR)
+
+# create a gene / GO term mapping
+gene_go_mapping <- select(orgdb, keys=gids, keytype='GID',
+                          columns=c("GO_ID", "GO_TERM_NAME", "ONTOLOGY"))
+head(gene_go_mapping)
+
+# retrieve KEGG, etc. pathway annotations
+gene_pathway_mapping <- select(orgdb, keys=gids, keytype="GID",
+                               columns=c("PATHWAY", "PATHWAY_SOURCE"))
+table(gene_pathway_mapping$PATHWAY_SOURCE)
+head(gene_pathway_mapping)
+```
+
+# Working with EuPathDB GRanges resources
+
+In addition to retrieving gene annotations, AnnotationHub can also be used to query GenomicRange
+(GRange) objects containing information about gene and transcript structure.
+
+```{r 06query_granges}
+# query AnnotationHub
+res <- query(ah, c("Leishmania major strain Friedlin", "GRanges", "EuPathDB"))
+res
+
+# retrieve a GRanges instance associated with the result record
+gr <- res[[3]]
+summary(gr)
+head(gr)
+```
+
+The resulting `GRanges` object can then be interacted with using the [standard GRanges
+functions](https://bioconductor.org/packages/3.7/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf),
+including:
+
+- seqnames
+- strand
+- width
+
+```{r 07extract_granges}
+# chromosome names
+seqnames(gr)
+
+# strand information
+strand(gr)
+
+# feature widths
+head(width(gr))
+```
+
+Some information can be retrieve directly as object properties using the `$` operator:
+
+```{r 08get_types}
+# list of location types in the resource
+table(gr$type)
+table(gr@strand)
+```
+
+To subset the GRanges instance, you can use the standard `[` operator:
+
+```{r 09chr4}
+# get the first three ranges
+gr[1:3]
+
+# get all gene entries on chromosome 4
+chr4_genes <- gr[gr$type == 'gene' & seqnames(gr) == 'LmjF.04']
+summary(chr4_genes)
+## Hey, checkit, there are 130 genes on chromosome 4.
+```
+
+# Session Information
+
+```{r 10session_info}
+sessionInfo()
+```

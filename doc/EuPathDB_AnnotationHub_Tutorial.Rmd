@@ -58,7 +58,7 @@ For more information about working with Bioconductor annotation resources, see:
 If you don't already have AnnotationHub installed on your system, use
 `BiocManager::install` to install the package:
 
-```{r install_pkgs, eval=FALSE}
+```{r 01install_pkgs, eval=FALSE}
 install.packages("BiocManager")
 BiocManager::install("AnnotationHub")
 ```
@@ -68,7 +68,7 @@ BiocManager::install("AnnotationHub")
 To begin, let's create a new `AnnotationHub` connection and use it to query
 AnnotationHub for all EuPathDB resources.
 
-```{r load_ah}
+```{r 02load_ah}
 library("EuPathDB")
 library("AnnotationHub")
 
@@ -102,18 +102,20 @@ section above.
 You can now use the `query` function to search for your organism of interest and store the result
 as follows:
 
-```{r query_major}
-res <- query(ah, c('Leishmania major strain Friedlin', 'OrgDb', 'EuPathDB'))
+```{r 03query_major}
+res <- query(ah, c("OrgDb", "Leishmania major strain Friedlin"))
 res
 ```
 
 The result includes a single record, "AH56967". The record can be accessed from the result variable
 using list-like indexing:
 
-```{r get_major}
-orgdb_uid <- names(res@.db_uid)
-orgdb <- res[[orgdb_uid]]
-class(orgdb)
+Hmm it appears that something at annotationhub is being updated and all my queries are getting
+returned 403, Forbidden.  I will for the moment stop the following blocks from running.
+
+```{r 04get_orgdb, eval=FALSE}
+chosen_ah <- res[[2]]
+chosen_ah
 ```
 
 We can see that we now have an OrgDb instance, and as such, we can use the usual methods available
@@ -123,16 +125,16 @@ for working this OrgDb objects, including:
 - `keys()`
 - `select()`
 
-```{r query_major_columns}
+```{r 05query_major_columns, eval=FALSE}
 # list available fields to retrieve
 columns(orgdb)
 
 # create a vector containing all gene ids for the organism
-gids <- keys(orgdb, keytype='GID')
+gids <- keys(orgdb, keytype="GID")
 head(gids)
 
 # retrieve the chromosome, description, and biotype for each gene
-dat <- select(orgdb, keys=gids, keytype='GID', columns=c('CHR', 'TYPE', 'GENEDESCRIPTION'))
+dat <- select(orgdb, keys=gids, keytype="GID", columns=c("CHR", "TYPE", "GENEDESCRIPTION"))
 
 head(dat)
 
@@ -141,12 +143,12 @@ table(dat$CHR)
 
 # create a gene / GO term mapping
 gene_go_mapping <- select(orgdb, keys=gids, keytype='GID',
-                          columns=c('GO_ID', 'GO_TERM_NAME', 'ONTOLOGY'))
+                          columns=c("GO_ID", "GO_TERM_NAME", "ONTOLOGY"))
 head(gene_go_mapping)
 
 # retrieve KEGG, etc. pathway annotations
-gene_pathway_mapping <- select(orgdb, keys=gids, keytype='GID',
-                               columns=c('PATHWAY', 'PATHWAY_SOURCE'))
+gene_pathway_mapping <- select(orgdb, keys=gids, keytype="GID",
+                               columns=c("PATHWAY", "PATHWAY_SOURCE"))
 table(gene_pathway_mapping$PATHWAY_SOURCE)
 head(gene_pathway_mapping)
 ```
@@ -156,13 +158,13 @@ head(gene_pathway_mapping)
 In addition to retrieving gene annotations, AnnotationHub can also be used to query GenomicRange
 (GRange) objects containing information about gene and transcript structure.
 
-```{r query_granges}
+```{r 06query_granges}
 # query AnnotationHub
-res <- query(ah, c('Leishmania major strain Friedlin', 'GRanges', 'EuPathDB'))
+res <- query(ah, c("Leishmania major strain Friedlin", "GRanges", "EuPathDB"))
 res
 
 # retrieve a GRanges instance associated with the result record
-gr <- res[['AH65354']]
+gr <- res[[3]]
 summary(gr)
 head(gr)
 ```
@@ -175,7 +177,7 @@ including:
 - strand
 - width
 
-```{r extract_granges}
+```{r 07extract_granges}
 # chromosome names
 seqnames(gr)
 
@@ -188,7 +190,7 @@ head(width(gr))
 
 Some information can be retrieve directly as object properties using the `$` operator:
 
-```{r get_types}
+```{r 08get_types}
 # list of location types in the resource
 table(gr$type)
 table(gr@strand)
@@ -196,7 +198,7 @@ table(gr@strand)
 
 To subset the GRanges instance, you can use the standard `[` operator:
 
-```{r chr4}
+```{r 09chr4}
 # get the first three ranges
 gr[1:3]
 
@@ -208,6 +210,6 @@ summary(chr4_genes)
 
 # Session Information
 
-```{r}
+```{r 10session_info}
 sessionInfo()
 ```
