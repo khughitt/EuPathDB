@@ -21,8 +21,7 @@ clean_vignette:
 
 deps:
 	@echo "Invoking devtools::install_dev_deps()"
-	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', t, ')')))))) == 'try-error') { BiocManager::install(t, update=FALSE) } }"
+	R -e "all = as.data.frame(devtools::dev_package_deps('.', dependencies=TRUE)); needed = all[['diff']] < 0; needed = all[needed, 'package']; for (t in needed) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', t, ')')))))) == 'try-error') { BiocManager::install(t, update=FALSE) } }"
 
 document: roxygen vignette reference
 
@@ -32,8 +31,7 @@ install:
 
 prereq:
 	@echo "Checking a few prerequisites."
-	R -e "suppressPackageStartupMessages(suppressMessages(source('http://bioconductor.org/biocLite.R')));\
-bioc_prereq <- c('BiocStyle','GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
+	R -e "bioc_prereq <- c('BiocStyle','GenomicRanges','GenomeInfoDbData','AnnotationHubData','Biostrings','dplyr','rvest','AnnotationHub','R.utils', 'testthat','roxygen2','Biobase','devtools','rmarkdown','knitr','data.table','foreach');\
 for (req in bioc_prereq) { if (class(try(suppressMessages(eval(parse(text=paste0('library(', req, ')')))))) == 'try-error') { BiocManager::install(req, update=FALSE) } } \
 ## hahaha looks like lisp!"
 
@@ -55,20 +53,19 @@ s3:
 	@echo "Invoking the aws client to upload the sqlite/rda/etc files to s3."
 	aws configure --profile AnnotationContributor
 	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrgDb "s3://annotation-contributor/EuPathDB/OrgDb" --recursive --acl public-read
-##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges" --recursive --acl public-read
-##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb" --recursive --acl public-read
 ##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrganismDBI "s3://annotation-contributor/EuPathDB/OrganismDBI" --recursive --acl public-read
 ##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/BSGenome "s3://annotation-contributor/EuPathDB/BSGenome" --recursive --acl public-read
 
 suggests:
 	@echo "Installing suggested packages."
-	R -e "source('http://bioconductor.org/biocLite.R');\
-library(desc);\
+	R -e "library(desc);\
 d = description\$$new(); suggests = d\$$get('Suggests');\
  suggests = gsub(pattern='\\n', replacement='', x=suggests);\
  suggests = gsub(pattern=' ', replacement='', x=suggests);\
  suggests = strsplit(x=suggests, split=',');\
- for (pkg in suggests[[1]]) { if (! pkg %in% installed.packages()) { biocLite(pkg); } else { message(paste0(pkg, ' is already installed.')) } };"
+ for (pkg in suggests[[1]]) { if (! pkg %in% installed.packages()) { BiocManager::install(pkg); } else { message(paste0(pkg, ' is already installed.')) } };"
 
 test: roxygen
 	R CMD INSTALL .
