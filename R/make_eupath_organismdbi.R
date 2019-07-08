@@ -19,8 +19,9 @@
 #' @return  The result of attempting to install the organismDbi package.
 #' @author  Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", reinstall=FALSE,
-                                    kegg_abbreviation=NULL, exclude_join="ENTREZID", copy_s3=FALSE) {
+make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", installp=TRUE,
+                                    reinstall=FALSE, kegg_abbreviation=NULL,
+                                    exclude_join="ENTREZID", copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -135,17 +136,19 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", re
     }
   }
 
-  if (class(organdb) == "list") {
-    inst <- try(devtools::install(organdb_path))
-    if (class(inst) != "try-error") {
-      built <- try(devtools::build(organdb_path, quiet=TRUE))
-      if (class(built) != "try-error") {
-        final_deleted <- unlink(x=organdb_path, recursive=TRUE, force=TRUE)
+  if (isTRUE(installp)) {
+    if (class(organdb) == "list") {
+      inst <- try(devtools::install(organdb_path))
+      if (class(inst) != "try-error") {
+        built <- try(devtools::build(organdb_path, quiet=TRUE))
+        if (class(built) != "try-error") {
+          final_deleted <- unlink(x=organdb_path, recursive=TRUE, force=TRUE)
+        }
       }
     }
+    final_organdb_name <- basename(organdb_path)
+    final_organdb_path <- move_final_package(organdb_path, type="organismdbi", dir=dir)
   }
-  final_organdb_name <- basename(organdb_path)
-  final_organdb_path <- move_final_package(organdb_path, type="organismdbi", dir=dir)
 
   retlist <- list(
     "orgdb_name" = orgdb_name,

@@ -13,6 +13,8 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
   if (is.null(entry)) {
     stop("Need an entry from the eupathdb.")
   }
+  provider <- tolower(entry[["DataProvider"]])
+  service_directory <- prefix_map(provider)
 
   parameters <- list(
     "organism" = jsonlite::unbox(toString(species_list)),
@@ -36,7 +38,12 @@ get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
       ),
       "format" = jsonlite::unbox("fullRecord")
     ))
-  api_uri <- glue::glue("https://{provider}.org/{service_directory}/service/answer/report")
+
+  tld <- "org"
+  if (provider == "schistodb") {
+    tld <- "net"
+  }
+  api_uri <- glue::glue("https://{provider}.{tld}/{service_directory}/service/answer/report")
   body <- jsonlite::toJSON(query_body)
   result <- httr::POST(
                     url=api_uri,

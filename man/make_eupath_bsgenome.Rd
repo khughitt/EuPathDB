@@ -5,7 +5,7 @@
 \title{Generate a BSgenome package from the eupathdb.}
 \usage{
 make_eupath_bsgenome(entry, version = NULL, dir = "EuPathDB",
-  copy_s3 = FALSE, reinstall = FALSE, ...)
+  copy_s3 = FALSE, installp = TRUE, reinstall = FALSE, ...)
 }
 \arguments{
 \item{entry}{Single eupathdb metadata entry.}

@@ -13,7 +13,7 @@
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
 make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall=FALSE,
-                             copy_s3=FALSE) {
+                             installp=TRUE, copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -152,12 +152,14 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
     }
   }
 
-  inst <- try(devtools::install(install_dir, quiet=TRUE))
-  if (class(inst) != "try-error") {
-    built <- try(devtools::build(install_dir, quiet=TRUE))
-    if (class(built) != "try-error") {
-      final_path <- move_final_package(pkgname, type="txdb", dir=dir)
-      final_deleted <- unlink(x=install_dir, recursive=TRUE, force=TRUE)
+  if (isTRUE(installp)) {
+    inst <- try(devtools::install(install_dir, quiet=TRUE))
+    if (class(inst) != "try-error") {
+      built <- try(devtools::build(install_dir, quiet=TRUE))
+      if (class(built) != "try-error") {
+        final_path <- move_final_package(pkgname, type="txdb", dir=dir)
+        final_deleted <- unlink(x=install_dir, recursive=TRUE, force=TRUE)
+      }
     }
   }
 

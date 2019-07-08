@@ -26,6 +26,6 @@ get_kegg_orgn <- function(species="Leishmania", short=TRUE) {
   if (isTRUE(short)) {
     candidates <- as.character(candidates[["orgid"]])
   }
-  close(org_tsv)
+  closed <- try(close(org_tsv), silent=TRUE)
   return(candidates)
 }

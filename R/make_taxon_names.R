@@ -48,6 +48,13 @@ make_taxon_names <- function(entry, column="TaxonUnmodified") {
   species <- gsub(pattern=stupid_pattern, replacement="", x=species)
   strain <- gsub(pattern=stupid_pattern, replacement="", x=strain)
 
+  ## Holy crap there is a fungus with an '=' sign in the strain name!
+  silly_pattern <- "\\="
+  taxon <- gsub(pattern=silly_pattern, replacement="", x=taxon)
+  genus <- gsub(pattern=silly_pattern, replacement="", x=genus)
+  species <- gsub(pattern=silly_pattern, replacement="", x=species)
+  strain <- gsub(pattern=silly_pattern, replacement="", x=strain)
+
   ## There are a few extra-weirdos with double-.s
   silly_pattern <- "\\.\\."
   taxon <- gsub(pattern=silly_pattern, replacement="\\.", x=taxon)

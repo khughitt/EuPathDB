@@ -6,12 +6,8 @@ library(doParallel)
 library(iterators)
 library(foreach)
 
-bsgenome <- FALSE
-orgdb <- TRUE
-txdb <- TRUE
-organdb <- FALSE
-granges <- TRUE
-eu_version <- "v44"
+## This test is intended to work through a query from cparsania
+## https://github.com/khughitt/EuPathDB/issues/5#issuecomment-468121838
 
 returns <- list(
   "bsgenome" = list(),
@@ -23,28 +19,9 @@ unlink("*.csv")
 ## Of all the things to parallelize, this should be #1.
 ## Once I work out these other oddities, this will be priority.
 meta <- download_eupath_metadata(bioc_version="3.9", overwrite=TRUE,
-                                 write_csv=TRUE)
+                                 webservice="fungidb", write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
-
-check_csv <- function(file_type, column) {
-  csv_file <- glue::glue("{file_type}_bioc_eupathdb_v3.9_{eu_version}_metadata.csv")
-  table <- readr::read_csv(csv_file)
-  files <- table[[column]]
-  keepers <- c()
-  for (f in 1:length(files)) {
-    file <- files[f]
-    if (file.exists(file)) {
-      keepers <- c(keepers, f)
-    } else {
-      message("Did not find file: ", file)
-    }
-  }
-  message("Out of ", length(files), " files, ", length(keepers), " were found.")
-  table <- table[keepers, ]
-  readr::write_csv(x=table, path=csv_file)
-  return(length(keepers))
-}
 
 ## I am going to gently parallelize this.  For perhaps the stupidest reason possible.
 ## Something in import.gff, rsqlite, and bsgenome are not letting go of file handles.
@@ -68,9 +45,13 @@ results <- list(
 ##cl <- parallel::makeCluster(2)
 ##doParallel::registerDoParallel(cl)
 pkglist <- c("EuPathDB", "testthat")
-##res <- foreach(it=1:end, .packages=pkglist) %dopar% {
-
 start <- 1
+bsgenome <- FALSE
+orgdb <- TRUE
+txdb <- TRUE
+organismdbi <- FALSE
+
+##res <- foreach(it=1:end, .packages=pkglist) %dopar% {
 for (it in start:end) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
@@ -107,7 +88,7 @@ for (it in start:end) {
     })
     results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
   }
-  if (isTRUE(organdb)) {
+  if (isTRUE(organismdbi)) {
     organ_result <- make_eupath_organismdbi(entry, copy_s3=TRUE)
     actual <- organ_result[["organdb_name"]]
     expected <- pkgnames[["organismdbi"]]
@@ -118,19 +99,3 @@ for (it in start:end) {
   }
 } ## End iterating over every entry in the eupathdb metadata.
 ##parallel::stopCluster(cl)
-
-if (isTRUE(bsgenome)) {
-  check_csv("BSgenome", "BsgenomeFile")
-}
-if (isTRUE(orgdb)) {
-  check_csv("OrgDb", "OrgdbFile")
-}
-if (isTRUE(txdb)) {
-  check_csv("TxDb", "TxdbFile")
-}
-if (isTRUE(organdb)) {
-  check_csv("OrganismDbi", "OrganismdbiFile")
-}
-if (isTRUE(granges)) {
-  check_csv("GRanges", "GrangesFile")
-}

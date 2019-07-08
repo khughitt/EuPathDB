@@ -11,8 +11,12 @@ get_eupath_fields <- function(webservice, excludes=NULL) {
   if (is.null(excludes)) {
     excludes <- c("dbp_image", "random_int")
   }
+  tld <- "org"
+  if (webservice == "schistodb") {
+    tld <- "net"
+  }
   request_url <- glue::glue(
-     "http://{webservice}.org/webservices/GeneQuestions/GenesByMolecularWeight.wadl")
+     "http://{webservice}.{tld}/webservices/GeneQuestions/GenesByMolecularWeight.wadl")
   request <- curl::curl(request_url)
   result <- xml2::read_xml(request)
   ##close(request)

@@ -48,7 +48,12 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
     "formatting" = formattinglist)
 
   body <- jsonlite::toJSON(query_body)
-  api_uri <- glue::glue("https://{provider}.org/{uri_prefix}/service/answer/report")
+
+  tld <- "org"
+  if (provider == "schistodb") {
+    tld <- "net"
+  }
+  api_uri <- glue::glue("https://{provider}.{tld}/{uri_prefix}/service/answer/report")
   result <- httr::POST(url=api_uri, body=body,
                        httr::content_type("application/json"),
                        httr::timeout(minutes * 60))

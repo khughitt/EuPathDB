@@ -17,7 +17,6 @@ post_eupath_pubmed_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("We can save some time by reading the savefile.")
       message("Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
@@ -48,10 +47,11 @@ post_eupath_pubmed_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE
     ))
 
   result <- post_eupath_table(query_body, entry, table_name="pubmed")
-  colnames(result) <- c("GID", "PUBMED_ID", "PUBMED_DOI",
-                        "PUBMED_TITLE", "PUBMED_AUTHORS")
-
-  message("Saving annotations to ", savefile)
+  if (nrow(result) > 0) {
+    colnames(result) <- c("GID", "PUBMED_ID", "PUBMED_DOI",
+                          "PUBMED_TITLE", "PUBMED_AUTHORS")
+  }
+  message("Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }

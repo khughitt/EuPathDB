@@ -17,7 +17,6 @@ post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FAL
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("We can save some time by reading the savefile.")
       message("Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
@@ -50,7 +49,7 @@ post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FAL
   result <- post_eupath_table(query_body, entry, table_name="interpro")
   colnames(result) <- gsub(x=colnames(result), pattern="INTERPRO_INTERPRO",
                            replacement="INTERPRO")
-  message("Saving annotations to ", savefile)
+  message("Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }

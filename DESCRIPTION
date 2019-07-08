@@ -64,4 +64,5 @@ Collate:
  'post_eupath_raw.R'
  'post_eupath_table.R'
  'prefix_map.R'
+ 'write_eupath_metadata.R'
  'zzz.R'
