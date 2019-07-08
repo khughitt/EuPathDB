@@ -52,6 +52,20 @@ how one might do those tasks.
 The following shows how one might gather information about Saccharomyces
 cerevisiae from fungidb.org.
 
+## An important caveat
+
+If one is creating bsgenomes, then the number of open files may quickly pass the default limit
+of 1024 imposed by most linux systems.  This will prove more than a little annoying, therefore
+you will very much want to do something like this:
+
+```{bash ulimit}
+ulimit -HSn 4096  ## If you can do it, make this number higher.
+## On my host, I added the following to /etc/security/limits.conf
+## *     soft   nofile  81920
+## *     hard   nofile  409600
+## Which is admittedly overkill.
+```
+
 ```{r 01example_install}
 library(EuPathDB)
 ## Note that some but not all web services have moved to https...

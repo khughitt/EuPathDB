@@ -23,9 +23,16 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     for (p in projects) {
       project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
                                                    bioc_version=bioc_version, dir=dir,
-                                                   version=version, write_csv=write_csv)
+                                                   version=version, write_csv=FALSE)
       valid_metadata <- rbind(valid_metadata, project_metadata[["valid"]])
       invalid_metadata <- rbind(invalid_metadata, project_metadata[["invalid"]])
+    }
+    eupathdb_version <- valid_metadata[1, "SourceVersion"]
+    if (isTRUE(write_csv)) {
+      message("Writing csv files.")
+      written <- write_eupath_metadata(valid_metadata, "eupathdb",
+                                       bioc_version, eupathdb_version,
+                                       csv_file)
     }
     return(list("valid" = valid_metadata, "invalid" = invalid_metadata))
   }
@@ -64,13 +71,14 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     paste(x, collapse=":")
   })
 
+  tld <- "org"
+  if (webservice == "schistodb") {
+    tld <- "net"
+  }
+
   service_directory <- prefix_map(webservice)
   ## construct API request URL
-  base_url <- glue::glue("https://{webservice}.org/{service_directory}/webservices/")
-  if (webservice == "schistodb") {
-    ## WTF? There is some weird politics going on here I bet.
-    base_url <- glue::glue("https://{webservice}.net/{service_directory}/webservices/")
-  }
+  base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/webservices/")
   query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
   request_url <- glue::glue("{base_url}{query_string}")
 
@@ -84,7 +92,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
       message("Downloading the https file failed, not all eupathdb services have migrated to https,
 trying http next.")
     }
-    base_url <- glue::glue("http://{webservice}.org/{service_directory}/webservices/")
+    base_url <- glue::glue("http://{webservice}.{tld}/{service_directory}/webservices/")
     query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
     request_url <- glue::glue("{base_url}{query_string}")
     ## retrieve organism metadata from EuPathDB
@@ -104,6 +112,12 @@ trying http next.")
     x[, "value"] })),
     stringsAsFactors=FALSE)
   colnames(dat) <- records[["fields"]][[1]][["name"]]
+
+  ## Once again, this is filling in schisto.org, which is weird.
+  dat <- mutate_if(
+    dat,
+    is.character,
+    stringr::str_replace_all, pattern="SchistoDB.org", replacement="SchistoDB.net")
 
   ## The current version of the database remains 39; but the sourceUrl returned
   ## by the above json query is 40.  As a result, attempted downloads fail due
@@ -308,85 +322,9 @@ trying http next.")
 
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
-    granges_metadata <- valid_metadata %>%
-      dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
-               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-transcript information for {.data[['Taxon']]}"),
-               RDataClass="GRanges",
-               DispatchClass="GRanges",
-               ResourceName=.data[["GrangesPkg"]],
-               RDataPath=.data[["GrangesFile"]])
-    csv_file <- glue::glue("GRanges_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
-    if (file.exists(csv_file)) {
-      readr::write_csv(x=granges_metadata, path=csv_file, append=TRUE)
-    } else {
-      readr::write_csv(x=granges_metadata, path=csv_file, append=FALSE, col_names=TRUE)
-    }
-
-    orgdb_metadata <- valid_metadata %>%
-      dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
-               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-annotations for {.data[['Taxon']]}"),
-               RDataClass="OrgDb",
-               DispatchClass="SQLiteFile",
-               ResourceName=.data[["OrgdbPkg"]],
-               RDataPath=.data[["OrgdbFile"]])
-    csv_file <- glue::glue("OrgDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
-    if (file.exists(csv_file)) {
-      readr::write_csv(x=orgdb_metadata, path=csv_file, append=TRUE)
-    } else {
-      readr::write_csv(x=orgdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
-    }
-
-    txdb_metadata <- valid_metadata %>%
-      dplyr::mutate(
-               Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
-               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Transcript information for {.data[['Taxon']]}"),
-               RDataClass="TxDb",
-               DispatchClass="SQLiteFile",
-               ResourceName=.data[["TxdbPkg"]],
-               RDataPath=.data[["TxdbFile"]])
-    csv_file <- glue::glue("TxDb_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
-    if (file.exists(csv_file)) {
-      readr::write_csv(x=txdb_metadata, path=csv_file, append=TRUE)
-    } else {
-      readr::write_csv(x=txdb_metadata, path=csv_file, append=FALSE, col_names=TRUE)
-    }
-
-    organismdbi_metadata <- valid_metadata %>%
-      dplyr::mutate(
-               Title=glue::glue("Combined information for {.data[['Taxon']]}"),
-               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Combined information for {.data[['Taxon']]}"),
-               RDataClass="OrganismDBI",
-               DispatchClass="SQLiteFile",
-               ResourceName=.data[["OrganismdbiPkg"]],
-               RDataPath=.data[["OrganismdbiFile"]])
-    csv_file <- glue::glue("OrganismDbi_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
-    if (file.exists(csv_file)) {
-      readr::write_csv(x=organismdbi_metadata, path=csv_file, append=TRUE)
-    } else {
-      readr::write_csv(x=organismdbi_metadata, path=csv_file, append=FALSE, col_names=TRUE)
-    }
-
-    bsgenome_metadata <- valid_metadata %>%
-      dplyr::mutate(
-               Title=glue::glue("Genome for {.data[['Taxon']]}"),
-               Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
-Genome for {.data[['Taxon']]}"),
-               RDataClass="BSGenome",
-               DispatchClass="2bit",
-               ResourceName=.data[["BsgenomePkg"]],
-               RDataPath=.data[["BsgenomeFile"]])
-    csv_file <- glue::glue("BSgenome_bioc_v{bioc_version}_eupathdb_v{eupathdb_version}_metadata.csv")
-    if (file.exists(csv_file)) {
-      readr::write_csv(x=bsgenome_metadata, path=csv_file, append=TRUE)
-    } else {
-      readr::write_csv(x=bsgenome_metadata, path=csv_file, append=FALSE, col_names=TRUE)
-    }
+    written <- write_eupath_metadata(valid_metadata, webservice,
+                                     bioc_version, eupathdb_version,
+                                     csv_file)
   }
 
   retlist <- list(

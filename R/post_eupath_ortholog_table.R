@@ -24,7 +24,6 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("We can save some time by reading the savefile.")
       message("Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
@@ -67,7 +66,7 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
     result[["GENE_ID"]] <- NULL
   }
 
-  message("Saving annotations to ", savefile)
+  message("Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }

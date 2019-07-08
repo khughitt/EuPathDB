@@ -15,7 +15,7 @@
 #' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=20) {
+post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
   if (is.null(entry)) {
     stop("This requires a eupathdb entry.")
   }
@@ -25,7 +25,11 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=20) {
   uri_prefix <- prefix_map(provider)
 
   ## construct API query
-  api_uri <- glue::glue("https://{provider}.org/{uri_prefix}/service/answer/report")
+  tld <- "org"
+  if (provider == "schistodb") {
+    tld <- "net"
+  }
+  api_uri <- glue::glue("https://{provider}.{tld}/{uri_prefix}/service/answer/report")
   body <- jsonlite::toJSON(query_body)
   result <- httr::POST(url=api_uri, body=body,
                        httr::content_type("application/json"),
@@ -38,8 +42,6 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=20) {
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
     warning("A minimal amount of content was returned.")
-  } else {
-    message("Downloaded data, parsing now.")
   }
 
   result <- httr::content(result, encoding="UTF-8")

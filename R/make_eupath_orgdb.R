@@ -25,7 +25,7 @@
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
+make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp=TRUE,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
                               copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
                               do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
@@ -124,7 +124,9 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
     kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
                                             flatten=FALSE,
                                             abbreviation=kegg_abbreviation))
-    if (class(kegg_table)[1] == "try-error" | nrow(kegg_table) == 0) {
+    if (class(kegg_table)[1] == "try-error") {
+      kegg_table <- data.frame()
+    } else if ("data.frame" %in% class(kegg_table) & nrow(kegg_table) == 0) {
       kegg_table <- data.frame()
     } else {
       colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
@@ -240,7 +242,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent=TRUE)
   message(sprintf("- Calling makeOrgPackage for %s", entry[["Species"]]))
-  orgdb_path <- try(do.call("makeOrgPackage", orgdb_args))
+  orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
   if (class(orgdb_path) == "try-error") {
     return(NULL)
   }
@@ -248,8 +250,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   ## Fix name in sqlite metadata table
   dbpath <- file.path(
     orgdb_path, "inst", "extdata", sub(".db", ".sqlite", basename(orgdb_path)))
-  message("- Fixing sqlite Orgdb sqlite database ", dbpath)
-
   ## make sqlite database editable
   Sys.chmod(dbpath, mode="0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname=dbpath)
@@ -282,12 +282,15 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL,
   ## And install the resulting package.
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
-  inst <- try(devtools::install(orgdb_path))
-  if (class(inst) != "try-error") {
-    built <- try(devtools::build(orgdb_path, quiet=TRUE))
-    if (class(built) != "try-error") {
-      final_path <- move_final_package(orgdb_path, type="orgdb", dir=dir)
-      final_deleted <- unlink(x=orgdb_path, recursive=TRUE, force=TRUE)
+  if (isTRUE(installp)) {
+    inst <- suppressWarnings(try(devtools::install(orgdb_path)))
+    if (class(inst) != "try-error") {
+      ## I am tired of reading about unportable filenames here, so adding the suppress.
+      built <- try(suppressWarnings(devtools::build(orgdb_path, quiet=TRUE)))
+      if (class(built) != "try-error") {
+        final_path <- move_final_package(orgdb_path, type="orgdb", dir=dir)
+        final_deleted <- unlink(x=orgdb_path, recursive=TRUE, force=TRUE)
+      }
     }
   }
 

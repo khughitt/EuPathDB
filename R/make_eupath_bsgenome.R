@@ -15,7 +15,7 @@
 #' @author atb
 #' @export
 make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FALSE,
-                                 reinstall=FALSE, ...) {
+                                 installp=TRUE, reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
   if (!is.null(arglist[["author"]])) {
@@ -57,7 +57,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
                         perl=TRUE)
   fasta_url <- sub(pattern="\\.gff", replacement="_Genome\\.fasta",
                    x=fasta_starturl)
-  fasta_hostname <- sub(pattern="https://(.*)\\.org.*$",
+  fasta_hostname <- sub(pattern="https://(.*)\\.(org|net).*$",
                         replacement="\\1",
                         x=fasta_start)
   ## genome_filename <- file.path(dir, paste0(pkgname, ".fasta"))
@@ -141,8 +141,10 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
   inst <- NULL
-  if (class(annoying) != "try-error") {
-    inst <- try(devtools::install(pkgname, quiet=TRUE))
+  if (isTRUE(installp)) {
+    if (class(annoying) != "try-error") {
+      inst <- try(devtools::install(pkgname, quiet=TRUE))
+    }
   }
 
   if (isTRUE(copy_s3)) {
