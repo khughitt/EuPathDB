@@ -12,6 +12,7 @@ txdb <- TRUE
 organdb <- FALSE
 granges <- TRUE
 eu_version <- "v44"
+bioc_version <- "v3.9"
 
 returns <- list(
   "bsgenome" = list(),
@@ -22,13 +23,14 @@ returns <- list(
 unlink("*.csv")
 ## Of all the things to parallelize, this should be #1.
 ## Once I work out these other oddities, this will be priority.
-meta <- download_eupath_metadata(bioc_version="3.9", overwrite=TRUE,
+meta <- download_eupath_metadata(bioc_version=bioc_version,
+                                 overwrite=TRUE,
                                  write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
 check_csv <- function(file_type, column) {
-  csv_file <- glue::glue("{file_type}_bioc_eupathdb_v3.9_{eu_version}_metadata.csv")
+  csv_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_metadata.csv")
   table <- readr::read_csv(csv_file)
   files <- table[[column]]
   keepers <- c()
@@ -41,8 +43,8 @@ check_csv <- function(file_type, column) {
     }
   }
   message("Out of ", length(files), " files, ", length(keepers), " were found.")
-  table <- table[keepers, ]
-  readr::write_csv(x=table, path=csv_file)
+  final_table <- table[keepers, ]
+  readr::write_csv(x=final_table, path=csv_file)
   return(length(keepers))
 }
 

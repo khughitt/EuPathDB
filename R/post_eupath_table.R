@@ -17,7 +17,7 @@
 #' @export
 post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
   if (is.null(entry)) {
-    stop("This requires a eupathdb entry.")
+    stop("   This requires a eupathdb entry.")
   }
 
   ## determine appropriate prefix to use
@@ -35,18 +35,21 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
                        httr::content_type("application/json"),
                        httr::timeout(minutes * 60))
   if (result[["status_code"]] == "422") {
-    warning("The provided species does not have a table of weights.")
+    warning("   The provided species does not have a table of weights.")
     return(data.frame())
   } else if (result[["status_code"]] != "200") {
-    warning("An error status code was returned.")
+    warning("   An error status code was returned.")
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
-    warning("A minimal amount of content was returned.")
+    warning("   A minimal amount of content was returned.")
   }
 
   result <- httr::content(result, encoding="UTF-8")
   connection <- textConnection(result)
-  result <- read.delim(connection, sep="\t")
+  ## An attempt to work around EOFs in the data.
+  ##result <- read.delim(connection, sep="\t")
+  result <- read.delim(connection, sep="\t",
+                       quote="", stringsAsFactors=FALSE)
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {
     return(data.frame())

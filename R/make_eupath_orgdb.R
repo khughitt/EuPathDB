@@ -39,7 +39,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
   pkgnames <- get_eupath_pkgnames(entry, version=version)
   pkgname <- pkgnames[["orgdb"]]
   if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
-    message(pkgname, " is already installed, set reinstall=TRUE if you wish to reinstall.")
+    message(" ", pkgname, " is already installed.")
     retlist <- list(
       "orgdb_name" = pkgname)
     return(retlist)
@@ -56,16 +56,16 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     }
   }
 
-  ## I am almoster certain that wrapping these in a try() is no longer necessary.
+  ## I am almost certain that wrapping these in a try() is no longer necessary.
   gene_table <- try(post_eupath_annotations(entry, dir=dir, overwrite=overwrite))
   if (class(gene_table) == "try-error") {
     gene_table <- data.frame()
-    warning("Unable to create an orgdb for this species.")
+    warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
   if (nrow(gene_table) == 0) {
     gene_table <- data.frame()
-    warning("Unable to create an orgdb for this species.")
+    warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
 
@@ -81,7 +81,8 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
   ortholog_table <- data.frame()
   if (isTRUE(do_orthologs)) {
     ortholog_table <- try(post_eupath_ortholog_table(entry=entry, dir=dir,
-                                                     gene_ids=gene_ids, overwrite=overwrite))
+                                                     gene_ids=gene_ids,
+                                                     overwrite=overwrite))
     if (class(ortholog_table)[1] == "try-error") {
       ortholog_table <- data.frame()
     }
@@ -123,7 +124,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
   if (isTRUE(do_kegg)) {
     kegg_table <- try(load_kegg_annotations(species=taxa[["genus_species"]],
                                             flatten=FALSE,
-                                            abbreviation=kegg_abbreviation))
+                                            abbreviation=kegg_abbreviation[1]))
     if (class(kegg_table)[1] == "try-error") {
       kegg_table <- data.frame()
     } else if ("data.frame" %in% class(kegg_table) & nrow(kegg_table) == 0) {
@@ -136,6 +137,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
 
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")
+  chromosome_table[["CHR_ID"]] <- as.factor(chromosome_table[["CHR_ID"]])
   type_table <- gene_table[, c("GID", "ANNOT_GENE_TYPE")]
   colnames(type_table) <- c("GID", "GENE_TYPE")
 
@@ -155,37 +157,37 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
 
   ## add non-empty tables
   if (is.null(go_table)) {
-    message("This should not be possible, but the go table is still null.")
+    message(" This should not be possible, but the go table is still null.")
   } else if (nrow(go_table) > 0) {
     orgdb_args[["go"]] <- go_table
   }
   if (is.null(ortholog_table)) {
-    message("This should not be possible, but the ortholog table is still null.")
+    message(" This should not be possible, but the ortholog table is still null.")
   } else if (nrow(ortholog_table) > 0) {
     orgdb_args[["orthologs"]] <- ortholog_table
   }
   if (is.null(interpro_table)) {
-    message("This should not be possible, but the interpro table is still null.")
+    message(" This should not be possible, but the interpro table is still null.")
   } else if (nrow(interpro_table) > 0) {
     orgdb_args[["interpro"]] <- interpro_table
   }
   if (is.null(pathway_table)) {
-    message("This should not be possible, but the pathway table is still null.")
+    message(" This should not be possible, but the pathway table is still null.")
   } else if (nrow(pathway_table) > 0) {
     orgdb_args[["pathway"]] <- pathway_table
   }
   if (is.null(kegg_table)) {
-    message("This should not be possible, but the kegg table is still null.")
+    message(" This should not be possible, but the kegg table is still null.")
   } else if (nrow(kegg_table) > 0) {
     orgdb_args[["kegg"]] <- kegg_table
   }
   if (is.null(linkout_table)) {
-    message("This should not be possible, but the linkout table is still null.")
+    message(" This should not be possible, but the linkout table is still null.")
   } else if (nrow(linkout_table) > 0) {
     orgdb_args[["linkout"]] <- linkout_table
   }
   if (is.null(pubmed_table)) {
-    message("This should not be possible, but the pubmed table is still null.")
+    message(" This should not be possible, but the pubmed table is still null.")
   } else if (nrow(pubmed_table) > 0) {
     orgdb_args[["pubmed"]] <- pubmed_table
   }
@@ -215,7 +217,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       na_set <- is.na(na_tmp)
       na_tmp[na_set] <- ""
       orgdb_args[[i]] <- na_tmp
-      ## Then remove duplicated elements.
       orgdb_dups <- duplicated(orgdb_args[[i]])
       if (sum(orgdb_dups) > 0) {
         tmp <- orgdb_args[[i]]
@@ -238,11 +239,16 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     message(first_path, " already exists, backing it up.")
     ret <- file.rename(first_path, backup_path)
   }
-
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent=TRUE)
-  message(sprintf("- Calling makeOrgPackage for %s", entry[["Species"]]))
-  orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
+  message(" Calling makeOrgPackage() for ", entry[["Species"]])
+  verbose <- FALSE
+  orgdb_path <- ""
+  if (isTRUE(verbose)) {
+    orgdb_path <- try(do.call("makeOrgPackage", orgdb_args))
+  } else {
+    orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
+  }
   if (class(orgdb_path) == "try-error") {
     return(NULL)
   }
@@ -267,6 +273,10 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
 
   ## Clean up any strangeness in the DESCRIPTION file
   orgdb_path <- clean_pkg(orgdb_path)
+  ## The following 2 lines are only for Tcuzi Esmeraldo-like and NonEsmeraldo-like
+  ## Since writing them, I have improved the logic in make_taxon_names() above,
+  ## I therefore suspect these lines are not necessary.
+  ## FIXME: See if you can remove the following two lines!
   orgdb_path <- clean_pkg(orgdb_path, removal="_", replace="")
   orgdb_path <- clean_pkg(orgdb_path, removal="_like", replace="like")
   testthat::expect_equal(first_path, orgdb_path)
@@ -275,7 +285,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     s3_file <- entry[["OrgdbFile"]]
     copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
     if (isTRUE(copied)) {
-      message("Successfully copied the orgdb sqlite database to the s3 staging directory.")
+      message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
     }
   }
 
@@ -298,7 +308,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
   ## the dimensions of the various tables in the orgdb?
   ## return the path to the sqlite database
   retlist <- list(
-    "orgdb_name" = pkgname
-  )
+    "orgdb_name" = pkgname)
   return(retlist)
 }

@@ -28,7 +28,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
   pkgnames <- get_eupath_pkgnames(entry, version=version)
   pkgname <- pkgnames[["bsgenome"]]
   if (pkgname %in% installed.packages() & !isTRUE(reinstall)) {
-    message(pkgname, " is already installed, set reinstall=TRUE if you wish to reinstall.")
+    message(" ", pkgname, " is already installed.")
     retlist <- list(
       "bsgenome_name" = pkgname
     )
@@ -74,7 +74,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
   input <- Biostrings::readDNAStringSet(genome_filename)
   output_list <- list()
   sequence_names <- "c("
-  message("Writing chromosome files, this is slow for fragmented scaffolds.")
+  message(" Writing chromosome files, this is slow for fragmented scaffolds.")
   show_progress <- interactive() && is.null(getOption("knitr.in.progress"))
   if (isTRUE(show_progress)) {
     bar <- utils::txtProgressBar(style=3)
@@ -133,7 +133,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
   descript$write(description_file)
 
   ## Generate the package, this puts it into the cwd.
-  message("Starting forgeBSgenomeDataPkg().")
+  message(" Calling forgeBSgenomeDataPkg().")
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
@@ -152,7 +152,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
     s3_file <- entry[["BsgenomeFile"]]
     copied <- copy_s3_file(src_dir=source_dir, type="bsgenome", s3_file=s3_file)
     if (isTRUE(copied)) {
-      message("Successfully copied the genome 2bit file to the s3 staging directory.")
+      message(" Successfully copied the genome 2bit file to the s3 staging directory.")
     }
   }
 

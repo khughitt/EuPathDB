@@ -40,9 +40,6 @@ make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL, copy_s
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["GrangesFile"]]
     copied <- copy_s3_file(src_dir=granges_file, type="granges", s3_file=s3_file)
-    if (isTRUE(copied)) {
-      message("Successfully copied the granges rda to the s3 staging directory.")
-    }
   }
 
   ## import.gff3 appears to be opening 2 connections to the gff file, both are read only.

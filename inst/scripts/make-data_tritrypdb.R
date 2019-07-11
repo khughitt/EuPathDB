@@ -67,7 +67,7 @@ for (it in start:end) {
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE)
+    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE, overwrite=TRUE)
     if (is.null(orgdb_result)) {
       message("There is insufficient data for ", species, " to make the other packages.")
       next

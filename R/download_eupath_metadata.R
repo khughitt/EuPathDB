@@ -31,10 +31,11 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     if (isTRUE(write_csv)) {
       message("Writing csv files.")
       written <- write_eupath_metadata(valid_metadata, "eupathdb",
-                                       bioc_version, eupathdb_version,
-                                       csv_file)
+                                       bioc_version, eupathdb_version)
     }
-    return(list("valid" = valid_metadata, "invalid" = invalid_metadata))
+    return(list(
+      "valid" = valid_metadata,
+      "invalid" = invalid_metadata))
   }
 
   if (!file.exists(dir)) {
@@ -323,8 +324,7 @@ trying http next.")
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
     written <- write_eupath_metadata(valid_metadata, webservice,
-                                     bioc_version, eupathdb_version,
-                                     csv_file)
+                                     bioc_version, eupathdb_version)
   }
 
   retlist <- list(

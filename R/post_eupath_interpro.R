@@ -6,7 +6,7 @@
 #' @return  A big honking table.
 post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
-    stop("Need an entry from the eupathdb.")
+    stop("  Need an entry from the eupathdb.")
   }
   rdadir <- file.path(dir, "rda")
   if (!file.exists(rdadir)) {
@@ -17,7 +17,7 @@ post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FAL
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("Delete the file ", savefile, " to regenerate.")
+      message("  Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
       result <- result[["result"]]
@@ -49,7 +49,7 @@ post_eupath_interpro_table <- function(entry=NULL, dir="EuPathDB", overwrite=FAL
   result <- post_eupath_table(query_body, entry, table_name="interpro")
   colnames(result) <- gsub(x=colnames(result), pattern="INTERPRO_INTERPRO",
                            replacement="INTERPRO")
-  message("Saving ", savefile)
+  message("  Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }
