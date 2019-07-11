@@ -58,17 +58,17 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
                        httr::content_type("application/json"),
                        httr::timeout(minutes * 60))
   if (result[["status_code"]] == "422") {
-    warning("The provided species does not have a table of weights.")
+    warning("   The provided species does not have a table of weights.")
     return(data.frame())
   } else if (result[["status_code"]] == "400") {
-    warning("Status 400 was returned, likely a bad formatConfig.")
+    warning("   Status 400 was returned, likely a bad formatConfig.")
   } else if (result[["status_code"]] == "404") {
-    warning("A 404 was returned, check the url: ", api_uri)
+    warning("   A 404 was returned, check the url: ", api_uri)
   } else if (result[["status_code"]] != "200") {
-    warning("An error status code was returned.")
+    warning("   An error status code was returned.")
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
-    warning("A minimal amount of content was returned.")
+    warning("   A minimal amount of content was returned.")
   }
 
   ## Get the content, this will take a while, as the result from eupathdb might
@@ -85,15 +85,15 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
     x=cont, split="\n\n------------------------------------------------------------\n\n")[[1]]
   ## We will read the first entry in order to extract the column names.
   connection <- textConnection(entries[1])
-  entry <- read.delim(connection, sep="\n", header=FALSE)
-  entry[["V1"]] <- as.character(entry[["V1"]])
+  a_row <- read.delim(connection, sep="\n", header=FALSE, quote="", stringsAsFactors=FALSE)
+  a_row[["V1"]] <- as.character(a_row[["V1"]])
   ## My regular expression pattern needs to by greedy in the correct places
   ## because for reasons passing all understanding, some fields have colons inside them...
   mypattern <- "^(.+?\\:) (.+)?$"
   ## If I am going to make column names, I need first to get the first part of
   ## stuff: otherstuff
   regex_column_names <- gsub(pattern=mypattern, replacement="\\1",
-                             x=entry[["V1"]], perl=TRUE)
+                             x=a_row[["V1"]], perl=TRUE)
   ## At least one column is completely nutty, in that it includes return characters inside its data.
   ## 'Cellular localization images:' contains <span>stuff\nstuff\nstuff</span>
   ## which of course causes my read.delim above to think it is three separate columns.
@@ -123,7 +123,7 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
 
   ## Create an empty data frame into which we will dump the text.
   column_names[1] <- "GID"
-  information <- data.frame(row.names=1:length(entries))
+  information <- data.frame(row.names=1:length(entries), stringsAsFactors=FALSE)
   for (col in column_names) {
     new_col <- rep(NA, times=length(entries))
     information <- cbind(information, new_col)
@@ -140,9 +140,15 @@ post_eupath_raw <- function(entry, question="GeneQuestions.GenesByMolecularWeigh
       pct_done <- c / length(entries)
       setTxtProgressBar(bar, pct_done)
     }
-    entry <- read.delim(textConnection(entries[c]), sep="\n", header=FALSE)
-    entry[["V1"]] <- as.character(entry[["V1"]])
-    material <- gsub(pattern=mypattern, replacement="\\2", x=entry[["V1"]])
+    a_row <- read.delim(textConnection(entries[c]), sep="\n", header=FALSE,
+                        quote="", stringsAsFactors=FALSE)
+    a_row[["V1"]] <- as.character(a_row[["V1"]])
+    test_error <- grepl(pattern="\\*\\*\\* ERROR \\*\\*\\*", x=a_row)
+    if (isTRUE(test_error)) {
+      warning("   Downloading the annotation data failed.")
+      next
+    }
+    material <- gsub(pattern=mypattern, replacement="\\2", x=a_row[["V1"]])
     information[c, ] <- material
   }
   if (isTRUE(show_progress)) {

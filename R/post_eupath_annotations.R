@@ -15,7 +15,7 @@
 #' @return  A big honking table.
 post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
-    stop("Need an entry from the eupathdb.")
+    stop("  Need an entry from the eupathdb.")
   }
   rdadir <- file.path(dir, "rda")
   if (!file.exists(rdadir)) {
@@ -26,7 +26,7 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("Delete the file ", savefile, " to regenerate.")
+      message("  Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
       result <- result[["result"]]
@@ -52,6 +52,7 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
                             parameters=parameters, table_name="annot")
   colnames(result) <- tolower(colnames(result))
   colnames(result) <- gsub(x=colnames(result), pattern="annot_annotated", replacement="annot")
+  all_columns <- colnames(result)
   numeric_columns <- c(
     "annot_gene_exon_count",
     "annot_gene_transcript_count",
@@ -71,9 +72,19 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
     "annot_isoelectric_point",
     "annot_five_prime_utr_length",
     "annot_three_prime_utr_length")
-  for (col in numeric_columns) {
-    if (!is.null(result[[col]])) {
-      result[[col]] <- as.numeric(result[[col]])
+  for (col in all_columns) {
+    na_idx <- is.na(result[[col]])
+    if (col %in% numeric_columns) {
+      if (!is.null(result[[col]])) {
+        result[[col]] <- as.numeric(result[[col]])
+      }
+      if (sum(na_idx) > 0) {
+        result[na_idx, col] <- 0
+      }
+    } else {
+      if (sum(na_idx) > 0) {
+        result[na_idx, col] <- ""
+      }
     }
   }
   factor_columns <- c(
@@ -90,7 +101,7 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
   }
   colnames(result) <- toupper(colnames(result))
 
-  message("Saving ", savefile)
+  message("  Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }

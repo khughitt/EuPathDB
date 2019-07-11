@@ -6,7 +6,7 @@
 #' @return A big honking table.
 post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
-    stop("Need a eupathdb entry.")
+    stop("  Need a eupathdb entry.")
   }
   rdadir <- file.path(dir, "rda")
   if (!file.exists(rdadir)) {
@@ -17,7 +17,7 @@ post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALS
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("Delete the file ", savefile, " to regenerate.")
+      message("  Delete the file ", savefile, " to regenerate.")
       result <- new.env()
       load(savefile, envir=result)
       result <- result[["result"]]
@@ -48,7 +48,7 @@ post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALS
                            replacement="PATHWAY_ID")
   colnames(result) <- gsub(x=colnames(result), pattern="PATHWAY_PATHWAY",
                            replacement="PATHWAY")
-  message("Saving ", savefile)
+  message("  Saving ", savefile)
   save(result, file=savefile)
   return(result)
 }

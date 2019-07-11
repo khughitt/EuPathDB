@@ -28,7 +28,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
     downloaded_gff <- try(download.file(url=gff_url, destfile=input_gff,
                             method="curl", quiet=FALSE), silent=TRUE)
     if (class(downloaded_gff)[[1]] == "try-error") {
-      stop("Failed to download the gff file from: ", gff_url, ".")
+      stop(" Failed to download the gff file from: ", gff_url, ".")
     }
   }
 
@@ -39,7 +39,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
   granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
 
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
-    message(pkgname, " is already installed, set reinstall=TRUE if you wish to reinstall.")
+    message(" ", pkgname, " is already installed.")
     retlist <- list(
       "gff" = input_gff,
       "txdb_name" = pkgname)
@@ -113,12 +113,12 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
     "TXDBOBJNAME" = pkgname)
   if (any(duplicated(names(symvals)))) {
     str(symvals)
-    stop("'symvals' contains duplicated symbols")
+    stop(" 'symvals' contains duplicated symbols")
   }
   is_OK <- sapply(symvals, S4Vectors::isSingleString)
   if (!all(is_OK)) {
     bad_syms <- paste(names(is_OK)[!is_OK], collapse=", ")
-    stop("values for symbols ", bad_syms, " are not single strings")
+    stop(" values for symbols ", bad_syms, " are not single strings")
   }
   if (!file.exists(dir)) {
     tt <- dir.create(dir, recursive=TRUE)
@@ -135,7 +135,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
 
   obj <- try(AnnotationDbi::saveDb(txdb, file=db_path))
   if (class(obj) == "try-error") {
-    warning("Failed to save the txdb object.")
+    warning(" Failed to save the txdb object.")
   }
   closed <- try(RSQLite::dbDisconnect(BiocGenerics::dbconn(obj)), silent=TRUE)
 
@@ -148,7 +148,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
     s3_file <- entry[["TxdbFile"]]
     copied <- copy_s3_file(src_dir=db_dir, type="txdb", s3_file=s3_file)
     if (isTRUE(copied)) {
-      message("Successfully copied the txdb sqlite to the s3 staging directory.")
+      message(" Successfully copied the txdb sqlite to the s3 staging directory.")
     }
   }
 

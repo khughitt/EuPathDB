@@ -1,14 +1,23 @@
-
-
+#' Standardize the writing of csv metadata.
+#'
+#' Here is an attempt at making the various written csv files for AnnotationHub
+#' consistent.  I had a problem when filtering the data in which I managed to
+#' reverse the version numbers for bioconductor and eupathdb.  I am very smrt.
+#'
+#' @param valid_metadata Set of metadata which are deemed 'valid.'
+#' @param service EupathDB subproject, or the set of all projects named
+#'   'eupathdb'.
+#' @param bioc_version Version of Bioconductor used for this set of metadata.
+#' @param eu_version Version of the EuPathDB used for this set of metadata.
+#' @return List containing the filenames written.
 write_eupath_metadata <- function(valid_metadata, service,
-                                  bioc_version, eu_version,
-                                  csv_file) {
+                                  bioc_version, eu_version) {
   file_lst <- list(
-    "granges" = glue::glue("GRanges_bioc_{service}_v{bioc_version}_v{eu_version}_metadata.csv"),
-    "orgdb" = glue::glue("OrgDb_bioc_{service}_v{bioc_version}_v{eu_version}_metadata.csv"),
-    "txdb" = glue::glue("TxDb_bioc_{service}_v{bioc_version}_v{eu_version}_metadata.csv"),
-    "organdb" = glue::glue("OrganismDbi_bioc_{service}_v{bioc_version}_v{eu_version}_metadata.csv"),
-    "bsgenome" = glue::glue("BSgenome_bioc_{service}_v{bioc_version}_v{eu_version}_metadata.csv")
+    "granges" = glue::glue("GRanges_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "txdb" = glue::glue("TxDb_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{service}v{eu_version}_metadata.csv")
   )
   granges_metadata <- valid_metadata %>%
     dplyr::mutate(
@@ -19,7 +28,7 @@ transcript information for {.data[['Taxon']]}"),
   DispatchClass="GRanges",
   ResourceName=.data[["GrangesPkg"]],
   RDataPath=.data[["GrangesFile"]])
-  if (file.exists(csv_file)) {
+  if (file.exists(file_lst[["granges"]])) {
     readr::write_csv(x=granges_metadata, path=file_lst[["granges"]],
                      append=TRUE)
   } else {
@@ -36,7 +45,7 @@ annotations for {.data[['Taxon']]}"),
   DispatchClass="SQLiteFile",
   ResourceName=.data[["OrgdbPkg"]],
   RDataPath=.data[["OrgdbFile"]])
-  if (file.exists(csv_file)) {
+  if (file.exists(file_lst[["orgdb"]])) {
     readr::write_csv(x=orgdb_metadata, path=file_lst[["orgdb"]],
                      append=TRUE)
   } else {
@@ -53,7 +62,7 @@ Transcript information for {.data[['Taxon']]}"),
   DispatchClass="SQLiteFile",
   ResourceName=.data[["TxdbPkg"]],
   RDataPath=.data[["TxdbFile"]])
-  if (file.exists(csv_file)) {
+  if (file.exists(file_lst[["txdb"]])) {
     readr::write_csv(x=txdb_metadata, path=file_lst[["txdb"]],
                      append=TRUE)
   } else {
@@ -70,7 +79,7 @@ Combined information for {.data[['Taxon']]}"),
   DispatchClass="SQLiteFile",
   ResourceName=.data[["OrganismdbiPkg"]],
   RDataPath=.data[["OrganismdbiFile"]])
-  if (file.exists(csv_file)) {
+  if (file.exists(file_lst[["organdb"]])) {
     readr::write_csv(x=organismdbi_metadata, path=file_lst[["organdb"]],
                      append=TRUE)
   } else {
@@ -87,7 +96,7 @@ Genome for {.data[['Taxon']]}"),
   DispatchClass="2bit",
   ResourceName=.data[["BsgenomePkg"]],
   RDataPath=.data[["BsgenomeFile"]])
-  if (file.exists(csv_file)) {
+  if (file.exists(file_lst[["bsgenome"]])) {
     readr::write_csv(x=bsgenome_metadata, path=file_lst[["bsgenome"]],
                      append=TRUE)
   } else {
