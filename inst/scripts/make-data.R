@@ -29,25 +29,6 @@ meta <- download_eupath_metadata(bioc_version=bioc_version,
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
-check_csv <- function(file_type, column) {
-  csv_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_metadata.csv")
-  table <- readr::read_csv(csv_file)
-  files <- table[[column]]
-  keepers <- c()
-  for (f in 1:length(files)) {
-    file <- files[f]
-    if (file.exists(file)) {
-      keepers <- c(keepers, f)
-    } else {
-      message("Did not find file: ", file)
-    }
-  }
-  message("Out of ", length(files), " files, ", length(keepers), " were found.")
-  final_table <- table[keepers, ]
-  readr::write_csv(x=final_table, path=csv_file)
-  return(length(keepers))
-}
-
 ## I am going to gently parallelize this.  For perhaps the stupidest reason possible.
 ## Something in import.gff, rsqlite, and bsgenome are not letting go of file handles.
 ## Therefore after a few species this script is doomed to fail.
@@ -122,17 +103,17 @@ for (it in start:end) {
 ##parallel::stopCluster(cl)
 
 if (isTRUE(bsgenome)) {
-  check_csv("BSgenome", "BsgenomeFile")
+  check_csv("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(orgdb)) {
-  check_csv("OrgDb", "OrgdbFile")
+  check_csv("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(txdb)) {
-  check_csv("TxDb", "TxdbFile")
+  check_csv("TxDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(organdb)) {
-  check_csv("OrganismDbi", "OrganismdbiFile")
+  check_csv("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(granges)) {
-  check_csv("GRanges", "GrangesFile")
+  check_csv("GRanges", bioc_version=bioc_version, eu_version=eu_version)
 }
