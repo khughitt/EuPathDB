@@ -28,6 +28,7 @@ BugReports: https://github.com/khughitt/EuPathDB/issues
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Collate:
+ 'check_csv.R'
  'clean_pkg.R'
  'copy_s3_file.R'
  'download_eupath_metadata.R'

@@ -10,14 +10,14 @@
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
 #' @param eu_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.
-write_eupath_metadata <- function(valid_metadata, service,
-                                  bioc_version, eu_version) {
+write_eupath_metadata <- function(valid_metadata, service="eupathdb",
+                                  bioc_version="v3.9", eu_version="44") {
   file_lst <- list(
-    "granges" = glue::glue("GRanges_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
-    "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
-    "txdb" = glue::glue("TxDb_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
-    "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{service}v{eu_version}_metadata.csv"),
-    "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{service}v{eu_version}_metadata.csv")
+    "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "txdb" = glue::glue("TxDb_bioc{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "organdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}v{eu_version}_metadata.csv"),
+    "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}v{eu_version}_metadata.csv")
   )
   granges_metadata <- valid_metadata %>%
     dplyr::mutate(
