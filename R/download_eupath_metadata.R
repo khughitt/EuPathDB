@@ -4,7 +4,7 @@
 #' @param webservice Optional alternative webservice for hard-to-find species.
 #' @param bioc_version Manually set the bioconductor release if desired.
 #' @param dir Where to put the json.
-#' @param version Choose a specific eupathdb version?
+#' @param eu_version Choose a specific eupathdb version?
 #' @param write_csv Write a csv file in the format expected by AnnotationHubData?
 #' @param verbose Print helper message about species matching?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
@@ -12,7 +12,8 @@
 #' @export
 download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      bioc_version=NULL, dir="EuPathDB",
-                                     version=NULL, write_csv=FALSE, verbose=FALSE) {
+                                     eu_version=NULL, write_csv=FALSE,
+                                     verbose=FALSE) {
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
@@ -23,22 +24,23 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     for (p in projects) {
       project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
                                                    bioc_version=bioc_version, dir=dir,
-                                                   version=version, write_csv=FALSE)
+                                                   eu_version=eu_version,
+                                                   write_csv=FALSE)
       valid_metadata <- rbind(valid_metadata, project_metadata[["valid"]])
       invalid_metadata <- rbind(invalid_metadata, project_metadata[["invalid"]])
     }
-    eupathdb_version <- valid_metadata[1, "SourceVersion"]
+    db_version <- valid_metadata[1, "SourceVersion"]
     if (isTRUE(write_csv)) {
       message("Writing csv files.")
       written <- write_eupath_metadata(valid_metadata, "eupathdb",
-                                       bioc_version, eupathdb_version)
+                                       bioc_version, db_version)
     }
     return(list(
       "valid" = valid_metadata,
       "invalid" = invalid_metadata))
   }
 
-  if (!file.exists(dir)) {
+  if (!dir.exists(dir)) {
     dir.create(dir, recursive=TRUE)
   }
 
@@ -48,11 +50,13 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   }
 
   db_version <- NULL
-  if (is.null(version)) {
+  if (is.null(eu_version)) {
     ## One could just as easily choose any of the other eupathdb hosts.
     db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
   } else {
-    db_version <- version
+    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
+    ## eupath_version
   }
   .data <- NULL  ## To satisfy R CMD CHECK
   shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
@@ -120,9 +124,6 @@ trying http next.")
     is.character,
     stringr::str_replace_all, pattern="SchistoDB.org", replacement="SchistoDB.net")
 
-  ## The current version of the database remains 39; but the sourceUrl returned
-  ## by the above json query is 40.  As a result, attempted downloads fail due
-  ## to the mismatch in filenames/directories.
   SourceUrl <- NULL  ## Because I still don't get NSE/SE semantics with mutate()!!
   metadata <- dat %>%
     dplyr::transmute(
@@ -157,19 +158,6 @@ trying http next.")
   ## overide missing taxonomy ids for strains where it can be assigned; ideally
   ## OrgDb and GRanges objects should not depend on taxonomy id information since
   ## this precludes the inclusion of a lot of prokaryotic resources.
-
-  ## I am not sure that this is needed anymore, since I cross reference against ncbi myself now.
-  ## Lets comment this out now and delete later if I am correct.
-  ##known_taxon_ids <- data.frame(
-  ##  species=c("Ordospora colligata OC4",
-  ##            "Trypanosoma cruzi CL Brener Esmeraldo-like",
-  ##            "Trypanosoma cruzi CL Brener Non-Esmeraldo-like"),
-  ##  taxonomy_id=c("1354746", "353153", "353153"),
-  ##  stringsAsFactors=FALSE)
-  ##taxon_mask <- metadata[["Species"]] %in% known_taxon_ids[["species"]]
-  ##ind <- match(metadata[taxon_mask, "Species"], known_taxon_ids[["species"]])
-  ##metadata[taxon_mask, ][["TaxonomyId"]] <- as.character(
-  ##  known_taxon_ids[["taxonomy_id"]][ind])
 
   ## exclude remaining species which are missing taxonomy information from
   ## metadata; cannot construct GRanges/OrgDb instances for them since they are
@@ -277,7 +265,7 @@ trying http next.")
       }
     }
   }
-  eupathdb_version <- metadata[1, "SourceVersion"]
+  db_version <- metadata[1, "SourceVersion"]
   ## A couple changes to try to make the metadata I generate pass
 
   ## An attempt to get as many species from AnnotationHub as possible.
@@ -324,7 +312,7 @@ trying http next.")
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
     written <- write_eupath_metadata(valid_metadata, webservice,
-                                     bioc_version, eupathdb_version)
+                                     bioc_version, db_version)
   }
 
   retlist <- list(

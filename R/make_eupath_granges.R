@@ -7,16 +7,16 @@
 #'
 #' @param entry Metadatum entry.
 #' @param dir Place to put the resulting file(s).
-#' @param version Optionally request a specific version of the gff file.
+#' @param eu_version Optionally request a specific version of the gff file.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
-make_eupath_granges <- function(entry=NULL, dir="EuPathDB", version=NULL, copy_s3=FALSE) {
+make_eupath_granges <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
 
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["txdb"]]
 
   input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))

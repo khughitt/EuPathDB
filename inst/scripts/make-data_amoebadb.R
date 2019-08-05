@@ -1,13 +1,15 @@
 #!/usr/bin/env Rscript
 library(testthat)
 library(EuPathDB)
-library(parallel)
-library(doParallel)
-library(iterators)
-library(foreach)
 
-## This test is intended to work through a query from cparsania
-## https://github.com/khughitt/EuPathDB/issues/5#issuecomment-468121838
+bsgenome <- FALSE
+orgdb <- TRUE
+txdb <- TRUE
+organdb <- FALSE
+granges <- TRUE
+eu_version <- "v42"
+bioc_version <- "v3.9"
+webservice <- "ameobadb"
 
 returns <- list(
   "bsgenome" = list(),
@@ -18,18 +20,12 @@ returns <- list(
 unlink("*.csv")
 ## Of all the things to parallelize, this should be #1.
 ## Once I work out these other oddities, this will be priority.
-meta <- download_eupath_metadata(bioc_version="3.9", overwrite=TRUE,
-                                 webservice="amoebadb", write_csv=TRUE)
+meta <- download_eupath_metadata(
+  bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
+  eu_version=eu_version, write_csv=TRUE)
+
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
-
-## I am going to gently parallelize this.  For perhaps the stupidest reason possible.
-## Something in import.gff, rsqlite, and bsgenome are not letting go of file handles.
-## Therefore after a few species this script is doomed to fail.
-## I am thinking that because parallel pushes the body of the foreach() loop into a separate
-## process, then those descriptors should get released when the child R process closes.
-## I am pretty sure this is the exact _wrong_ reason for parallel programming, but I am not going
-## to spend my time diagnosing problems in rtracklayer, bsgenome, and/or rsqlite.
 
 ## I also had to change /etc/security/limits.conf
 ## *     soft   nofile  81920
@@ -42,15 +38,8 @@ results <- list(
   "organismdbi" = list(),
   "txdb" = list(),
   "granges" = list())
-##cl <- parallel::makeCluster(2)
-##doParallel::registerDoParallel(cl)
 pkglist <- c("EuPathDB", "testthat")
-##res <- foreach(it=1:end, .packages=pkglist) %dopar% {
 
-bsgenome <- FALSE
-orgdb <- TRUE
-txdb <- TRUE
-organdb <- FALSE
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
@@ -98,4 +87,3 @@ for (it in start:end) {
     results[["organismdbi"]] <- organ_result
   }
 } ## End iterating over every entry in the eupathdb metadata.
-##parallel::stopCluster(cl)

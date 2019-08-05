@@ -98,6 +98,10 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
     if (!is.null(result[[col]])) {
       result[[col]] <- as.factor(result[[col]])
     }
+    na_idx <- is.na(result[[col]])
+    if (sum(na_idx) > 0) {
+      result[na_idx, col] <- 0
+    }
   }
   colnames(result) <- toupper(colnames(result))
 

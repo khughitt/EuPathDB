@@ -9,7 +9,7 @@
 #'
 #' @param entry If not provided, then species will get this, it contains all the information.
 #' @param dir Where to put all the various temporary files.
-#' @param version Which version of the eupathdb to use for creating this package?
+#' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
@@ -25,7 +25,7 @@
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp=TRUE,
+make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, installp=TRUE,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
                               copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
                               do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
@@ -36,7 +36,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     entry <- get_eupath_entry(entry)
   }
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["orgdb"]]
   if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -45,7 +45,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     return(retlist)
   }
 
-  if (!file.exists(dir)) {
+  if (!dir.exists(dir)) {
     created <- dir.create(dir, recursive=TRUE)
   }
 
@@ -54,6 +54,36 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     if (length(kegg_abbreviation) == 0) {
       do_kegg <- FALSE
     }
+  }
+
+  remove_table_nas <- function(table, name="annot") {
+    ## At this point, there should be no NA values in the gene_table, there is
+    ## logic in post_eupath_annotations() which should preclude this possibility,
+    ## however this has been proven untrue.
+    ## Therefore, I will here set any remaining NAs to either 0 or "" depending on
+    ## cast.
+    gene_cols <- colnames(table)
+    for (col in 1:length(gene_cols)) {
+      na_idx <- is.na(table[[col]])
+      na_sum <- sum(na_idx)
+      if (na_sum > 0) {
+        column_class <- class(table[[col]])[1]
+        message("I found ", na_sum, " NAs in the ", gene_cols[col],
+  " column of type ", column_class, " from the table: ", name,
+  " table, removing them now.")
+        if (column_class == "character") {
+          table[na_idx, col] <- ""
+        } else if (column_class == "factor") {
+          table[na_idx, col] <- 0
+        } else if (column_class == "numeric") {
+          table[na_idx, col] <- 0
+        } else {
+          ## There should only really be characters, factors, and numbers...
+          table[na_idx, col] <- 0
+        }
+      }
+    }
+    return(table)
   }
 
   ## I am almost certain that wrapping these in a try() is no longer necessary.
@@ -68,6 +98,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
+  gene_table <- remove_table_nas(gene_table, "annot")
 
   go_table <- data.frame()
   if (isTRUE(do_go)) {
@@ -76,6 +107,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       go_table <- data.frame()
     }
   }
+  go_table <- remove_table_nas(go_table, "go")
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
@@ -87,6 +119,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       ortholog_table <- data.frame()
     }
   }
+  ortholog_table <- remove_table_nas(ortholog_table, "ortholog")
 
   linkout_table <- data.frame()
   if (isTRUE(do_linkout)) {
@@ -95,6 +128,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       linkout_table <- data.frame()
     }
   }
+  linkout_table <- remove_table_nas(linkout_table, "linkout")
 
   pubmed_table <- data.frame()
   if (isTRUE(do_pubmed)) {
@@ -103,6 +137,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       pubmed_table <- data.frame()
     }
   }
+  pubmed_table <- remove_table_nas(pubmed_table, "pubmed")
 
   interpro_table <- data.frame()
   if (isTRUE(do_interpro)) {
@@ -111,6 +146,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       interpro_table <- data.frame()
     }
   }
+  interpro_table <- remove_table_nas(interpro_table, "interpro")
 
   pathway_table <- data.frame()
   if (isTRUE(do_pathway)) {
@@ -119,6 +155,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       pathway_table <- data.frame()
     }
   }
+  pathway_table <- remove_table_nas(pathway_table, "pathway")
 
   kegg_table <- data.frame()
   if (isTRUE(do_kegg)) {
@@ -134,6 +171,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
       colnames(kegg_table)[[1]] <- "GID"
     }
   }
+  kegg_table <- remove_table_nas(kegg_table, "kegg")
 
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")
@@ -142,12 +180,12 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", version=NULL, installp
   colnames(type_table) <- c("GID", "GENE_TYPE")
 
   ## Compile list of arguments for makeOrgPackage call
-  version_string <- format(Sys.time(), "%Y.%m")
+  pkg_version_string <- format(Sys.time(), "%Y.%m")
   orgdb_args <- list(
     "gene_info" = gene_table,
     "chromosome" = chromosome_table,
     "type" = type_table,
-    "version" = version_string,
+    "version" = pkg_version_string,
     "author" = entry[["Maintainer"]],
     "maintainer" = entry[["Maintainer"]],
     "tax_id" = as.character(entry[["TaxonomyId"]]),

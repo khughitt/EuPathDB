@@ -20,12 +20,14 @@
 #'   been installed.
 #' @author atb
 #' @export
-get_eupath_pkgnames <- function(entry, version=NULL, column="TaxonUnmodified") {
+get_eupath_pkgnames <- function(entry, eu_version=NULL, column="TaxonUnmodified") {
   species <- entry[[column]]
-  version_string <- glue::glue(".v{entry[['SourceVersion']]}")
-  if (!is.null(version)) {
-    version_string <- glue::glue(".v{version}")
+  version_string <- glue::glue(".{entry[['SourceVersion']]}")
+  if (!is.null(eu_version)) {
+    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    version_string <- glue::glue(".{eu_version}")
   }
+
   provider <- tolower(entry[["DataProvider"]])
   taxa <- make_taxon_names(entry, column=column)
   first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
