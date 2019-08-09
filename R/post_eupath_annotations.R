@@ -52,6 +52,11 @@ post_eupath_annotations <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE)
                             parameters=parameters, table_name="annot")
   colnames(result) <- tolower(colnames(result))
   colnames(result) <- gsub(x=colnames(result), pattern="annot_annotated", replacement="annot")
+  ## Get rid of spurious text in the previous IDs column
+  if (!is.null(result[["annot_gene_previous_ids"]])) {
+    result[["annot_gene_previous_ids"]] <- gsub(pattern="^Previous IDs: ", replacement="",
+                                                x=result[["annot_gene_previous_ids"]])
+  }
   all_columns <- colnames(result)
   numeric_columns <- c(
     "annot_gene_exon_count",

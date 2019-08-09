@@ -33,10 +33,10 @@
 #' @author atb
 #' @export
 load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
-                                   keytype="gid", strand_column="cdsstrand",
-                                   start_column="cdsstart", end_column="cdsend",
-                                   chromosome_column="cdschrom",
-                                   type_column="gene_type", name_column="cdsname",
+                                   keytype="gid", strand_column="annot_cdsstrand",
+                                   start_column="annot_cdsstart", end_column="annot_cdsend",
+                                   chromosome_column="annot_cdschrom",
+                                   type_column="annot_gene_type", name_column="annot_cdsname",
                                    fields=NULL, sum_exon_widths=FALSE) {
   if (is.null(orgdb)) {
     message("Assuming Homo.sapiens.")
@@ -56,6 +56,8 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
   ## Caveat: if fields was NULL, now it is character(0)
   fields <- toupper(fields)
   all_fields <- AnnotationDbi::columns(orgdb)
+  all_idx <- grepl(x=all_fields, pattern="^ANNOT_")
+  all_fields <- all_fields[all_idx]
   chosen_fields <- c()
 
   if (! name_column %in% all_fields) {
@@ -93,19 +95,17 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
                        start_column, end_column, fields)
   }
 
-  if (sum(chosen_fields %in% all_fields) != length(chosen_fields)) {
+  if ("ALL" %in% chosen_fields) {
+    message("Selecting the following fields, this might be too many: \n",
+            toString(all_fields))
+    chosen_fields <- all_fields
+  } else if (sum(chosen_fields %in% all_fields) != length(chosen_fields)) {
     missing_idx <- ! chosen_fields %in% all_fields
     missing_fields <- chosen_fields[missing_idx]
     found_fields <- chosen_fields %in% all_fields
     chosen_fields <- chosen_fields[found_fields]
     message("Some requested columns are not available: ", toString(missing_fields), ".")
     message("The following are available: ", toString(all_fields))
-  }
-
-  if (chosen_fields[1] == "all") {
-    message("Selecting the following fields, this might be too many: \n",
-            toString(all_fields))
-    chosen_fields <- all_fields
   }
 
   ## Gene IDs
