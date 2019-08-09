@@ -107,7 +107,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       go_table <- data.frame()
     }
   }
-  go_table <- remove_table_nas(go_table, "go")
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
@@ -119,7 +118,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       ortholog_table <- data.frame()
     }
   }
-  ortholog_table <- remove_table_nas(ortholog_table, "ortholog")
 
   linkout_table <- data.frame()
   if (isTRUE(do_linkout)) {
@@ -128,7 +126,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       linkout_table <- data.frame()
     }
   }
-  linkout_table <- remove_table_nas(linkout_table, "linkout")
 
   pubmed_table <- data.frame()
   if (isTRUE(do_pubmed)) {
@@ -137,7 +134,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       pubmed_table <- data.frame()
     }
   }
-  pubmed_table <- remove_table_nas(pubmed_table, "pubmed")
 
   interpro_table <- data.frame()
   if (isTRUE(do_interpro)) {
@@ -146,7 +142,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       interpro_table <- data.frame()
     }
   }
-  interpro_table <- remove_table_nas(interpro_table, "interpro")
 
   pathway_table <- data.frame()
   if (isTRUE(do_pathway)) {
@@ -155,7 +150,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       pathway_table <- data.frame()
     }
   }
-  pathway_table <- remove_table_nas(pathway_table, "pathway")
 
   kegg_table <- data.frame()
   if (isTRUE(do_kegg)) {
@@ -171,7 +165,6 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       colnames(kegg_table)[[1]] <- "GID"
     }
   }
-  kegg_table <- remove_table_nas(kegg_table, "kegg")
 
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")

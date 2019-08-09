@@ -14,6 +14,21 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      bioc_version=NULL, dir="EuPathDB",
                                      eu_version=NULL, write_csv=FALSE,
                                      verbose=FALSE) {
+  db_version <- NULL
+  if (is.null(eu_version)) {
+    ## One could just as easily choose any of the other eupathdb hosts.
+    db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
+  } else {
+    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
+    ## eupath_version
+  }
+
+  ## For when releasing a new bioconductor release which I don't yet have.
+  if (is.null(bioc_version)) {
+    bioc_version <- BiocInstaller::biocVersion()
+  }
+
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
@@ -29,7 +44,6 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
       valid_metadata <- rbind(valid_metadata, project_metadata[["valid"]])
       invalid_metadata <- rbind(invalid_metadata, project_metadata[["invalid"]])
     }
-    db_version <- valid_metadata[1, "SourceVersion"]
     if (isTRUE(write_csv)) {
       message("Writing csv files.")
       written <- write_eupath_metadata(valid_metadata, "eupathdb",
@@ -44,20 +58,6 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     dir.create(dir, recursive=TRUE)
   }
 
-  ## For when releasing a new bioconductor release which I don't yet have.
-  if (is.null(bioc_version)) {
-    bioc_version <- BiocInstaller::biocVersion()
-  }
-
-  db_version <- NULL
-  if (is.null(eu_version)) {
-    ## One could just as easily choose any of the other eupathdb hosts.
-    db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
-  } else {
-    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
-    ## eupath_version
-  }
   .data <- NULL  ## To satisfy R CMD CHECK
   shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
   tags <- list(

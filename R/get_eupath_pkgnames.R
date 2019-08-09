@@ -22,7 +22,7 @@
 #' @export
 get_eupath_pkgnames <- function(entry, eu_version=NULL, column="TaxonUnmodified") {
   species <- entry[[column]]
-  version_string <- glue::glue(".{entry[['SourceVersion']]}")
+  version_string <- glue::glue(".v{entry[['SourceVersion']]}")
   if (!is.null(eu_version)) {
     eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
     version_string <- glue::glue(".{eu_version}")
