@@ -1,4 +1,3 @@
-
 #' Generate an EuPathDB organism TxDb package.
 #'
 #' This will hopefully create a txdb package and granges savefile for a single

@@ -1,18 +1,18 @@
 #' Standardize the writing of csv metadata.
 #'
-#' Here is an attempt at making the various written csv files for AnnotationHub
-#' consistent.  I had a problem when filtering the data in which I managed to
-#' reverse the version numbers for bioconductor and eupathdb.  I am very smrt.
+#' This function effectively splits the metadata from a single data frame to a set of
+#' individual files, one for each data type created.
 #'
-#' @param valid_metadata Set of metadata which are deemed 'valid.'
+#' @param metadata Set of metadata.
 #' @param service EupathDB subproject, or the set of all projects named
 #'   'eupathdb'.
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
 #' @param eu_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.
-write_eupath_metadata <- function(valid_metadata, service="eupathdb",
+write_eupath_metadata <- function(metadata, service="eupathdb", type="valid",
                                   bioc_version="v3.9", eu_version="v44") {
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+  bioc_version <- gsub(x=bioc_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   file_lst <- list(
     "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
     "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
@@ -20,7 +20,17 @@ write_eupath_metadata <- function(valid_metadata, service="eupathdb",
     "organdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
     "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}{eu_version}_metadata.csv")
   )
-  granges_metadata <- valid_metadata %>%
+  if (type != "valid") {
+    file_lst <- list(
+      "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "txdb" = glue::glue("TxDb_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "organdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv")
+    )
+  }
+
+  granges_metadata <- metadata %>%
     dplyr::mutate(
              Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -37,7 +47,7 @@ transcript information for {.data[['Taxon']]}"),
                      append=FALSE, col_names=TRUE)
   }
 
-  orgdb_metadata <- valid_metadata %>%
+  orgdb_metadata <- metadata %>%
     dplyr::mutate(
              Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -54,7 +64,7 @@ annotations for {.data[['Taxon']]}"),
                      append=FALSE, col_names=TRUE)
   }
 
-  txdb_metadata <- valid_metadata %>%
+  txdb_metadata <- metadata %>%
     dplyr::mutate(
              Title=glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -71,7 +81,7 @@ Transcript information for {.data[['Taxon']]}"),
                      append=FALSE, col_names=TRUE)
   }
 
-  organismdbi_metadata <- valid_metadata %>%
+  organismdbi_metadata <- metadata %>%
     dplyr::mutate(
              Title=glue::glue("Combined information for {.data[['Taxon']]}"),
              Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -88,7 +98,7 @@ Combined information for {.data[['Taxon']]}"),
                      append=FALSE, col_names=TRUE)
   }
 
-  bsgenome_metadata <- valid_metadata %>%
+  bsgenome_metadata <- metadata %>%
     dplyr::mutate(
              Title=glue::glue("Genome for {.data[['Taxon']]}"),
              Description=glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\

@@ -221,63 +221,20 @@ trying http next.")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
   }
 
-  ## An attempt to get as many species from AnnotationHubData as possible.
-  testing_metadata <- metadata
-  valid_metadata <- data.frame()
-  invalid_metadata <- data.frame()
-  all_valid_species <- AnnotationHubData::getSpeciesList()
-  valid_idx <- testing_metadata[["TaxonUnmodified"]] %in% all_valid_species
-  if (isTRUE(verbose)) {
-    message("Added ", sum(valid_idx), " species without changing anything out of ",
-            nrow(testing_metadata), ".")
-  }
-  if (sum(valid_idx) > 0) {
-    ## Add the stuff which was found to the set of valid entries.
-    valid_metadata <- testing_metadata[which(valid_idx), ]
-    ## Then remove them from the set to be tested.
-    testing_metadata <- testing_metadata[which(!valid_idx), ]
-    ## Set the 'Species' column to taxonunmodified
-    valid_metadata[["Species"]] <- valid_metadata[["TaxonUnmodified"]]
-  }
-  if (isTRUE(verbose)) {
-    message("Now there are: ", nrow(testing_metadata), " rows left.")
-  }
-  valid_idx <- testing_metadata[["Species"]] %in% all_valid_species
-  if (isTRUE(verbose)) {
-    message("Added ", sum(valid_idx), " species after using only the genus species.")
-  }
-  if (sum(valid_idx) > 0) {
-    new_metadata <- testing_metadata[which(valid_idx), ]
-    ## Pull out the new valid entries
-    valid_metadata <- rbind(valid_metadata, new_metadata)
-    ## Add those to the valid metadata.
-    invalid_metadata <- testing_metadata[which(!valid_idx), ]
-    ## Add whatever is left to the set of invalid metadata.
-  } else {
-    invalid_metadata <- testing_metadata
-  }
-  if (nrow(invalid_metadata) > 0) {
-    message("Unable to find species names for ", nrow(invalid_metadata), " species.")
-    message(toString(invalid_metadata[["Species"]]))
-  }
-
-  ## Now do a final check to see what is up with some weirdos which somehow snuck through.
-  valid_idx <- valid_metadata[["Species"]] %in% all_valid_species
-  ## I am going to get a little crazy here.
-  invalid_idx <- ! valid_idx
-  if (sum(invalid_idx) > 0) {
-    warning("How in the flying hell are these still here: ",
-            toString(valid_metadata[invalid_idx, "Species"]), ".")
-  }
-  valid_metadata <- valid_metadata[valid_idx, ]
-
+  taxa_xref <- xref_taxonomy(metadata, verbose=verbose)
+  valid_metadata <- taxa_xref[["matched_metadata"]]
+  invalid_metadata <- taxa_xref[["unmatched_metadata"]]
+  species_xref <- xref_species(valid=valid_metadata, invalid=invalid_metadata,
+                               verbose=verbose)
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
-    written <- write_eupath_metadata(valid_metadata, webservice,
+    written <- write_eupath_metadata(species_xref[["valid"]], webservice,
                                      bioc_version, db_version)
+    invalid_written <- write_eupath_metadata(species_xref[["invalid"]], webservice,
+                                             bioc_version, db_version, type="invalid")
   }
   retlist <- list(
-    "valid" = metadata,
-    "invalid" = invalid_metadata)
+    "valid" = species_xref[["valid"]],
+    "invalid" = species_xref[["invalid"]])
   return(retlist)
 }

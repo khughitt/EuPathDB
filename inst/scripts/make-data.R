@@ -87,18 +87,26 @@ for (it in start:end) {
   }
 } ## End iterating over every entry in the eupathdb metadata.
 
+## check_csv checks each metadata csv file to see that the files exist.
+## check_files checks the list of files in each directory to see that they all have
+## entries in the csv.
 if (isTRUE(bsgenome)) {
   check_csv("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(orgdb)) {
   check_csv("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(txdb)) {
   check_csv("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(organdb)) {
   check_csv("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(granges)) {
   check_csv("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
 }
