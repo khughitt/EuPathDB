@@ -114,7 +114,7 @@ Hmm it appears that something at annotationhub is being updated and all my queri
 returned 403, Forbidden.  I will for the moment stop the following blocks from running.
 
 ```{r 04get_orgdb, eval=FALSE}
-chosen_ah <- res[[2]]
+chosen_ah <- res[[1]]
 chosen_ah
 ```
 
@@ -127,6 +127,7 @@ for working this OrgDb objects, including:
 
 ```{r 05query_major_columns, eval=FALSE}
 # list available fields to retrieve
+orgdb <- chosen_ah
 columns(orgdb)
 
 # create a vector containing all gene ids for the organism
@@ -164,7 +165,7 @@ res <- query(ah, c("Leishmania major strain Friedlin", "GRanges", "EuPathDB"))
 res
 
 # retrieve a GRanges instance associated with the result record
-gr <- res[[3]]
+gr <- res[[1]]
 summary(gr)
 head(gr)
 ```

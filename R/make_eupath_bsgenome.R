@@ -5,13 +5,14 @@
 #' genome package.  I should probably use some of the logic from this to make
 #' the organismdbi generator smarter.
 #'
-#' @param entry  Single eupathdb metadata entry.
+#' @param entry Single eupathdb metadata entry.
 #' @param eu_version Which version of the eupathdb to use for creating the BSGenome?
-#' @param dir  Working directory.
+#' @param dir Working directory.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
-#' @param reinstall  Rewrite an existing package directory.
+#' @param installp Install the resulting package?
+#' @param reinstall Rewrite an existing package directory.
 #' @param ... Extra arguments for downloading metadata when not provided.
-#' @return  List of package names generated (only 1).
+#' @return List of package names generated (only 1).
 #' @author atb
 #' @export
 make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3=FALSE,

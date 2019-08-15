@@ -8,16 +8,17 @@
 #' @param entry A row from the eupathdb metadataframe.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param dir Directory in which to build the packages.
+#' @param installp Install the resulting package?
 #' @param reinstall Overwrite existing data files?
-#' @param kegg_abbreviation  For when we cannot automagically find the kegg species id.
+#' @param kegg_abbreviation For when we cannot automagically find the kegg species id.
 #' @param exclude_join I had a harebrained idea to automatically set up the
 #'   joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
 #'   variable is intended to exclude columns with common IDs that might
 #'   multi-match spuriously -- I think in the end I killed the idea though,
 #'   perhaps this should be removed or resurrected.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
-#' @return  The result of attempting to install the organismDbi package.
-#' @author  Keith Hughitt, modified by atb.
+#' @return The result of attempting to install the organismDbi package.
+#' @author Keith Hughitt, modified by atb.
 #' @export
 make_eupath_organismdbi <- function(entry=NULL, eu_version=NULL, dir="EuPathDB", installp=TRUE,
                                     reinstall=FALSE, kegg_abbreviation=NULL,

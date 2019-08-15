@@ -1,40 +1,12 @@
 #!/usr/bin/env Rscript
-library(testthat)
-devtools::load_all("~/scratch/git/EuPathDB")
-bsgenome <- FALSE
-orgdb <- TRUE
-txdb <- TRUE
-organdb <- FALSE
-granges <- TRUE
-eu_version <- "v42"
-bioc_version <- "v3.9"
+source("config.R")
 webservice <- "eupathdb"
-
-returns <- list(
-  "bsgenome" = list(),
-  "orgdb" = list(),
-  "txdb" = list(),
-  "organismdbi" = list(),
-  "granges" = list())
-unlink("*.csv")
-## Of all the things to parallelize, this should be #1.
-## Once I work out these other oddities, this will be priority.
 meta <- download_eupath_metadata(
   bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
   verbose=TRUE, eu_version=eu_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
-## I also had to change /etc/security/limits.conf
-## *     soft   nofile  81920
-## *     hard   nofile  409600
-
-results <- list(
-  "bsgenome" = list(),
-  "orgdb" = list(),
-  "organismdbi" = list(),
-  "txdb" = list(),
-  "granges" = list())
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
@@ -91,22 +63,37 @@ for (it in start:end) {
 ## check_files checks the list of files in each directory to see that they all have
 ## entries in the csv.
 if (isTRUE(bsgenome)) {
-  check_csv("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
-  check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  bs_csv <- check_csv(file_type="BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  bs_files <- check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", bs_csv)
+  file.copy(bs_csv, csv_copy_path)
+  bs_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), bs_csv)
 }
 if (isTRUE(orgdb)) {
-  check_csv("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
-  check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  org_csv <- check_csv(file_type="OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  org_files <- check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", org_csv)
+  file.copy(org_csv, csv_copy_path)
+  org_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), org_csv)
 }
 if (isTRUE(txdb)) {
-  check_csv("TxDb", bioc_version=bioc_version, eu_version=eu_version)
-  check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  txdb_csv <- check_csv(file_type="TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  tx_files <- check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", txdb_csv)
+  file.copy(txdb_csv, csv_copy_path)
+  tx_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), txdb_csv)
 }
 if (isTRUE(organdb)) {
-  check_csv("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
-  check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+  organ_csv <- check_csv(file_type="OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+  organ_files <- check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+  csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", organ_csv)
+  file.copy(organ_csv, csv_copy_path)
+  organ_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), organ_csv)
 }
 if (isTRUE(granges)) {
-  check_csv("GRanges", bioc_version=bioc_version, eu_version=eu_version)
-  check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  grange_csv <- check_csv(file_type="GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  grange_files <- check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", grange_csv)
+  file.copy(grange_csv, csv_copy_path)
+  grange_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), grange_csv)
 }

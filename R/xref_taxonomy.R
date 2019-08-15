@@ -12,6 +12,7 @@
 #' do and do not match GenomeInfoDb.
 #'
 #' @param metadata Information provided by downloading the metadata from a eupathdb sub project.
+#' @param verbose Print some information about what is found as this runs?
 #' @return List containing entries which pass and fail after xrefing against loadTaxonomyDb().
 xref_taxonomy <- function(metadata, verbose=FALSE) {
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
@@ -19,6 +20,8 @@ xref_taxonomy <- function(metadata, verbose=FALSE) {
   unmatched_idx <- c()
 
   for (it in 1:nrow(metadata)) {
+    metadatum <- metadata[it, ]
+    species_info <- make_taxon_names(metadatum, column="Species")
     if (is.na(metadata[it, "TaxonomyId"])) {
       ## First identify genera in all_taxa_ids which are shared with this entry.
       found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
@@ -82,7 +85,7 @@ xref_taxonomy <- function(metadata, verbose=FALSE) {
   ## At this point, the lengths of my matched idx and unmatched idx should be
   ## equal to the number of entries in the original metadata.
   total_idx <- length(matched_idx) + length(unmatched_idx)
-  expect_equal(nrow(metadata), total_idx)
+  testthat::expect_equal(nrow(metadata), total_idx)
   matched_metadata <- metadata[matched_idx, ]
   unmatched_metadata <- metadata[unmatched_idx, ]
   retlist <- list(

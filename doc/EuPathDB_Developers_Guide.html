@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -94,7 +95,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -335,68 +336,72 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">sessionInfo</span>()</a></code></pre></div>
 <pre><code>## R version 3.6.0 (2019-04-26)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Devuan GNU/Linux beowulf/ceres
+## Running under: Debian GNU/Linux bullseye/sid
 ## 
 ## Matrix products: default
-## BLAS:   /usr/lib/x86_64-linux-gnu/openblas/libblas.so.3
-## LAPACK: /usr/lib/x86_64-linux-gnu/libopenblasp-r0.3.5.so
+## BLAS:   /sw/local/R/3.6.0/lib/R/lib/libRblas.so
+## LAPACK: /sw/local/R/3.6.0/lib/R/lib/libRlapack.so
 ## 
 ## locale:
-##  [1] LC_CTYPE=en_US.utf8       LC_NUMERIC=C             
-##  [3] LC_TIME=en_US.utf8        LC_COLLATE=en_US.utf8    
-##  [5] LC_MONETARY=en_US.utf8    LC_MESSAGES=en_US.utf8   
-##  [7] LC_PAPER=en_US.utf8       LC_NAME=C                
-##  [9] LC_ADDRESS=C              LC_TELEPHONE=C           
-## [11] LC_MEASUREMENT=en_US.utf8 LC_IDENTIFICATION=C      
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
 ## [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] EuPathDB_1.5.0         AnnotationHub_2.16.0   BiocFileCache_1.8.0   
-##  [4] dbplyr_1.4.0           GenomeInfoDbData_1.2.1 GenomicRanges_1.36.0  
-##  [7] GenomeInfoDb_1.20.0    IRanges_2.18.0         S4Vectors_0.22.0      
+##  [1] EuPathDB_1.6.0         AnnotationHub_2.16.0   BiocFileCache_1.8.0   
+##  [4] dbplyr_1.4.2           GenomeInfoDbData_1.2.1 GenomicRanges_1.36.0  
+##  [7] GenomeInfoDb_1.20.0    IRanges_2.18.1         S4Vectors_0.22.0      
 ## [10] Biobase_2.44.0         BiocGenerics_0.30.0    BiocStyle_2.12.0      
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.1                    prettyunits_1.0.2            
-##  [3] ps_1.3.0                      foreach_1.4.4                
-##  [5] assertthat_0.2.1              rprojroot_1.3-2              
-##  [7] digest_0.6.19                 mime_0.6                     
-##  [9] R6_2.4.0                      backports_1.1.4              
-## [11] RSQLite_2.1.1                 evaluate_0.13                
-## [13] httr_1.4.0                    pillar_1.4.0                 
-## [15] zlibbioc_1.30.0               rlang_0.3.4                  
-## [17] curl_3.3                      data.table_1.12.2            
-## [19] callr_3.2.0                   blob_1.1.1                   
-## [21] rmarkdown_1.12                desc_1.2.0                   
-## [23] devtools_2.0.2                stringr_1.4.0                
-## [25] RCurl_1.95-4.12               bit_1.1-14                   
-## [27] shiny_1.3.2                   compiler_3.6.0               
-## [29] httpuv_1.5.1                  xfun_0.7                     
-## [31] pkgconfig_2.0.2               pkgbuild_1.0.3               
-## [33] htmltools_0.3.6               tidyselect_0.2.5             
-## [35] tibble_2.1.1                  interactiveDisplayBase_1.22.0
-## [37] codetools_0.2-16              crayon_1.3.4                 
-## [39] dplyr_0.8.1                   withr_2.1.2                  
-## [41] later_0.8.0                   bitops_1.0-6                 
-## [43] rappdirs_0.3.1                jsonlite_1.6                 
-## [45] xtable_1.8-4                  DBI_1.0.0                    
-## [47] magrittr_1.5                  cli_1.1.0                    
-## [49] stringi_1.4.3                 XVector_0.24.0               
-## [51] fs_1.3.1                      promises_1.0.1               
-## [53] remotes_2.0.4                 testthat_2.1.1               
-## [55] xml2_1.2.0                    iterators_1.0.10             
-## [57] tools_3.6.0                   bit64_0.9-7                  
-## [59] glue_1.3.1                    purrr_0.3.2                  
-## [61] processx_3.3.1                pkgload_1.0.2                
-## [63] yaml_2.2.0                    AnnotationDbi_1.46.0         
-## [65] BiocManager_1.30.4            sessioninfo_1.1.1            
-## [67] rvest_0.3.4                   memoise_1.1.0                
-## [69] knitr_1.23                    usethis_1.5.0</code></pre>
+##  [1] httr_1.4.1                    pkgload_1.0.2                
+##  [3] bit64_0.9-7                   jsonlite_1.6                 
+##  [5] foreach_1.4.7                 shiny_1.3.2                  
+##  [7] assertthat_0.2.1              interactiveDisplayBase_1.22.0
+##  [9] BiocManager_1.30.4            blob_1.2.0                   
+## [11] yaml_2.2.0                    remotes_2.1.0                
+## [13] sessioninfo_1.1.1             pillar_1.4.2                 
+## [15] RSQLite_2.1.2                 backports_1.1.4              
+## [17] glue_1.3.1                    digest_0.6.20                
+## [19] promises_1.0.1                XVector_0.24.0               
+## [21] rvest_0.3.4                   htmltools_0.3.6              
+## [23] httpuv_1.5.1                  pkgconfig_2.0.2              
+## [25] devtools_2.1.0                zlibbioc_1.30.0              
+## [27] purrr_0.3.2                   xtable_1.8-4                 
+## [29] processx_3.4.1                later_0.8.0                  
+## [31] tibble_2.1.3                  usethis_1.5.1                
+## [33] withr_2.1.2                   cli_1.1.0                    
+## [35] magrittr_1.5                  crayon_1.3.4                 
+## [37] mime_0.7                      memoise_1.1.0                
+## [39] evaluate_0.14                 ps_1.3.0                     
+## [41] fs_1.3.1                      xml2_1.2.2                   
+## [43] pkgbuild_1.0.4                tools_3.6.0                  
+## [45] data.table_1.12.2             prettyunits_1.0.2            
+## [47] stringr_1.4.0                 AnnotationDbi_1.46.0         
+## [49] callr_3.3.1                   compiler_3.6.0               
+## [51] rlang_0.4.0                   RCurl_1.95-4.12              
+## [53] iterators_1.0.12              rappdirs_0.3.1               
+## [55] bitops_1.0-6                  rmarkdown_1.14               
+## [57] testthat_2.2.1                codetools_0.2-16             
+## [59] DBI_1.0.0                     curl_4.0                     
+## [61] R6_2.4.0                      knitr_1.24                   
+## [63] dplyr_0.8.3                   bit_1.1-14                   
+## [65] zeallot_0.1.0                 rprojroot_1.3-2              
+## [67] desc_1.2.0                    stringi_1.4.3                
+## [69] Rcpp_1.0.2                    vctrs_0.2.0                  
+## [71] tidyselect_0.2.5              xfun_0.8</code></pre>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

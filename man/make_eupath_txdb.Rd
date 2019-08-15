@@ -4,7 +4,7 @@
 \alias{make_eupath_txdb}
 \title{Generate an EuPathDB organism TxDb package.}
 \usage{
-make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
+make_eupath_txdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
   reinstall = FALSE, installp = TRUE, copy_s3 = FALSE)
 }
 \arguments{
@@ -12,9 +12,11 @@ make_eupath_txdb(entry = NULL, dir = "EuPathDB", version = NULL,
 
 \item{dir}{Base directory for building the package.}
 
-\item{version}{Which version of the eupathdb to use for creating this package?}
+\item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
 \item{reinstall}{Overwrite an existing installed package?}
+
+\item{installp}{Install the resulting package?}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }

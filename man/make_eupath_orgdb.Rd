@@ -4,7 +4,7 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
+make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
   installp = TRUE, kegg_abbreviation = NULL, reinstall = FALSE,
   overwrite = FALSE, copy_s3 = FALSE, do_go = TRUE,
   do_orthologs = TRUE, do_interpro = TRUE, do_linkout = TRUE,
@@ -15,7 +15,7 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", version = NULL,
 
 \item{dir}{Where to put all the various temporary files.}
 
-\item{version}{Which version of the eupathdb to use for creating this package?}
+\item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
 \item{kegg_abbreviation}{If known, provide the kegg abbreviation.}
 

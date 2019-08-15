@@ -13,7 +13,7 @@
 #' far thanks to the hash character in the strain definition.
 #'
 #' @param entry A metadatum entry.
-#' @param version Choose a specific version of the eupathdb, only really useful
+#' @param eu_version Choose a specific version of the eupathdb, only really useful
 #'   when downloading files.
 #' @param column Which column to query to get the species name?
 #' @return List of package names and some booleans to see if they have already

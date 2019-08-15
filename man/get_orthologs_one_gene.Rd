@@ -14,6 +14,9 @@ get_orthologs_one_gene(entry = NULL, gene = "LmjF.01.0010",
 \item{gene}{What gene to query?}
 
 \item{dir}{Where to put the checkpoint file?}
+
+\item{species_list}{When provided, use this to subset the possible species
+for ortholog queries, otherwise grab them all.}
 }
 \value{
 table of orthologs for our one gene.

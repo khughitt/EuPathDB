@@ -26,7 +26,8 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
 
   ## For when releasing a new bioconductor release which I don't yet have.
   if (is.null(bioc_version)) {
-    bioc_version <- BiocInstaller::biocVersion()
+    ##bioc_version <- BiocInstaller::biocVersion()
+    bioc_version <- BiocManager::version()
   }
 
   ## Get EuPathDB version (same for all databases)
@@ -222,14 +223,13 @@ trying http next.")
   }
 
   taxa_xref <- xref_taxonomy(metadata, verbose=verbose)
-  valid_metadata <- taxa_xref[["matched_metadata"]]
-  invalid_metadata <- taxa_xref[["unmatched_metadata"]]
-  species_xref <- xref_species(valid=valid_metadata, invalid=invalid_metadata,
+  species_xref <- xref_species(valid=taxa_xref[["matched_metadata"]],
+                               invalid=taxa_xref[["unmatched_metadata"]],
                                verbose=verbose)
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
     written <- write_eupath_metadata(species_xref[["valid"]], webservice,
-                                     bioc_version, db_version)
+                                     bioc_version, db_version, type="valid")
     invalid_written <- write_eupath_metadata(species_xref[["invalid"]], webservice,
                                              bioc_version, db_version, type="invalid")
   }

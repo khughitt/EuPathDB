@@ -58,7 +58,7 @@ If one is creating bsgenomes, then the number of open files may quickly pass the
 of 1024 imposed by most linux systems.  This will prove more than a little annoying, therefore
 you will very much want to do something like this:
 
-```{bash ulimit}
+```{bash ulimit, eval=FALSE}
 ulimit -HSn 4096  ## If you can do it, make this number higher.
 ## On my host, I added the following to /etc/security/limits.conf
 ## *     soft   nofile  81920
@@ -68,10 +68,9 @@ ulimit -HSn 4096  ## If you can do it, make this number higher.
 
 ```{r 01example_install}
 library(EuPathDB)
-## Note that some but not all web services have moved to https...
-## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
 
-sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
+## Ask for the version 42 data from fungidb for species with 'cerevisiae' in the name.
+sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb", eu_version="v42")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 ```
@@ -82,8 +81,8 @@ Now that we have the canonical name for yeast from fungidb, we can
 create a fresh orgdb package.  I will not actually run this for the vignette
 because it takes a long time and prints a lot to screen.
 
-```{r 02pkg, eval=FALSE}
-orgdb_pkg <- make_eupath_orgdb(sc_entry, reinstall=TRUE)
+```{r 02pkg}
+orgdb_pkg <- make_eupath_orgdb(sc_entry)
 txdb_pkg <- make_eupath_txdb(sc_entry)
 bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
 organ_pkg <- make_eupath_organismdbi(sc_entry)
@@ -92,20 +91,13 @@ organ_pkg <- make_eupath_organismdbi(sc_entry)
 You will have to trust that the above worked in my R session and installed for
 me packages named:
 
-1.  OrgDB: org.Scerevisiae.v43.eg.db
-2.  OrganismDBI: fungidb.Saccharomyces.cerevisiae.v43
-3.  TxDB: TxDb.Saccharomyces.cerevisiae.FungiDB.v43
-4.  BSgenome: BSGenome.Saccharomyces.cerevisiae.v43
-5.  GRanges: An rda file named GRanges.Saccharomyces.cerevisiae.v43.rda
+1.  OrgDB: org.Scerevisiae.S288c.v42.eg.db
+2.  OrganismDBI: fungidb.Saccharomyces.cerevisiae.S288c.v42
+3.  TxDB: TxDb.Saccharomyces.cerevisiae.S288c.FungiDB.v42
+4.  BSgenome: BSGenome.Saccharomyces.cerevisiae.S288c.v42
+5.  GRanges: An rda file named GRanges.Saccharomyces.cerevisiae.S288c.v42.rda
 
 As the names suggest, these were derived from fungidb.org revision 43.
-
-### Another example from the tritrypdb
-
-```{r 03lmajor, eval=FALSE}
-lm_entry <- get_eupath_entry(species="Friedlin", webservice="tritrypdb")
-lm_orgdb <- make_eupath_orgdb(lm_entry, reinstall=TRUE)
-```
 
 ## Extracting annotation data
 
@@ -127,7 +119,8 @@ sc_orgdb
 
 ## Now get the set of available columns from it:
 library(sc_orgdb, character=TRUE)
-avail_columns <- AnnotationDbi::columns(get0(sc_orgdb))
+pkg <- get0(sc_orgdb)
+avail_columns <- AnnotationDbi::columns(pkg)
 head(avail_columns)
 ## There are lots of columns!
 length(avail_columns)
@@ -137,15 +130,14 @@ The EuPathDB provides quite an astonishing field of information.  When creating
 the OrgDB packages, I prefixed column names of the various data types as follows:
 
 1.  ANNOT: The primary annotations.  This includes a wide variety of information
-
-from descriptions to number of transmembrane domains.
+    from descriptions to number of transmembrane domains.
 2.  GO: The Gene Ontology table.
-3.  INTERPRO: Interpro data from the eupathdb.
-4.  KEGGREST: Cross-references KEGG data using the R KEGGREST package.
-5.  PATHWAY: Pathway data from the eupathdb.
-
-Still missing from this is the Link out data to the set of papers referencing
-each gene.
+3.  ORTHOLOGS: COGs among EuPathDB species.
+4.  LINKOUT: Linkout entries provided by the EuPathDB.
+5.  INTERPRO: Interpro data from the eupathdb.
+6.  KEGGREST: Cross-references KEGG data using the R KEGGREST package.
+7.  PATHWAY: Pathway data from the eupathdb.
+8.  PUBMED: Pubmed entries related to each gene.
 
 ### Extracting data from a package
 
@@ -155,6 +147,128 @@ AnnotationDbi interface.  Here are a few examples.
 The load_orgdb_annotation() and load_orgdb_go() are simply wrapper around
 AnnotationDbi in order to fill in the various arguments and more quickly return
 annotation of likely interest.
+
+#### Full column list
+
+1.   gid: The Gene ID
+2.   annot_gene_name: Usually the genecard abbreviation for the gene.
+3.   annot_gene_type: Type of annotation, primarily 'protein coding'.
+4.   annot_cds: Raw coding sequence.
+5.   annot_cds_length: Length of the coding sequence. (oh, this is floating point now, that should be fixed)
+6.   annot_chromosome: Chromosome for this gene.
+7.   annot_ec_numbers: Enzyme Comission classification.
+8.   annot_ec_numbers_derived: EuPathDB defined EC.
+9.   annot_exon_count: Number of exons in this gene.
+10.  annot_five_prime_utr_length: Annotated length of the 5' UTR.
+11.  annot_gene_entrez_id: Cross reference ID to NCBI.
+12.  annot_gene_hts_nonsyn_syn_ratio: Ratio of known SNPs which result in synonymous mutations vs. non-synonymous mutations.
+13.  annot_gene_hts_nonsynonymous_snps: SNPs observed in this gene which make mutations that change the primary amino acid sequence.
+14.  annot_gene_hts_stop_codon_snps: SNPs observed in this gene which cause stop codons.
+15.  annot_gene_hts_synonymous_snps: SNPs observed in this gene which make mutations that do not change the primary amino acid sequence.
+16.  annot_gene_location_text: Textual encoding of the gene's location.
+17.  annot_gene_ortholog_number: Number of orthologs calculated by the eupathdb for this gene.
+18.  annot_gene_orthomcl_name: Name of the COG group calculated by the eupathdb.
+19.  annot_gene_paralog_number: Number of paralogs calculated by the eupathdb for this gene.
+20.  annot_gene_previous_ids: When gene IDs change in the eupathdb, the old IDs are recorded here.
+21.  annot_gene_product: Text description of the product of this gene.
+22.  annot_gene_source_id: ID of the source record for this gene.
+23.  annot_gene_total_hts_snps: Total number of SNPs observed for this gene.
+24.  annot_gene_transcript_count: How many transcripts are known for this gene?
+25.  annot_go_component: GO CC annotation.
+26.  annot_go_function: GO MF annotation.
+27.  annot_go_id_component: GO CC IDs, semicolon separated.
+28.  annot_go_id_function: GO MF IDs, semicolon separated.
+29.  annot_go_id_process: GO BP IDs, semicolon separated.
+30.  annot_go_process: GO BP annotation.
+31.  annot_has_missing_transcripts: Are there transcripts which are incomplete for this gene?
+32.  annot_interpro_description: InterPro description(s) for this gene.
+33.  annot_interpro_id: InterPro IDs or this gene.
+34.  annot_is_pseudo: Is this a pseudogene?
+35.  annot_isoelectric_point: Calculated isoelectric point of the product protein.
+36.  annot_location_text: Essentially a repeat of #16 above, odd.
+37.  annot_matched_result: I don't know what this is, I will filter it out soon.
+38.  annot_molecular_weight: Dalton weight of the protein product.
+39.  annot_organism: Redundant column telling what organism this is, it should be filtered.
+40.  annot_pfam_description: pFam annotations from the eupathdb.
+41.  annot_pfam_id: pFam IDs from eupathdb.
+42.  annot_pirsf_description: PIRSF annotations from the eupathdb.
+43.  annot_pirsf_id: PIRSF IDs from the eupathdb.
+44.  annot_predicted_go_component: CC annotation from Blast2GO provided by the eupathdb.
+45.  annot_predicted_go_function: MF annotation from Blast2GO provided by the eupathdb.
+46.  annot_predicted_go_id_component: CC IDs from Blast2GO from the eupathdb.
+47.  annot_predicted_go_id_function: MF IDs from Blast2GO.
+48.  annot_predicted_go_id_process: BP IDs from Blast2GO.
+49.  annot_predicted_go_process: BP annotations from Blast2GO.
+50.  annot_project_id: Name of the service, it should be filtered.
+51.  annot_prositeprofiles_description: Description from Prosite.
+52.  annot_prositeprofiles_id: ID from Prosite.
+53.  annot_protein_length: CDS length above / 3.
+54.  annot_protein_sequence:  Primary amino acid sequence for this entry.
+55.  annot_sequence_id: I think this might be the chromosome ID?
+56.  annot_signalp_peptide: List of hits provided by signalP.
+57.  annot_signalp_scores: List of scores provided by signalP.
+58.  annot_smart_description: Descriptions provided by http://smart.embl-heidelberg.de/
+59.  annot_smart_id: Corresponding IDs from SMART.
+60.  annot_source_id: I think this one is also redundant.
+61.  annot_strand: forward/reverse?
+62.  annot_superfamily_description: Description provided by superfamily.
+63.  annot_superfamily_id: ID provided by superfamily.
+64.  annot_three_prime_utr_length: UTR following the CDS.
+65.  annot_tigrfam_description: Description provided by TIGRfam.
+66.  annot_tigrfam_id: IDs provided by TIGRfam.
+67.  annot_tm_count: Number of transmembrane domains annotated for this.
+68.  annot_trans_found_per_gene_internal: TM domains annotated inside the cell.
+69.  annot_transcript_index_per_gene: I need to look this up.
+70.  annot_transcript_length: Length from start to stop.
+71.  annot_transcript_link: I think this should be filtered.
+72.  annot_transcript_product: Text description for this transcript.
+73.  annot_transcript_sequence: Primary sequence from start to stop.
+74.  annot_transcripts_per_gene: How many annotated transcripts does this gene have?
+75.  annot_uniprot_id: UniProt database ID.
+76.  annot_wdk_weight: This should be filtered.
+77.  chr_id: Chromosome for each gene.
+78.  go_evidence_code: From the GO table, evidence codes, one entry/row.
+79.  go_id: GO ID, one entry/row.
+80.  go_is_not: Uncertain, likely should be filtered.
+81.  go_ontology: MF/BP/CC
+82.  go_reference: I don't recall.
+83.  go_sort_key: This should be filtered.
+84.  go_source: GO source code for each annotation.
+85.  go_support_for_evidence_code_assignment: Evidence code for each annotation.
+86.  go_term_name: Text name for each GO annotation.
+87.  go_transcript_id_s: This should be filtered I think.
+88.  interpro_description: From the INTERPRO table, descriptions, one entry/row.
+89.  interpro_e_value: E-value provided by interpro.
+90.  interpro_end_min: Score from interpro.
+91.  interpro_id: IDs from interpro, one entry/row.
+92.  interpro_name: Names for each family from interpro.
+93.  interpro_primary_id: Interpro primary IDs.
+94.  interpro_secondary_id: Interpro secondary IDs.
+95.  interpro_start_min: Unsure.
+96.  interpro_transcript_id_s: Transcripts associated with each interpro ID.
+97.  keggrest_kegg_geneid: KEGGREST table IDs from KEGG.
+98.  keggrest_ncbi_geneid: KEGGREST table IDs from NCBI.
+99.  keggrest_ncbi_proteinid: KEGGREST protein IDs.
+100. keggrest_pathways: pathway IDs from KEGG.
+101. keggrest_uniprotid: crossreferencing kegg to uniprot.
+102. linkout_database: Linkout ID type, table of 1 entry/row.
+103. linkout_ext_id: ID in the external linkout database.
+104. linkout_source_id: Corresponding linkout ID.
+105. orthologs_gid: gene ID in the orthologs table, one row/entry.
+106. orthologs_organism: Species ID for this entry.
+107. orthologs_product: Name of this ortholog group's product.
+108. orthologs_syntenic: Are these genes syntenic in their locations?
+109. pathway_ec_number_matched_in_pathway: The EC numbers in the pathway table, 1 record/row.
+110. pathway_exact_ec_number_match: Do the EC numbers match?
+111. pathway_expasy_url: Link to the pathway entry.
+112. pathway_id: ID for this particular entry.
+113. pathway_reactions_matching_ec_number: what it says on the tin.
+114. pathway_source: Not sure.
+115. pathway_source_id: Also not sure.
+116. pubmed_authors: Authors of each paper/gene in pubmed, 1 paper/row.
+117. pubmed_doi: DOI entries for the various papers.
+118. pubmed_id: NCBI IDs for the papers.
+119. pubmed_title: Title for each paper by gene.
 
 ```{r 05extract_data}
 ## The columns which begin with strings like 'PATHWAY' or 'INTERPRO' are actually separate
@@ -189,17 +303,6 @@ chosen_columns_idx <- grepl(x=avail_columns, pattern="^PATHWAY")
 chosen_columns <- avail_columns[chosen_columns_idx]
 sc_path <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
 head(sc_path)
-## Pathway data for Crithidia!
-
-## This does not work for the moment because of some oddities with
-## the various tables at the eupathdb.  I have an email query with them
-## regarding it.
-##chosen_columns_idx <- grepl(x=avail_columns, pattern="^ORTHOLOG")
-##chosen_columns <- avail_columns[chosen_columns_idx]
-##chosen_columns <- c(chosen_columns, "ORGANISM")
-##crit_ortho <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
-##head(crit_ortho)
-## Orthologs!
 ```
 
 ### Shortcut methods
@@ -211,9 +314,8 @@ substring is not unique, this should show the matches and choose the first.
 
 ```{r 06shortcuts}
 ## The function load_eupath_annotations() provides a shortcut to the above.
-major_annot <- load_eupath_annotations(species="major")
-dim(major_annot)
-## This provides the same information as the results of the select up above.
+sc_annot <- load_eupath_annotations(species="S288c", eu_version="v42", webservice="fungidb")
+dim(sc_annot)
 ```
 
 ### Shortcut orthologs
@@ -222,19 +324,11 @@ A task I find myself needing to do fairly often is to get the set of genes
 orthologous to a given gene.  There are lots of methods to handle this question;
 one of them includes the nice table provided by the eupathdb.  Let us query that.
 
-```{r 07orthologs, eval=FALSE}
-## A recent EuPathDB update makes it possible to use the 'OrthologsLite' table rather than
-## Orthologs, which is much faster (by like 1000x), but I am quickly realizing much more
-## limited in the information it returns, and only exists for a subset of the eupathdb
-## projects.  As a result, I might just drop its usage and force the much slower queries
-## to the more complete table...
-major_entry <- get_eupath_entry(species="major", webservice="tritrypdb")
-major_pkg <- get_eupath_pkgnames(major_entry)
-major_orgdb <- major_pkg$orgdb
-lm_ortho <- extract_eupath_orthologs(major_orgdb)
-dim(lm_ortho)
-head(lm_ortho)
-summary(lm_ortho)
+```{r 07orthologs}
+sc_ortho <- extract_eupath_orthologs(sc_orgdb)
+dim(sc_ortho)
+head(sc_ortho)
+summary(sc_ortho)
 ```
 
 # Session Information

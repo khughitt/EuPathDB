@@ -4,13 +4,16 @@
 \alias{write_eupath_metadata}
 \title{Standardize the writing of csv metadata.}
 \usage{
-write_eupath_metadata(valid_metadata, service, bioc_version, eu_version)
+write_eupath_metadata(metadata, service = "eupathdb", type = "valid",
+  bioc_version = "v3.9", eu_version = "v44")
 }
 \arguments{
-\item{valid_metadata}{Set of metadata which are deemed 'valid.'}
+\item{metadata}{Set of metadata.}
 
 \item{service}{EupathDB subproject, or the set of all projects named
 'eupathdb'.}
+
+\item{type}{Either valid or invalid, defines the final output filenames.}
 
 \item{bioc_version}{Version of Bioconductor used for this set of metadata.}
 
@@ -20,7 +23,6 @@ write_eupath_metadata(valid_metadata, service, bioc_version, eu_version)
 List containing the filenames written.
 }
 \description{
-Here is an attempt at making the various written csv files for AnnotationHub
-consistent.  I had a problem when filtering the data in which I managed to
-reverse the version numbers for bioconductor and eupathdb.  I am very smrt.
+This function effectively splits the metadata from a single data frame to a set of
+individual files, one for each data type created.
 }
