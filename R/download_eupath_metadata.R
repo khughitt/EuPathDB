@@ -183,7 +183,6 @@ trying http next.")
   ## Also double-check the taxon IDs
   db_version <- metadata[1, "SourceVersion"]
   ## A couple changes to try to make the metadata I generate pass
-  all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
     ## In most invocations of make_taxon_names and get_eupath_pkgnames,
@@ -220,54 +219,6 @@ trying http next.")
     metadata[it, "Taxon"] <- gsub(x=species_info[["taxon"]],
                                   pattern="\\.", replacement=" ")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
-    ## Ohhhh I get it genomeInfoDb and eupathdb have different definitions of strain vs. species.
-    ## Therefore the original logic here was essentially backwards.
-    ## I flipped and removed the original.
-    ## The upshot: now the genomeInfoDb genus_species is the canonical species in the metadata.
-    ## Crap in a hat, not all taxonomy IDs are defined.
-    ## So the previous logic was actually required.
-    ## okok, some but not all are NA.  So check for NA and go in the opposite direction
-    ## in those cases.
-    if (is.na(metadata[it, "TaxonomyId"])) {
-      found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
-      if (length(found_genus_taxa_idx) > 0) {
-        subset_taxa <- all_taxa_ids[found_genus_taxa_idx, ]
-        found_species_taxa_idx <- which(subset_taxa[["species"]] %in% species_info[["species"]])
-        if (length(found_species_taxa_idx) > 0) {
-          taxa_ids <- subset_taxa[found_species_taxa_idx, ]
-          taxon_id <- taxa_ids[1, "tax_id"]
-          if (isTRUE(verbose)) {
-            message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, "Species"], ".")
-          }
-          metadata[it, "TaxonomyId"] <- taxon_id
-        } else {
-          message("Did not find a taxonomy id for ", metadata[it, "Species"], ".")
-        }
-      } else {
-        message("Did not find a genus id for ", metadata[it, "Species"], ".")
-      }
-    } else {
-      id_idx <- all_taxa_ids[["tax_id"]] == metadata[it, "TaxonomyId"]
-      if (sum(id_idx) == 0) {
-        ## No taxonomy ID was found, not sure yet what to do here.
-        ## We will want to search the taxonomy ID using genus/species.
-      } else if (sum(id_idx) == 1) {
-        ## There is a successful match, do nothing.
-        id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
-        if (isTRUE(verbose)) {
-          message("Successful match for metadata: ", metadata[it, "TaxonUnmodified"], "\n",
-                  "             vs. genomeinfodb: ", id_gs)
-        }
-        metadata[it, "Species"] <- id_gs
-      } else {
-        id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
-        if (isTRUE(verbose)) {
-          message("More than 1 match for metadata: ", metadata[it, "TaxonUnmodified"], "\n",
-                  "             vs. genomeinfodb: ", id_gs)
-        }
-        metadata[it, "Species"] <- id_gs[1]
-      }
-    }
   }
 
   ## An attempt to get as many species from AnnotationHubData as possible.
