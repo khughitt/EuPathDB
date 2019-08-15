@@ -28,8 +28,14 @@ results <- list(
   "organismdbi" = list(),
   "txdb" = list(),
   "granges" = list())
-start <- 1
-for (it in start:end) {
+evens <- c()
+for (i in 1:nrow(all_metadata)) {
+  if (i %% 2 == 0) {
+    evens <- c(evens, i)
+  }
+}
+
+for (it in evens) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
