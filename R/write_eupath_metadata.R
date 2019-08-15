@@ -12,6 +12,7 @@
 #' @return List containing the filenames written.
 write_eupath_metadata <- function(valid_metadata, service="eupathdb",
                                   bioc_version="v3.9", eu_version="v44") {
+  eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   file_lst <- list(
     "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
     "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),

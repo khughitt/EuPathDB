@@ -68,7 +68,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
       na_sum <- sum(na_idx)
       if (na_sum > 0) {
         column_class <- class(table[[col]])[1]
-        message("I found ", na_sum, " NAs in the ", gene_cols[col],
+        message("    I found ", na_sum, " NAs in the ", gene_cols[col],
   " column of type ", column_class, " from the table: ", name,
   " table, removing them now.")
         if (column_class == "character") {

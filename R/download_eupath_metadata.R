@@ -176,11 +176,13 @@ trying http next.")
   metadata[["OrganismdbiPkg"]] <- ""
   metadata[["OrgdbPkg"]] <- ""
   metadata[["TxdbPkg"]] <- ""
-  metadata[["Strain"]] <- ""
   metadata[["Taxon"]] <- ""
   metadata[["Genus"]] <- ""
   metadata[["Sp"]] <- ""
+  metadata[["Strain"]] <- ""
   ## Also double-check the taxon IDs
+  db_version <- metadata[1, "SourceVersion"]
+  ## A couple changes to try to make the metadata I generate pass
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
@@ -213,6 +215,8 @@ trying http next.")
     metadata[it, "Species"] <- gsub(x=species_info[["genus_species"]],
                                     pattern="\\.", replacement=" ")
     metadata[it, "Strain"] <- species_info[["strain"]]
+    metadata[it, "Genus"] <- species_info[["genus"]]
+    metadata[it, "Sp"] <- species_info[["species"]]
     metadata[it, "Taxon"] <- gsub(x=species_info[["taxon"]],
                                   pattern="\\.", replacement=" ")
     metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
@@ -265,10 +269,8 @@ trying http next.")
       }
     }
   }
-  db_version <- metadata[1, "SourceVersion"]
-  ## A couple changes to try to make the metadata I generate pass
 
-  ## An attempt to get as many species from AnnotationHub as possible.
+  ## An attempt to get as many species from AnnotationHubData as possible.
   testing_metadata <- metadata
   valid_metadata <- data.frame()
   invalid_metadata <- data.frame()
@@ -301,20 +303,28 @@ trying http next.")
     invalid_metadata <- testing_metadata[which(!valid_idx), ]
     ## Add whatever is left to the set of invalid metadata.
   } else {
-    invalid_metadata <- testing_metadata[which(!valid_idx), ]
+    invalid_metadata <- testing_metadata
   }
-
   if (nrow(invalid_metadata) > 0) {
     message("Unable to find species names for ", nrow(invalid_metadata), " species.")
     message(toString(invalid_metadata[["Species"]]))
   }
+
+  ## Now do a final check to see what is up with some weirdos which somehow snuck through.
+  valid_idx <- valid_metadata[["Species"]] %in% all_valid_species
+  ## I am going to get a little crazy here.
+  invalid_idx <- ! valid_idx
+  if (sum(invalid_idx) > 0) {
+    warning("How in the flying hell are these still here: ",
+            toString(valid_metadata[invalid_idx, "Species"]), ".")
+  }
+  valid_metadata <- valid_metadata[valid_idx, ]
 
   if (isTRUE(write_csv)) {
     message("Writing csv files.")
     written <- write_eupath_metadata(valid_metadata, webservice,
                                      bioc_version, db_version)
   }
-
   retlist <- list(
     "valid" = metadata,
     "invalid" = invalid_metadata)

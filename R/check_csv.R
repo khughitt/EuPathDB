@@ -10,8 +10,10 @@
 check_csv <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44") {
   column <- stringr::str_to_title(file_type)
   column <- glue::glue("{column}File")
+  eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   csv_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_metadata.csv")
   failed_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_failed_metadata.csv")
+  final_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_final_metadata.csv")
   table <- readr::read_csv(csv_file)
   files <- table[[column]]
   keepers <- c()
@@ -27,9 +29,19 @@ check_csv <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44") 
   }
   message("Out of ", length(files), " ", file_type, " ",
           " files, ", length(keepers), " were found.")
-  final_table <- table[keepers, ]
-  readr::write_csv(x=final_table, path=csv_file)
+  kept_table <- table[keepers, ]
   failed_table <- table[failed, ]
-  readr::write_csv(x=failed_table, path=failed_file)
-  return(length(keepers))
+  ## Do one more check for weirdo entries not in AnnotationHubData::getSpeciesList()
+  all_valid_species <- AnnotationHubData::getSpeciesList()
+  valid_idx <- kept_table[["Species"]] %in% all_valid_species
+  message("There remain ", sum(!valid_idx), " problematic species.")
+  final_table <- kept_table[valid_idx, ]
+  failed_tale <- rbind(failed_table, kept_table[!valid_idx, ])
+  message("Removing species: ", toString(kept_table[!valid_idx, "Species"]))
+
+  written <- readr::write_csv(x=final_table, path=final_file)
+  failed_written <- readr::write_csv(x=failed_table, path=failed_file)
+  file.remove(csv_file)
+  file.rename(final_file, csv_file)
+  return(nrow(final_table))
 }
