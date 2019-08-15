@@ -7,7 +7,7 @@
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
 #' @param verbose Talk while running?
-#' @param destination
+#' @param destination Place to put non-matched files.
 #' @export
 check_files <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44",
                         verbose=TRUE, destination=NULL) {

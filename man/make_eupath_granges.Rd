@@ -4,15 +4,15 @@
 \alias{make_eupath_granges}
 \title{Generate a GRanges rda savefile from a gff file.}
 \usage{
-make_eupath_granges(entry = NULL, dir = "EuPathDB", version = NULL,
-  copy_s3 = FALSE)
+make_eupath_granges(entry = NULL, dir = "EuPathDB",
+  eu_version = NULL, copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{Metadatum entry.}
 
 \item{dir}{Place to put the resulting file(s).}
 
-\item{version}{Optionally request a specific version of the gff file.}
+\item{eu_version}{Optionally request a specific version of the gff file.}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }

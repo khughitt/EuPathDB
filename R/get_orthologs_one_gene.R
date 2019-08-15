@@ -7,6 +7,8 @@
 #' @param entry Metadata entry.
 #' @param gene What gene to query?
 #' @param dir Where to put the checkpoint file?
+#' @param species_list When provided, use this to subset the possible species
+#'   for ortholog queries, otherwise grab them all.
 #' @return table of orthologs for our one gene.
 get_orthologs_one_gene <- function(entry=NULL, gene="LmjF.01.0010",
                                    dir="EuPathDB", species_list=NULL) {

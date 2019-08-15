@@ -4,12 +4,13 @@
 \alias{get_eupath_pkgnames}
 \title{Generate standardized package names for the various eupathdb species.}
 \usage{
-get_eupath_pkgnames(entry, version = NULL, column = "TaxonUnmodified")
+get_eupath_pkgnames(entry, eu_version = NULL,
+  column = "TaxonUnmodified")
 }
 \arguments{
 \item{entry}{A metadatum entry.}
 
-\item{version}{Choose a specific version of the eupathdb, only really useful
+\item{eu_version}{Choose a specific version of the eupathdb, only really useful
 when downloading files.}
 
 \item{column}{Which column to query to get the species name?}

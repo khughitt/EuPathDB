@@ -1,13 +1,13 @@
 #' Use the post interface to get ortholog data.
 #'
-#' Unfortunately, this function more often then not leads to a crash of the
-#' eupathdb webservers.  As a result, I wrote a GET version of this which
-#' iterates one gene at a time.
+#' The folks at the EuPathDB kindly implemented the table 'OrthologsLite'
+#' which makes it possible for me to use this function without trouble.
 #'
 #' @param entry The full annotation entry.
 #' @param dir Location to which to save an intermediate savefile.
 #' @param table This defaults to the 'OrthologsLite' table, but that does not
 #'   exist at all eupathdb subprojects.
+#' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
 post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="OrthologsLite",

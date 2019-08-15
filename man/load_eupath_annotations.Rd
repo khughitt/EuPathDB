@@ -5,14 +5,14 @@
 \title{Shortcut for loading annotation data from a eupathdb-based orgdb.}
 \usage{
 load_eupath_annotations(species = "Leishmania major",
-  webservice = "tritrypdb", version = NULL, wanted_fields = NULL)
+  webservice = "tritrypdb", eu_version = NULL, wanted_fields = NULL)
 }
 \arguments{
 \item{species}{String containing a unique portion of the desired species.}
 
 \item{webservice}{Which eupath webservice is desired?}
 
-\item{version}{Gather data from a specific eupathdb version?}
+\item{eu_version}{Gather data from a specific eupathdb version?}
 
 \item{wanted_fields}{If not provided, this will gather all columns starting
 with 'annot'.}

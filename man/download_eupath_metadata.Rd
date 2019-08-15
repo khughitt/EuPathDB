@@ -5,7 +5,7 @@
 \title{Returns metadata for all eupathdb organisms.}
 \usage{
 download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
-  bioc_version = NULL, dir = "EuPathDB", version = NULL,
+  bioc_version = NULL, dir = "EuPathDB", eu_version = NULL,
   write_csv = FALSE, verbose = FALSE)
 }
 \arguments{
@@ -17,7 +17,7 @@ download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
 
 \item{dir}{Where to put the json.}
 
-\item{version}{Choose a specific eupathdb version?}
+\item{eu_version}{Choose a specific eupathdb version?}
 
 \item{write_csv}{Write a csv file in the format expected by AnnotationHubData?}
 

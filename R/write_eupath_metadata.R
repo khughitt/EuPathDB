@@ -6,6 +6,7 @@
 #' @param metadata Set of metadata.
 #' @param service EupathDB subproject, or the set of all projects named
 #'   'eupathdb'.
+#' @param type Either valid or invalid, defines the final output filenames.
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
 #' @param eu_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.

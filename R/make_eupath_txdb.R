@@ -4,10 +4,11 @@
 #' species in the eupathdb.  This depends pretty much entirely on the successful
 #' download of a gff file from the eupathdb.
 #'
-#' @param entry  One row from the organism metadata.
-#' @param eu_version  Which version of the eupathdb to use for creating this package?
-#' @param dir  Base directory for building the package.
-#' @param reinstall  Overwrite an existing installed package?
+#' @param entry One row from the organism metadata.
+#' @param dir Base directory for building the package.
+#' @param eu_version Which version of the eupathdb to use for creating this package?
+#' @param reinstall Overwrite an existing installed package?
+#' @param installp Install the resulting package?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.

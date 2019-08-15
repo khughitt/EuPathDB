@@ -1,5 +1,7 @@
 #' Query ortholog tables from the eupathdb one gene at a time.
 #'
+#' Deprecated.  I think this is no longer needed.
+#'
 #' Querying the full ortholog table at eupathdb.org fails mysteriously.
 #' This is a horrible brute-force approach to get around this.
 #'
@@ -7,6 +9,8 @@
 #' @param dir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
 #' @param overwrite Overwrite the savefile?
+#' @param species_list When provided, use this to subset the possible species
+#'   for ortholog queries, otherwise grab them all.
 #' @export
 get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL,
                                     overwrite=TRUE, species_list=NULL) {
@@ -64,35 +68,13 @@ get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL,
     species_list <- orgs[1:first_none - 1]
   }
 
-  ##savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
-  ##if (file.exists(savefile)) {
-  ##  if (isTRUE(overwrite)) {
-  ##    removed <- file.remove(savefile)
-  ##  } else {
-  ##    message("Delete the file ", savefile, " to regenerate.")
-  ##    all_orthologs <- new.env()
-  ##    load(savefile, envir=all_orthologs)
-  ##    all_orthologs <- all_orthologs[["savelist"]]
-  ##    return(all_orthologs)
-  ##  }
-  ##}
-
   all_orthologs <- data.table::data.table()
   message("Downloading orthologs one gene at a time. Checkpointing if it fails.")
   ##ortho_savefile <- file.path(rdadir, glue::glue("ortho_checkpoint_{entry[['Genome']]}.rda"))
   savelist <- list(
     "number_finished" = 0,
     "all_orthologs" = all_orthologs)
-  ##if (file.exists(ortho_savefile)) {
-  ##  ortho_progress <- new.env()
-  ##  load(ortho_savefile, envir=ortho_progress)
-  ##  savelist <- ortho_progress[["savelist"]]
-  ##  all_orthologs <- savelist[["all_orthologs"]]
-  ##} else {
-  ##  save(savelist, file=ortho_savefile)
-  ##}
-  ##current_gene <- savelist[["number_finished"]] + 1
-  ##show_progress <- interactive() && is.null(getOption("knitr.in.progress"))
+  show_progress <- interactive() && is.null(getOption("knitr.in.progress"))
   current_gene <- 1
   if (isTRUE(show_progress)) {
     bar <- utils::txtProgressBar(style=3)
@@ -107,11 +89,6 @@ get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL,
 
     orthos <- get_orthologs_one_gene(entry=entry, gene=gene, species_list=species_list)
     all_orthologs <- rbind(all_orthologs, orthos)
-    ## message("Downloading: ", gene, " ", i, "/", length(gene_ids),
-    ##         ", and checkpointing to ", ortho_savefile)
-    ##savelist[["all_orthologs"]] <- all_orthologs
-    ##savelist[["number_finished"]] <- i
-    ##save(savelist, file=ortho_savefile)
   }
   if (isTRUE(show_progress)) {
     close(bar)
@@ -127,7 +104,5 @@ get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL,
                                           x=all_orthologs[["ORTHOLOG_URL"]])
   all_orthologs[["ORTHOLOG_ORGANISM"]] <- as.factor(all_orthologs[["ORTHOLOG_ORGANISM"]])
 
-  message("Saving ", savefile)
-  save(all_orthologs, file=savefile)
   return(all_orthologs)
 }

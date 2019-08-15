@@ -15,8 +15,14 @@ get_orthologs_all_genes(entry = NULL, dir = "EuPathDB",
 \item{gene_ids}{List of gene IDs to query.}
 
 \item{overwrite}{Overwrite the savefile?}
+
+\item{species_list}{When provided, use this to subset the possible species
+for ortholog queries, otherwise grab them all.}
 }
 \description{
+Deprecated.  I think this is no longer needed.
+}
+\details{
 Querying the full ortholog table at eupathdb.org fails mysteriously.
 This is a horrible brute-force approach to get around this.
 }
