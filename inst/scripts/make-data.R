@@ -1,18 +1,14 @@
 #!/usr/bin/env Rscript
 library(testthat)
-library(EuPathDB)
-library(parallel)
-library(doParallel)
-library(iterators)
-library(foreach)
-
+devtools::load_all("~/scratch/git/EuPathDB")
 bsgenome <- FALSE
 orgdb <- TRUE
 txdb <- TRUE
 organdb <- FALSE
 granges <- TRUE
-eu_version <- "v44"
+eu_version <- "v42"
 bioc_version <- "v3.9"
+webservice <- "eupathdb"
 
 returns <- list(
   "bsgenome" = list(),
@@ -23,36 +19,22 @@ returns <- list(
 unlink("*.csv")
 ## Of all the things to parallelize, this should be #1.
 ## Once I work out these other oddities, this will be priority.
-meta <- download_eupath_metadata(bioc_version=bioc_version,
-                                 overwrite=TRUE,
-                                 write_csv=TRUE)
+meta <- download_eupath_metadata(
+  bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
+  verbose=TRUE, eu_version=eu_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
-
-## I am going to gently parallelize this.  For perhaps the stupidest reason possible.
-## Something in import.gff, rsqlite, and bsgenome are not letting go of file handles.
-## Therefore after a few species this script is doomed to fail.
-## I am thinking that because parallel pushes the body of the foreach() loop into a separate
-## process, then those descriptors should get released when the child R process closes.
-## I am pretty sure this is the exact _wrong_ reason for parallel programming, but I am not going
-## to spend my time diagnosing problems in rtracklayer, bsgenome, and/or rsqlite.
 
 ## I also had to change /etc/security/limits.conf
 ## *     soft   nofile  81920
 ## *     hard   nofile  409600
 
-res <- NULL
 results <- list(
   "bsgenome" = list(),
   "orgdb" = list(),
   "organismdbi" = list(),
   "txdb" = list(),
   "granges" = list())
-##cl <- parallel::makeCluster(2)
-##doParallel::registerDoParallel(cl)
-pkglist <- c("EuPathDB", "testthat")
-##res <- foreach(it=1:end, .packages=pkglist) %dopar% {
-
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
@@ -60,7 +42,7 @@ for (it in start:end) {
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
   pkgnames <- get_eupath_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, copy_s3=TRUE)
+    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version, copy_s3=TRUE)
     expected <- "bsgenome_name"
     actual <- names(bsgenome_result)
     testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
@@ -69,29 +51,33 @@ for (it in start:end) {
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE)
+    orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the other packages.")
-      next
+      message("There is insufficient data for ", species, " to make the OrgDB.")
+    } else {
+      actual <- orgdb_result[["orgdb_name"]]
+      expected <- pkgnames[["orgdb"]]
+      test_that("Does make_eupath_orgdb return something sensible?", {
+        expect_equal(expected, actual)
+      })
+      results[["orgdb"]][[species]] <- orgdb_result
     }
-    actual <- orgdb_result[["orgdb_name"]]
-    expected <- pkgnames[["orgdb"]]
-    test_that("Does make_eupath_orgdb return something sensible?", {
-      expect_equal(expected, actual)
-    })
-    results[["orgdb"]][[species]] <- orgdb_result
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupath_txdb(entry, copy_s3=TRUE)
-    actual <- txdb_result[["txdb_name"]]
-    expected <- pkgnames[["txdb"]]
-    test_that("Does make_eupath_txdb return something sensible?", {
-      expect_equal(expected, actual)
-    })
-    results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
+    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    if (is.null(txdb_result)) {
+      message("Unable to create the txdb package.")
+    } else {
+      actual <- txdb_result[["txdb_name"]]
+      expected <- pkgnames[["txdb"]]
+      test_that("Does make_eupath_txdb return something sensible?", {
+        expect_equal(expected, actual)
+      })
+      results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
+    }
   }
   if (isTRUE(organdb)) {
-    organ_result <- make_eupath_organismdbi(entry, copy_s3=TRUE)
+    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
     actual <- organ_result[["organdb_name"]]
     expected <- pkgnames[["organismdbi"]]
     test_that("Does make_eupath_organismdbi return something sensible?", {
@@ -100,20 +86,27 @@ for (it in start:end) {
     results[["organismdbi"]] <- organ_result
   }
 } ## End iterating over every entry in the eupathdb metadata.
-##parallel::stopCluster(cl)
 
+## check_csv checks each metadata csv file to see that the files exist.
+## check_files checks the list of files in each directory to see that they all have
+## entries in the csv.
 if (isTRUE(bsgenome)) {
   check_csv("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(orgdb)) {
   check_csv("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(txdb)) {
   check_csv("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(organdb)) {
   check_csv("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
 }
 if (isTRUE(granges)) {
   check_csv("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
 }

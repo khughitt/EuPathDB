@@ -6,7 +6,7 @@
 #' couple columns from the orgdb, txdb, GO.db, and reactome.db.
 #'
 #' @param entry A row from the eupathdb metadataframe.
-#' @param version Which version of the eupathdb to use for creating this package?
+#' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param dir Directory in which to build the packages.
 #' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation  For when we cannot automagically find the kegg species id.
@@ -19,14 +19,14 @@
 #' @return  The result of attempting to install the organismDbi package.
 #' @author  Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", installp=TRUE,
+make_eupath_organismdbi <- function(entry=NULL, eu_version=NULL, dir="EuPathDB", installp=TRUE,
                                     reinstall=FALSE, kegg_abbreviation=NULL,
                                     exclude_join="ENTREZID", copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["organismdbi"]]
   if (isTRUE(pkgnames[["organismdbi_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -36,12 +36,12 @@ make_eupath_organismdbi <- function(entry=NULL, version=NULL, dir="EuPathDB", in
   }
   orgdb_name <- pkgnames[["orgdb"]]
   txdb_name <- pkgnames[["txdb"]]
-  orgdb_ret <- make_eupath_orgdb(entry, version=version, dir=dir,
+  orgdb_ret <- make_eupath_orgdb(entry, eu_version=eu_version, dir=dir,
                                  kegg_abbreviation=kegg_abbreviation, reinstall=reinstall)
   if (is.null(orgdb_ret)) {
     return(NULL)
   }
-  txdb_ret <- make_eupath_txdb(entry, version=version, dir=dir, reinstall=reinstall)
+  txdb_ret <- make_eupath_txdb(entry, eu_version=eu_version, dir=dir, reinstall=reinstall)
   if (is.null(txdb_ret)) {
     return(NULL)
   }

@@ -5,39 +5,25 @@
 #' download of a gff file from the eupathdb.
 #'
 #' @param entry  One row from the organism metadata.
-#' @param version  Which version of the eupathdb to use for creating this package?
+#' @param eu_version  Which version of the eupathdb to use for creating this package?
 #' @param dir  Base directory for building the package.
 #' @param reinstall  Overwrite an existing installed package?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall=FALSE,
+make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinstall=FALSE,
                              installp=TRUE, copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
 
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["txdb"]]
 
   input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
-  if (!file.exists(input_gff)) {
-    gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
-    downloaded_gff <- try(download.file(url=gff_url, destfile=input_gff,
-                            method="curl", quiet=FALSE), silent=TRUE)
-    if (class(downloaded_gff)[[1]] == "try-error") {
-      stop(" Failed to download the gff file from: ", gff_url, ".")
-    }
-  }
-
-  ## It appears that sometimes I get weird results from this download.file()
-  ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_name <- make_eupath_granges(entry=entry, dir=dir, copy_s3=copy_s3)
-  final_granges_path <- move_final_package(granges_name, type="granges", dir=dir)
-  granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
-
+  gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
     retlist <- list(
@@ -45,6 +31,21 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", version=NULL, reinstall
       "txdb_name" = pkgname)
     return(retlist)
   }
+
+  downloaded_gff <- try(download.file(url=gff_url, destfile=input_gff,
+                                      method="curl", quiet=FALSE), silent=TRUE)
+  if (class(downloaded_gff)[[1]] == "try-error") {
+    stop(" Failed to download the gff file from: ", gff_url, ".")
+  }
+
+  ## It appears that sometimes I get weird results from this download.file()
+  ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
+  granges_name <- try(make_eupath_granges(entry=entry, dir=dir, copy_s3=copy_s3), silent=TRUE)
+  if ("try-error" %in% class(granges_name)) {
+    return(NULL)
+  }
+  final_granges_path <- move_final_package(granges_name, type="granges", dir=dir)
+  granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
 
   chr_entries <- read.delim(file=input_gff, header=FALSE, sep="")
   chromosomes <- chr_entries[["V1"]] == "##sequence-region"

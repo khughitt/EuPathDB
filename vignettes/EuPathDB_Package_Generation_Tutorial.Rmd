@@ -137,7 +137,8 @@ The EuPathDB provides quite an astonishing field of information.  When creating
 the OrgDB packages, I prefixed column names of the various data types as follows:
 
 1.  ANNOT: The primary annotations.  This includes a wide variety of information
-    from descriptions to number of transmembrane domains.
+
+from descriptions to number of transmembrane domains.
 2.  GO: The Gene Ontology table.
 3.  INTERPRO: Interpro data from the eupathdb.
 4.  KEGGREST: Cross-references KEGG data using the R KEGGREST package.

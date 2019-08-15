@@ -15,6 +15,7 @@ on one of the [EuPathDB](http://eupathdb.org/eupathdb/) databases:
 - [MicrosporidiaDB](http://microsporidiadb.org/)
 - [PiroplasmaDB](http://piroplasmadb.org/)
 - [PlasmoDB](http://plasmodb.org/)
+- [SchistoDB](http://schistodb.net/)
 - [ToxoDB](http://toxodb.org/)
 - [TrichDB](http://trichdb.org/)
 - [TriTrypDB](http://tritrypdb.org/)
@@ -29,7 +30,7 @@ The primary purposes for this package are:
 To access EuPathDB resources via AnnotationHub, simply load the AnnotationHub package and use the
 query function like you would for any other AnnotationHub resource:
 
-```r
+```{r query_ah}
 library(AnnotationHub)
 
 # create an AnnotationHub connection
@@ -42,7 +43,7 @@ orgdb <- res[[1]]
 
 To create a local package of a EuPathDB resource, and get information from it:
 
-```r
+```{r query_orgdb}
 library(EuPathDB)
 ## I pretty much always use Leishmania major strain friedlin as my example.
 lm_entry <- get_eupath_entry(species="Friedlin")

@@ -6,7 +6,7 @@
 #' the organismdbi generator smarter.
 #'
 #' @param entry  Single eupathdb metadata entry.
-#' @param version Which version of the eupathdb to use for creating the BSGenome?
+#' @param eu_version Which version of the eupathdb to use for creating the BSGenome?
 #' @param dir  Working directory.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param reinstall  Rewrite an existing package directory.
@@ -14,7 +14,7 @@
 #' @return  List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FALSE,
+make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3=FALSE,
                                  installp=TRUE, reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -25,7 +25,7 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
     stop("Need an entry.")
   }
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, version=version)
+  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["bsgenome"]]
   if (pkgname %in% installed.packages() & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -47,8 +47,8 @@ make_eupath_bsgenome <- function(entry, version=NULL, dir="EuPathDB", copy_s3=FA
 
   ## Figure out the version numbers and download urls.
   db_version <- entry[["SourceVersion"]]
-  if (!is.null(version)) {
-    db_version <- version
+  if (!is.null(eu_version)) {
+    db_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   }
   fasta_start <- entry[["SourceUrl"]]
   fasta_starturl <- sub(pattern="gff",

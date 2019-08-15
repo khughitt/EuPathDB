@@ -7,7 +7,7 @@ organdb <- FALSE
 granges <- TRUE
 eu_version <- "v42"
 bioc_version <- "v3.9"
-webservice <- "amoebadb"
+webservice <- "tritrypdb"
 
 returns <- list(
   "bsgenome" = list(),
@@ -28,8 +28,14 @@ results <- list(
   "organismdbi" = list(),
   "txdb" = list(),
   "granges" = list())
-start <- 1
-for (it in start:end) {
+evens <- c()
+for (i in 1:nrow(all_metadata)) {
+  if (i %% 2 == 0) {
+    evens <- c(evens, i)
+  }
+}
+
+for (it in evens) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
@@ -41,19 +47,19 @@ for (it in start:end) {
   if (isTRUE(orgdb)) {
     orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the orgdb.")
+      message("There is insufficient data for ", species, " to make the other packages.")
     }
     results[["orgdb"]][[species]] <- orgdb_result
   }
   if (isTRUE(txdb)) {
     txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(txdb_result)) {
-      message("Unable to create a txdb for ", species)
       next
     }
     results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
   }
   if (isTRUE(organdb)) {
     organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
+    results[["organismdbi"]] <- organ_result
   }
 } ## End iterating over every entry in the eupathdb metadata.
