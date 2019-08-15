@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 library(testthat)
-library(EuPathDB)
-
+devtools::load_all("~/scratch/git/EuPathDB")
 bsgenome <- FALSE
 orgdb <- TRUE
 txdb <- TRUE
@@ -22,7 +21,7 @@ unlink("*.csv")
 ## Once I work out these other oddities, this will be priority.
 meta <- download_eupath_metadata(
   bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
-  eu_version=eu_version, write_csv=TRUE)
+  verbose=TRUE, eu_version=eu_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
@@ -43,7 +42,7 @@ for (it in start:end) {
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
   pkgnames <- get_eupath_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, copy_s3=TRUE)
+    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version, copy_s3=TRUE)
     expected <- "bsgenome_name"
     actual <- names(bsgenome_result)
     testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
@@ -52,9 +51,9 @@ for (it in start:end) {
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE)
+    orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the other packages.")
+      message("There is insufficient data for ", species, " to make the OrgDB.")
     } else {
       actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
@@ -65,7 +64,7 @@ for (it in start:end) {
     }
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupath_txdb(entry, copy_s3=TRUE)
+    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(txdb_result)) {
       message("Unable to create the txdb package.")
     } else {
@@ -78,7 +77,7 @@ for (it in start:end) {
     }
   }
   if (isTRUE(organdb)) {
-    organ_result <- make_eupath_organismdbi(entry, copy_s3=TRUE)
+    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
     actual <- organ_result[["organdb_name"]]
     expected <- pkgnames[["organismdbi"]]
     test_that("Does make_eupath_organismdbi return something sensible?", {

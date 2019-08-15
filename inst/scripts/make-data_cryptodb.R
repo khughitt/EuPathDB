@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
-library(testthat)
-library(EuPathDB)
-
+devtools::load_all("~/scratch/git/EuPathDB")
 bsgenome <- FALSE
 orgdb <- TRUE
 txdb <- TRUE
@@ -18,27 +16,18 @@ returns <- list(
   "organismdbi" = list(),
   "granges" = list())
 unlink("*.csv")
-## Of all the things to parallelize, this should be #1.
-## Once I work out these other oddities, this will be priority.
 meta <- download_eupath_metadata(
   bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
   eu_version=eu_version, write_csv=TRUE)
-
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
-## I also had to change /etc/security/limits.conf
-## *     soft   nofile  81920
-## *     hard   nofile  409600
-res <- NULL
 results <- list(
   "bsgenome" = list(),
   "orgdb" = list(),
   "organismdbi" = list(),
   "txdb" = list(),
   "granges" = list())
-pkglist <- c("EuPathDB", "testthat")
-
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
@@ -46,43 +35,26 @@ for (it in start:end) {
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
   pkgnames <- get_eupath_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, copy_s3=TRUE)
-    expected <- "bsgenome_name"
-    actual <- names(bsgenome_result)
-    testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
-      expect_equal(expected, actual)
-    })
+    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version, copy_s3=TRUE)
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE)
+    orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
       message("There is insufficient data for ", species, " to make the other packages.")
-      next
     }
-    actual <- orgdb_result[["orgdb_name"]]
-    expected <- pkgnames[["orgdb"]]
-    test_that("Does make_eupath_orgdb return something sensible?", {
-      expect_equal(expected, actual)
-    })
     results[["orgdb"]][[species]] <- orgdb_result
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupath_txdb(entry, copy_s3=TRUE)
-    actual <- txdb_result[["txdb_name"]]
-    expected <- pkgnames[["txdb"]]
-    test_that("Does make_eupath_txdb return something sensible?", {
-      expect_equal(expected, actual)
-    })
+    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    if (is.null(txdb_result)) {
+      message("Unable to create a txdb for ", species)
+      next
+    }
     results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
   }
   if (isTRUE(organdb)) {
-    organ_result <- make_eupath_organismdbi(entry, copy_s3=TRUE)
-    actual <- organ_result[["organdb_name"]]
-    expected <- pkgnames[["organismdbi"]]
-    test_that("Does make_eupath_organismdbi return something sensible?", {
-      expect_equal(expected, actual)
-    })
+    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
     results[["organismdbi"]] <- organ_result
   }
 } ## End iterating over every entry in the eupathdb metadata.
