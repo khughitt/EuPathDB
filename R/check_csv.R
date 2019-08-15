@@ -6,14 +6,15 @@
 #' @param file_type Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
+#' @param verbose Print some information about what happened?
 #' @export
-check_csv <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44") {
+check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44", verbose=FALSE) {
   column <- stringr::str_to_title(file_type)
   column <- glue::glue("{column}File")
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-  csv_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_metadata.csv")
-  failed_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_failed_metadata.csv")
-  final_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_final_metadata.csv")
+  csv_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv")
+  failed_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_failed_metadata.csv")
+  final_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_final_metadata.csv")
   table <- readr::read_csv(csv_file)
   files <- table[[column]]
   keepers <- c()
@@ -24,7 +25,9 @@ check_csv <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44") 
       keepers <- c(keepers, f)
     } else {
       failed <- c(failed, f)
-      message("Did not find file: ", file)
+      if (isTRUE(verbose)) {
+        message("Did not find file: ", file)
+      }
     }
   }
   message("Out of ", length(files), " ", file_type, " ",
@@ -36,12 +39,15 @@ check_csv <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44") 
   valid_idx <- kept_table[["Species"]] %in% all_valid_species
   message("There remain ", sum(!valid_idx), " problematic species.")
   final_table <- kept_table[valid_idx, ]
-  failed_tale <- rbind(failed_table, kept_table[!valid_idx, ])
-  message("Removing species: ", toString(kept_table[!valid_idx, "Species"]))
+  invalid_idx <- ! valid_idx
+  if (sum(invalid_idx) > 0) {
+    failed_table <- rbind(failed_table, kept_table[!valid_idx, ])
+    message("Removing species: ", toString(kept_table[!valid_idx, "Species"]))
+  }
 
   written <- readr::write_csv(x=final_table, path=final_file)
   failed_written <- readr::write_csv(x=failed_table, path=failed_file)
-  file.remove(csv_file)
-  file.rename(final_file, csv_file)
-  return(nrow(final_table))
+  remove <- file.remove(csv_file)
+  rename <- file.rename(final_file, csv_file)
+  return(csv_file)
 }

@@ -3,22 +3,17 @@ BiocStyle::markdown()
 
 ## ----01example_install---------------------------------------------------
 library(EuPathDB)
-## Note that some but not all web services have moved to https...
-## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
 
-sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
+## Ask for the version 42 data from fungidb for species with 'cerevisiae' in the name.
+sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb", eu_version="v42")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 
-## ----02pkg, eval=FALSE---------------------------------------------------
-#  orgdb_pkg <- make_eupath_orgdb(sc_entry, reinstall=TRUE)
-#  txdb_pkg <- make_eupath_txdb(sc_entry)
-#  bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
-#  organ_pkg <- make_eupath_organismdbi(sc_entry)
-
-## ----03lmajor, eval=FALSE------------------------------------------------
-#  lm_entry <- get_eupath_entry(species="Friedlin", webservice="tritrypdb")
-#  lm_orgdb <- make_eupath_orgdb(lm_entry, reinstall=TRUE)
+## ----02pkg---------------------------------------------------------------
+orgdb_pkg <- make_eupath_orgdb(sc_entry)
+txdb_pkg <- make_eupath_txdb(sc_entry)
+bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
+organ_pkg <- make_eupath_organismdbi(sc_entry)
 
 ## ----04extract-----------------------------------------------------------
 orgdb_pkg <- get_eupath_pkgnames(sc_entry)
@@ -30,7 +25,8 @@ sc_orgdb
 
 ## Now get the set of available columns from it:
 library(sc_orgdb, character=TRUE)
-avail_columns <- AnnotationDbi::columns(get0(sc_orgdb))
+pkg <- get0(sc_orgdb)
+avail_columns <- AnnotationDbi::columns(pkg)
 head(avail_columns)
 ## There are lots of columns!
 length(avail_columns)
@@ -68,37 +64,17 @@ chosen_columns_idx <- grepl(x=avail_columns, pattern="^PATHWAY")
 chosen_columns <- avail_columns[chosen_columns_idx]
 sc_path <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
 head(sc_path)
-## Pathway data for Crithidia!
-
-## This does not work for the moment because of some oddities with
-## the various tables at the eupathdb.  I have an email query with them
-## regarding it.
-##chosen_columns_idx <- grepl(x=avail_columns, pattern="^ORTHOLOG")
-##chosen_columns <- avail_columns[chosen_columns_idx]
-##chosen_columns <- c(chosen_columns, "ORGANISM")
-##crit_ortho <- load_orgdb_go(sc_orgdb, columns=chosen_columns)
-##head(crit_ortho)
-## Orthologs!
 
 ## ----06shortcuts---------------------------------------------------------
 ## The function load_eupath_annotations() provides a shortcut to the above.
-major_annot <- load_eupath_annotations(species="major")
-dim(major_annot)
-## This provides the same information as the results of the select up above.
+sc_annot <- load_eupath_annotations(species="S288c", eu_version="v42", webservice="fungidb")
+dim(sc_annot)
 
-## ----07orthologs, eval=FALSE---------------------------------------------
-#  ## A recent EuPathDB update makes it possible to use the 'OrthologsLite' table rather than
-#  ## Orthologs, which is much faster (by like 1000x), but I am quickly realizing much more
-#  ## limited in the information it returns, and only exists for a subset of the eupathdb
-#  ## projects.  As a result, I might just drop its usage and force the much slower queries
-#  ## to the more complete table...
-#  major_entry <- get_eupath_entry(species="major", webservice="tritrypdb")
-#  major_pkg <- get_eupath_pkgnames(major_entry)
-#  major_orgdb <- major_pkg$orgdb
-#  lm_ortho <- extract_eupath_orthologs(major_orgdb)
-#  dim(lm_ortho)
-#  head(lm_ortho)
-#  summary(lm_ortho)
+## ----07orthologs---------------------------------------------------------
+sc_ortho <- extract_eupath_orthologs(sc_orgdb)
+dim(sc_ortho)
+head(sc_ortho)
+summary(sc_ortho)
 
 ## ----08sessioninfo-------------------------------------------------------
 sessionInfo()

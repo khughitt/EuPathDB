@@ -33,11 +33,12 @@ res <- query(ah, c("OrgDb", "Leishmania major strain Friedlin"))
 res
 
 ## ----04get_orgdb, eval=FALSE---------------------------------------------
-#  chosen_ah <- res[[2]]
+#  chosen_ah <- res[[1]]
 #  chosen_ah
 
 ## ----05query_major_columns, eval=FALSE-----------------------------------
 #  # list available fields to retrieve
+#  orgdb <- chosen_ah
 #  columns(orgdb)
 #  
 #  # create a vector containing all gene ids for the organism
@@ -69,7 +70,7 @@ res <- query(ah, c("Leishmania major strain Friedlin", "GRanges", "EuPathDB"))
 res
 
 # retrieve a GRanges instance associated with the result record
-gr <- res[[3]]
+gr <- res[[1]]
 summary(gr)
 head(gr)
 

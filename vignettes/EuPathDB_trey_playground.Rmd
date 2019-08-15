@@ -2,7 +2,7 @@
 title: "Trey's stupid ideas"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Submitting data to AnnotationHub}
+  %\VignetteIndexEntry{Treys stupid ideas}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteKeyword{eupathdb, annotations}
   \usepackage[utf8]{inputenc}
@@ -32,7 +32,7 @@ with ensembl.
 
 Of course, a more likely outcome is shenanigans.  So let us see what happens.
 
-```{r libraries}
+```{r libraries, eval=FALSE}
 library(hpgltools)
 library(EuPathDB)
 ```
@@ -41,7 +41,7 @@ So, my workstation currently has the following installed:
 
 org.Lmajor.Friedlin.v43.eg.db
 
-```{r load}
+```{r load, eval=FALSE}
 library(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
 keytypes(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
 tc_annot <- load_orgdb_annotations("org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db", fields="all")

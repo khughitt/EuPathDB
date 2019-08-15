@@ -9,16 +9,15 @@
 #' @param verbose Talk while running?
 #' @param destination Place to put non-matched files.
 #' @export
-check_files <- function(file_type="OrgDb", bioc_version="v3.9", eu_version="v44",
-                        verbose=TRUE, destination=NULL) {
+check_files <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44",
+                        verbose=FALSE, destination=NULL) {
   if (is.null(destination)) {
     destination <- getwd()
   }
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-  bioc_version <- gsub(x=bioc_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   column <- as.character(stringr::str_to_title(file_type))
   column <- as.character(glue::glue("{column}File"))
-  csv_file <- glue::glue("{file_type}_bioc{bioc_version}_eupathdb{eu_version}_metadata.csv")
+  csv_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv")
   table <- readr::read_csv(csv_file)
   file_dir <- dirname(as.character(table[1, column]))
   file_lst <- list.files(path=file_dir, all.files=TRUE)

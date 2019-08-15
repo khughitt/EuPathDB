@@ -1,33 +1,12 @@
 #!/usr/bin/env Rscript
-devtools::load_all("~/scratch/git/EuPathDB")
-bsgenome <- FALSE
-orgdb <- TRUE
-txdb <- TRUE
-organdb <- FALSE
-granges <- TRUE
-eu_version <- "v42"
-bioc_version <- "v3.9"
+source("config.R")
 webservice="cryptodb"
-
-returns <- list(
-  "bsgenome" = list(),
-  "orgdb" = list(),
-  "txdb" = list(),
-  "organismdbi" = list(),
-  "granges" = list())
-unlink("*.csv")
 meta <- download_eupath_metadata(
   bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
   eu_version=eu_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
-results <- list(
-  "bsgenome" = list(),
-  "orgdb" = list(),
-  "organismdbi" = list(),
-  "txdb" = list(),
-  "granges" = list())
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]

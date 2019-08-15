@@ -10,6 +10,7 @@
 #' @param entry If not provided, then species will get this, it contains all the information.
 #' @param dir Where to put all the various temporary files.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
+#' @param installp Install the resulting package?
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?

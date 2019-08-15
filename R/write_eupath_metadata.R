@@ -11,24 +11,21 @@
 #' @param eu_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.
 write_eupath_metadata <- function(metadata, service="eupathdb", type="valid",
-                                  bioc_version="v3.9", eu_version="v44") {
+                                  bioc_version="3.9", eu_version="44") {
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-  bioc_version <- gsub(x=bioc_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   file_lst <- list(
-    "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
-    "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
-    "txdb" = glue::glue("TxDb_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
-    "organdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}{eu_version}_metadata.csv"),
-    "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}{eu_version}_metadata.csv")
-  )
-  if (type != "valid") {
+    "granges" = glue::glue("GRanges_biocv{bioc_version}_{service}{eu_version}_metadata.csv"),
+    "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{service}{eu_version}_metadata.csv"),
+    "txdb" = glue::glue("TxDb_biocv{bioc_version}_{service}{eu_version}_metadata.csv"),
+    "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{service}{eu_version}_metadata.csv"),
+    "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{service}{eu_version}_metadata.csv"))
+  if (type == "invalid") {
     file_lst <- list(
-      "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
-      "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
-      "txdb" = glue::glue("TxDb_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
-      "organdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
-      "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}{eu_version}_invalid_metadata.csv")
-    )
+      "granges" = glue::glue("GRanges_biocv{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "txdb" = glue::glue("TxDb_biocv{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{service}{eu_version}_invalid_metadata.csv"),
+      "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{service}{eu_version}_invalid_metadata.csv"))
   }
 
   granges_metadata <- metadata %>%
@@ -41,6 +38,7 @@ transcript information for {.data[['Taxon']]}"),
   ResourceName=.data[["GrangesPkg"]],
   RDataPath=.data[["GrangesFile"]])
   if (file.exists(file_lst[["granges"]])) {
+    message("Appending to an existing file: ", file_lst[["granges"]])
     readr::write_csv(x=granges_metadata, path=file_lst[["granges"]],
                      append=TRUE)
   } else {
@@ -58,6 +56,7 @@ annotations for {.data[['Taxon']]}"),
   ResourceName=.data[["OrgdbPkg"]],
   RDataPath=.data[["OrgdbFile"]])
   if (file.exists(file_lst[["orgdb"]])) {
+    message("Appending to an existing file: ", file_lst[["orgdb"]])
     readr::write_csv(x=orgdb_metadata, path=file_lst[["orgdb"]],
                      append=TRUE)
   } else {
@@ -75,6 +74,7 @@ Transcript information for {.data[['Taxon']]}"),
   ResourceName=.data[["TxdbPkg"]],
   RDataPath=.data[["TxdbFile"]])
   if (file.exists(file_lst[["txdb"]])) {
+    message("Appending to an existing file: ", file_lst[["txdb"]])
     readr::write_csv(x=txdb_metadata, path=file_lst[["txdb"]],
                      append=TRUE)
   } else {
@@ -92,6 +92,7 @@ Combined information for {.data[['Taxon']]}"),
   ResourceName=.data[["OrganismdbiPkg"]],
   RDataPath=.data[["OrganismdbiFile"]])
   if (file.exists(file_lst[["organdb"]])) {
+    message("Appending to an existing file: ", file_lst[["organdb"]])
     readr::write_csv(x=organismdbi_metadata, path=file_lst[["organdb"]],
                      append=TRUE)
   } else {
@@ -109,6 +110,7 @@ Genome for {.data[['Taxon']]}"),
   ResourceName=.data[["BsgenomePkg"]],
   RDataPath=.data[["BsgenomeFile"]])
   if (file.exists(file_lst[["bsgenome"]])) {
+    message("Appending to an existing file: ", file_lst[["bsgenome"]])
     readr::write_csv(x=bsgenome_metadata, path=file_lst[["bsgenome"]],
                      append=TRUE)
   } else {

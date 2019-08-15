@@ -1,6 +1,6 @@
 Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
-Version: 1.5.0
+Version: 1.6.0
 Author: Keith Hughitt, Ashton Trey Belew
 Authors@R: c(person("Keith", "Hughitt", email="khughitt@umd.edu", role=c("aut","cre")),
              person("Ashton", "Belew", email="abelew@gmail.com", role=c("aut")))
@@ -17,9 +17,9 @@ Depends:
 Imports: AnnotationHubData, Biostrings, BiocGenerics, data.table, dplyr, foreach, GenomeInfoDb,
          glue, httr, jsonlite, magrittr, readr, rtracklayer, rvest, utils, xml2
 Suggests:
-    AnnotationDbi, AnnotationForge, AnnotationHub, Biobase, BiocInstaller, BiocManager,
+    AnnotationDbi, AnnotationForge, BiocInstaller, BiocManager,
     BiocStyle, BSgenome, BiocInstaller, curl, desc, devtools,
-    GenomicFeatures, GenomicRanges, GO.db, KEGGREST, knitr, OrganismDbi,
+    GenomicFeatures, GO.db, KEGGREST, knitr, OrganismDbi,
     RCurl, reactome.db, RSQLite, S4Vectors, stringr, testthat, tidyr
 biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
 License: Artistic-2.0
