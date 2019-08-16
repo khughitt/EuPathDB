@@ -17,6 +17,8 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
 
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
+\item{installp}{Install the resulting package?}
+
 \item{kegg_abbreviation}{If known, provide the kegg abbreviation.}
 
 \item{reinstall}{Re-install an already existing orgdb?}

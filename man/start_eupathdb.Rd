@@ -5,14 +5,17 @@
 \alias{availableEuPathDB}
 \title{Get started with EuPathDB}
 \usage{
-start_eupathdb()
+start_eupathdb(type = "GRanges")
+}
+\arguments{
+\item{type}{Choose this type of metadatum to open.}
 }
 \value{
 Used for its side-effect of opening the package vignette. A
         vector of experiment identifiers.
 }
 \description{
-Get started with EuPathDB
+This function has always been here.  To be honest, I am not completely sure of its purpose.
 }
 \examples{
 start_eupathdb()

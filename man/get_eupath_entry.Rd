@@ -5,7 +5,7 @@
 \title{Search the eupathdb metadata for a given species substring.}
 \usage{
 get_eupath_entry(species = "Leishmania major", webservice = "eupathdb",
-  column = "TaxonUnmodified")
+  column = "TaxonUnmodified", ...)
 }
 \arguments{
 \item{species}{String containing some reasonably unique text in the desired
@@ -14,6 +14,8 @@ species name.}
 \item{webservice}{The EuPathDB webservice to query.}
 
 \item{column}{Which column to use for getting the species name?}
+
+\item{...}{Parameters passed to download_eupath_metadata()}
 }
 \value{
 A single row from the eupathdb metadata.

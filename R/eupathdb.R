@@ -66,7 +66,7 @@ start_eupathdb <- function(type="GRanges") {
   utils::vignette("reference", package="EuPathDB")
   metadata_files <- list.files(path=system.file("extdata", package="EuPathDB"))
   ## Arbitrarily provide the first metadata file of the type.
-  chosen_idx <- grepl(pattern=type, x=metadata_files)[1]
+  chosen_idx <- grep(pattern=type, x=metadata_files)[1]
   chosen_metadata <- metadata_files[chosen_idx]
   message("Showing species in metadata file: ", chosen_metadata)
   metadata_file <- system.file("extdata", chosen_metadata, package="EuPathDB")

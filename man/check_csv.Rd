@@ -4,8 +4,8 @@
 \alias{check_csv}
 \title{Check the metadata csv files and write only the 'good' entries.}
 \usage{
-check_csv(file_type = "OrgDb", bioc_version = "v3.9",
-  eu_version = "v44")
+check_csv(file_type = "OrgDb", bioc_version = "3.9",
+  eu_version = "44", verbose = FALSE)
 }
 \arguments{
 \item{file_type}{Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?}
@@ -13,6 +13,8 @@ check_csv(file_type = "OrgDb", bioc_version = "v3.9",
 \item{bioc_version}{Which bioconductor version is this for?}
 
 \item{eu_version}{Which eupathdb version is this for?}
+
+\item{verbose}{Print some information about what happened?}
 }
 \description{
 While we are at it, put the failed entries into their own csv file so that I
