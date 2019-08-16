@@ -15,6 +15,7 @@ check: roxygen
 
 clean:
 	@echo "Cleaning up"
+	@rm -rf $$(find . -name EuPathDB)
 
 clean_vignette:
 	rm -f vignettes/*.rda vignettes/*.map vignettes/*.Rdata
