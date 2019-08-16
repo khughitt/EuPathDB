@@ -1,0 +1,59 @@
+---
+title: "Trey's stupid ideas"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Treys stupid ideas}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteKeyword{eupathdb, annotations}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r style, echo=FALSE, results='asis', message=FALSE}
+BiocStyle::markdown()
+```
+
+# Overview
+
+I am thinking to use this document to play around with some (likely bad) ideas.
+
+In this case, I am thinking about a request to the bioconductor mailing list on
+which Lori tagged me.  At its root, it was asking how one may get ensembl IDs
+from eupathdb IDs, since the eupathdb keys off entrez, not ensembl.
+
+I was thinking about this idly while sitting in a meeting and I realized I
+might already have a piece of code which handles this, among other things.
+
+https://github.com/abelew/hpgltools/blob/master/R/annotation_uniprot.r
+
+I should be able to give uniprot the species name from eupathdb, download and
+parse the uniprot annotations, and cross reference them against the existing
+eupathdb annotations; thus automagically getting the 40 or so other keys along
+with ensembl.
+
+Of course, a more likely outcome is shenanigans.  So let us see what happens.
+
+```{r libraries, eval=FALSE}
+library(hpgltools)
+library(EuPathDB)
+```
+
+So, my workstation currently has the following installed:
+
+org.Lmajor.Friedlin.v43.eg.db
+
+```{r load, eval=FALSE}
+library(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
+keytypes(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
+tc_annot <- load_orgdb_annotations("org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db", fields="all")
+genes <- tc_annot[["genes"]]
+## Hmm I wonder if I can modify my uniprot code to use the taxonomy ID?
+
+##
+test <- download_uniprot_proteome(taxonomy="353153")
+uniprot_annot <- load_uniprot_annotations(file=test[["filename"]])
+colnames(uniprot_annot)
+
+merged <- merge(genes, uniprot_annot, by.x="annot_uniprot_id", by.y="primary_accession")
+dim(merged)
+## SWWWWEEEETTT!
+```

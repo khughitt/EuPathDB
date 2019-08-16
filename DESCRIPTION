@@ -17,8 +17,8 @@ Depends:
 Imports: AnnotationHubData, Biostrings, BiocGenerics, data.table, dplyr, foreach, GenomeInfoDb,
          glue, httr, jsonlite, magrittr, readr, rtracklayer, rvest, utils, xml2
 Suggests:
-    AnnotationDbi, AnnotationForge, BiocInstaller, BiocManager,
-    BiocStyle, BSgenome, BiocInstaller, curl, desc, devtools,
+    AnnotationDbi, AnnotationForge, BiocManager,
+    BiocStyle, BSgenome, curl, desc, devtools,
     GenomicFeatures, GO.db, KEGGREST, knitr, OrganismDbi,
     RCurl, reactome.db, RSQLite, S4Vectors, stringr, testthat, tidyr
 biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
