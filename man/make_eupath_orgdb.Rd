@@ -8,7 +8,8 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
   installp = TRUE, kegg_abbreviation = NULL, reinstall = FALSE,
   overwrite = FALSE, copy_s3 = FALSE, do_go = TRUE,
   do_orthologs = TRUE, do_interpro = TRUE, do_linkout = TRUE,
-  do_pubmed = TRUE, do_pathway = TRUE, do_kegg = TRUE)
+  do_pubmed = TRUE, do_pathway = TRUE, do_kegg = TRUE,
+  do_uniprot = FALSE)
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}
@@ -40,6 +41,8 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
 \item{do_pathway}{Create the pathway table?}
 
 \item{do_kegg}{Attempt to create the kegg table?}
+
+\item{do_uniprot}{Attempt to create a uniprot table?}
 }
 \value{
 Currently only the name of the installed package.  This should
