@@ -48,21 +48,30 @@
 #' @author Keith Hughitt and Ashton Belew
 NULL
 
-#' @title Get started with EuPathDB
+#' Get started with EuPathDB
+#'
+#' This function has always been here.  To be honest, I am not completely sure of its purpose.
+#'
+#' @param type Choose this type of metadatum to open.
 #' @return Used for its side-effect of opening the package vignette. A
 #'         vector of experiment identifiers.
 #' @author Keith Hughitt
 #' @aliases availableEuPathDB
 #' @examples start_eupathdb()
 #' @export
-start_eupathdb <- function() {
+start_eupathdb <- function(type="GRanges") {
   ## I renamed this function to handle an R check where it looks for man pages with mismatched case
   ## with respect to the functions within it.  There is a roxygen clue for EuPathDb, so having
   ## a function with the same name confuses R check.
-  utils::vignette("EuPathDB", package="EuPathDB")
-  metadata_file <- system.file("extdata/granges_metadata.csv", package="EuPathDB")
+  utils::vignette("reference", package="EuPathDB")
+  metadata_files <- list.files(path=system.file("extdata", package="EuPathDB"))
+  ## Arbitrarily provide the first metadata file of the type.
+  chosen_idx <- grepl(pattern=type, x=metadata_files)[1]
+  chosen_metadata <- metadata_files[chosen_idx]
+  message("Showing species in metadata file: ", chosen_metadata)
+  metadata_file <- system.file("extdata", chosen_metadata, package="EuPathDB")
   ret <- sort(read.csv(metadata_file,
-                       stringsAsFactors = FALSE)[["SpeciesFull"]])
+                       stringsAsFactors = FALSE)[["Species"]])
   return(ret)
 }
 
@@ -81,7 +90,7 @@ NULL
 #' R CMD check is super annoying about :::.
 #'
 #' In a fit of pique, I did a google search to see if anyone else has been
-#' annoyed in the same was as I.  I was in no way surprised to see that Yihui
+#' annoyed in the same way as I.  I was not surprised to see that Yihui
 #' Xie was, and in his email to r-devel in 2013 he proposed a game of
 #' hide-and-seek; a game which I am repeating here.
 #'

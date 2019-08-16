@@ -14,34 +14,11 @@ context("010annotation_eupathdb.R
 testing <- download_eupath_metadata()
 ## Looks like 8 new species were added.
 ## oh wow, some species were removed now!
-expected <- c(378, 23)
-actual <- dim(testing[["valid"]])
+expected <- 370
+actual <- nrow(testing[["valid"]])
 ## 01
 test_that("Is the eupathdb valid metadata the expected size?", {
-  expect_equal(expected, actual)
-})
-
-expected <- c(5, 23)
-actual <- dim(testing[["invalid"]])
-## 01
-test_that("Is the eupathdb invalid metadata the expected size?", {
-  expect_equal(expected, actual)
-})
-
-testing <- download_eupath_metadata(webservice="tritrypdb")
-
-expected <- c(55, 23)
-actual <- dim(testing[["valid"]])
-## 01
-test_that("Is the tritrypdb valid metadata the expected size?", {
-  expect_equal(expected, actual)
-})
-
-actual <- dim(testing[["invalid"]])
-expected <- c(0, 23)
-## 01
-test_that("Is the tritrypdb invalid metadata the expected size?", {
-  expect_equal(actual, expected)
+  expect_gt(expected, actual)
 })
 
 end <- as.POSIXlt(Sys.time())
