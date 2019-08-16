@@ -22,6 +22,7 @@
 #' @param do_pubmed Create a table of pubmed entries?
 #' @param do_pathway Create the pathway table?
 #' @param do_kegg Attempt to create the kegg table?
+#' @param do_uniprot Attempt to create a uniprot table?
 #' @return Currently only the name of the installed package.  This should
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
@@ -29,7 +30,8 @@
 make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, installp=TRUE,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
                               copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
-                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE) {
+                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE,
+                              do_uniprot=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -167,6 +169,14 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
     }
   }
 
+  uniprot_table <- data.frame()
+  if (isTRUE(do_uniprot)) {
+    uniprot_table <- try(download_uniprot_annotations(gene_table, entry, overwrite=overwrite))
+    if (class(uniprot_table)[1] == "try-error") {
+      uniprot_table <- data.frame()
+    }
+  }
+
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")
   chromosome_table[["CHR_ID"]] <- as.factor(chromosome_table[["CHR_ID"]])
@@ -222,6 +232,11 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
     message(" This should not be possible, but the pubmed table is still null.")
   } else if (nrow(pubmed_table) > 0) {
     orgdb_args[["pubmed"]] <- pubmed_table
+  }
+  if (is.null(uniprot_table)) {
+    message(" This should not be possible, but the uniprot table is still null.")
+  } else if (nrow(uniprot_table) > 0) {
+    orgdb_args[["uniprot"]] <- uniprot_table
   }
 
   ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
