@@ -44,8 +44,7 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
     message("Removing species: ", toString(kept_table[!valid_idx, "Species"]))
   }
 
-  written <- readr::write_csv(x=final_table, path=final_file)
+  written <- readr::write_csv(x=final_table, path=csv_file)
   failed_written <- readr::write_csv(x=failed_table, path=failed_file)
-  rename <- file.rename(final_file, csv_file)
   return(csv_file)
 }
