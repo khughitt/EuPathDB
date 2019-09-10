@@ -14,7 +14,7 @@ context("010annotation_eupathdb.R
 testing <- download_eupath_metadata()
 ## Looks like 8 new species were added.
 ## oh wow, some species were removed now!
-expected <- 370
+expected <- 350
 actual <- nrow(testing[["valid"]])
 ## 01
 test_that("Is the eupathdb valid metadata the expected size?", {
