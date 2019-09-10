@@ -6,9 +6,8 @@
 #' @param file_type Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
-#' @param verbose Print some information about what happened?
 #' @export
-check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44", verbose=FALSE) {
+check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   column <- stringr::str_to_title(file_type)
   column <- glue::glue("{column}File")
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
@@ -47,7 +46,6 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44", ve
 
   written <- readr::write_csv(x=final_table, path=final_file)
   failed_written <- readr::write_csv(x=failed_table, path=failed_file)
-  remove <- file.remove(csv_file)
   rename <- file.rename(final_file, csv_file)
   return(csv_file)
 }
