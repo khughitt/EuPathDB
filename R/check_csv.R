@@ -18,10 +18,13 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   files <- table[[column]]
   keepers <- c()
   failed <- c()
+  table[["md5sum"]] <- ""
   for (f in 1:length(files)) {
     file <- files[f]
-    if (file.exists(file)) {
+    queried <- try(query_s3_file(file, file_type=file_type))
+    if (file.exists(file) & class(queried)[1] == "character") {
       keepers <- c(keepers, f)
+      table[f, "md5sum"] <- queried
     } else {
       failed <- c(failed, f)
       if (isTRUE(verbose)) {
