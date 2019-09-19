@@ -41,6 +41,7 @@ VignetteBuilder: knitr
 Collate:
  'check_csv.R'
  'check_files.R'
+ 'check_s3.R'
  'clean_pkg.R'
  'copy_s3_file.R'
  'download_eupath_metadata.R'
@@ -79,6 +80,7 @@ Collate:
  'post_eupath_snps.R'
  'post_eupath_table.R'
  'prefix_map.R'
+ 'query_s3_file.R'
  'write_eupath_metadata.R'
  'xref_species.R'
  'xref_taxonomy.R'
