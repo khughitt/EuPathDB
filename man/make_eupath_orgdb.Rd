@@ -4,10 +4,10 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
-  installp = TRUE, kegg_abbreviation = NULL, reinstall = FALSE,
-  overwrite = FALSE, copy_s3 = FALSE, do_go = TRUE,
-  do_orthologs = TRUE, do_interpro = TRUE, do_linkout = TRUE,
+make_eupath_orgdb(entry = NULL, dir = "EuPathDB", installp = TRUE,
+  kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
+  copy_s3 = FALSE, do_go = TRUE, do_goslim = TRUE,
+  do_orthologs = TRUE, do_interpro = TRUE, linkout = TRUE,
   do_pubmed = TRUE, do_pathway = TRUE, do_kegg = TRUE,
   do_uniprot = FALSE)
 }
@@ -15,8 +15,6 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
 \item{entry}{If not provided, then species will get this, it contains all the information.}
 
 \item{dir}{Where to put all the various temporary files.}
-
-\item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
 \item{installp}{Install the resulting package?}
 
@@ -30,11 +28,11 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
 
 \item{do_go}{Create the gene ontology table?}
 
+\item{do_goslim}{Create the GOSLIM gene ontology table?}
+
 \item{do_orthologs}{Create the gene ortholog table?}
 
 \item{do_interpro}{Create the interpro table?}
-
-\item{do_linkout}{Create a table of linkout data?}
 
 \item{do_pubmed}{Create a table of pubmed entries?}
 
@@ -43,6 +41,8 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", eu_version = NULL,
 \item{do_kegg}{Attempt to create the kegg table?}
 
 \item{do_uniprot}{Attempt to create a uniprot table?}
+
+\item{do_linkout}{Create a table of linkout data?}
 }
 \value{
 Currently only the name of the installed package.  This should
@@ -54,7 +54,9 @@ method(s) for accessing data in the eupathdb has changed.  It currently uses
 my empirically defined set of queries against the eupathdb webservices.  As a
 result, I have made some admittedly bizarre choices when creating the
 queries.  Check through eupath_webservices.r for some amusing examples of how
-I have gotten around the idiosyncrasies in the eupathdb.
+I have gotten around the idiosyncrasies in the eupathdb.  Final note, I confirmed
+with Cristina that it is not possible to acquire data specific to a given version
+of the eupathdb.
 }
 \author{
 Keith Hughitt with significant modifications by atb.

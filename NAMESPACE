@@ -3,6 +3,7 @@
 export("%>%")
 export(check_csv)
 export(check_files)
+export(check_s3)
 export(clean_pkg)
 export(download_eupath_metadata)
 export(download_uniprot_proteome)

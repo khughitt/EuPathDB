@@ -5,17 +5,19 @@
 #' my empirically defined set of queries against the eupathdb webservices.  As a
 #' result, I have made some admittedly bizarre choices when creating the
 #' queries.  Check through eupath_webservices.r for some amusing examples of how
-#' I have gotten around the idiosyncrasies in the eupathdb.
+#' I have gotten around the idiosyncrasies in the eupathdb.  Final note, I confirmed
+#' with Cristina that it is not possible to acquire data specific to a given version
+#' of the eupathdb.
 #'
 #' @param entry If not provided, then species will get this, it contains all the information.
 #' @param dir Where to put all the various temporary files.
-#' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param installp Install the resulting package?
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param do_go Create the gene ontology table?
+#' @param do_goslim Create the GOSLIM gene ontology table?
 #' @param do_orthologs Create the gene ortholog table?
 #' @param do_interpro Create the interpro table?
 #' @param do_linkout Create a table of linkout data?
@@ -27,11 +29,11 @@
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, installp=TRUE,
+make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", installp=TRUE,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
-                              copy_s3=FALSE, do_go=TRUE, do_orthologs=TRUE, do_interpro=TRUE,
-                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE, do_kegg=TRUE,
-                              do_uniprot=FALSE) {
+                              copy_s3=FALSE, do_go=TRUE, do_goslim=TRUE, do_orthologs=TRUE,
+                              do_interpro=TRUE, linkout=TRUE, do_pubmed=TRUE,
+                              do_pathway=TRUE, do_kegg=TRUE, do_uniprot=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -39,7 +41,7 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
     entry <- get_eupath_entry(entry)
   }
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
+  pkgnames <- get_eupath_pkgnames(entry)
   pkgname <- pkgnames[["orgdb"]]
   if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -105,10 +107,18 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
 
   go_table <- data.frame()
   if (isTRUE(do_go)) {
-    go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
-    if (class(go_table)[1] == "try-error") {
-      go_table <- data.frame()
-    }
+      go_table <- try(post_eupath_go_table(entry, dir=dir, overwrite=overwrite))
+      if (class(go_table)[1] == "try-error") {
+          go_table <- data.frame()
+      }
+  }
+
+  goslim_table <- data.frame()
+  if (isTRUE(do_goslim)) {
+      go_table <- try(post_eupath_goslim_table(entry, dir=dir, overwrite=overwrite))
+      if (class(goslim_table)[1] == "try-error") {
+          goslim_table <- data.frame()
+      }
   }
 
   gene_ids <- gene_table[["GID"]]
@@ -199,9 +209,14 @@ make_eupath_orgdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, insta
 
   ## add non-empty tables
   if (is.null(go_table)) {
-    message(" This should not be possible, but the go table is still null.")
+      message(" This should not be possible, but the go table is still null.")
   } else if (nrow(go_table) > 0) {
-    orgdb_args[["go"]] <- go_table
+      orgdb_args[["go"]] <- go_table
+  }
+  if (is.null(goslim_table)) {
+      message(" This should not be possible, but the goslim table is still null.")
+  } else if (nrow(goslim_table) > 0) {
+      orgdb_args[["goslim"]] <- goslim_table
   }
   if (is.null(ortholog_table)) {
     message(" This should not be possible, but the ortholog table is still null.")
