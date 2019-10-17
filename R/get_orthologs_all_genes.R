@@ -6,19 +6,19 @@
 #' This is a horrible brute-force approach to get around this.
 #'
 #' @param entry An entry from the eupathdb metadata to use for other parameters.
-#' @param dir Directory to which to save intermediate data (currently unused).
+#' @param workdir Directory to which to save intermediate data (currently unused).
 #' @param gene_ids List of gene IDs to query.
 #' @param overwrite Overwrite the savefile?
 #' @param species_list When provided, use this to subset the possible species
 #'   for ortholog queries, otherwise grab them all.
 #' @export
-get_orthologs_all_genes <- function(entry=NULL, dir="EuPathDB", gene_ids=NULL,
+get_orthologs_all_genes <- function(entry=NULL, workdir="EuPathDB", gene_ids=NULL,
                                     overwrite=TRUE, species_list=NULL) {
   if (is.null(entry)) {
     stop("Needs an entry from the eupathdb.")
   }
   species <- entry[["TaxonUnmodified"]]
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }

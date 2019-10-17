@@ -1,14 +1,14 @@
 #' Use the post interface to get linkout data.
 #'
 #' @param entry The full annotation entry.
-#' @param dir Location to which to save intermediate savefile.
+#' @param workdir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
-post_eupath_pubmed_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
+post_eupath_pubmed_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }

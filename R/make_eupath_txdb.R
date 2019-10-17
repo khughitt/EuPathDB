@@ -5,7 +5,7 @@
 #' download of a gff file from the eupathdb.
 #'
 #' @param entry One row from the organism metadata.
-#' @param dir Base directory for building the package.
+#' @param workdir Base directory for building the package.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param reinstall Overwrite an existing installed package?
 #' @param installp Install the resulting package?
@@ -13,7 +13,7 @@
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinstall=FALSE,
+make_eupath_txdb <- function(entry=NULL, workdir="EuPathDB", eu_version=NULL, reinstall=FALSE,
                              installp=TRUE, copy_s3=FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
@@ -23,7 +23,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinst
   pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["txdb"]]
 
-  input_gff <- file.path(dir, glue::glue("{pkgname}.gff"))
+  input_gff <- file.path(workdir, glue::glue("{pkgname}.gff"))
   gff_url <- gsub(pattern="^http:", replacement="https:", x=entry[["SourceUrl"]])
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -41,11 +41,11 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinst
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_name <- try(make_eupath_granges(entry=entry, dir=dir, copy_s3=copy_s3), silent=TRUE)
+  granges_name <- try(make_eupath_granges(entry=entry, workdir=workdir, copy_s3=copy_s3), silent=TRUE)
   if ("try-error" %in% class(granges_name)) {
     return(NULL)
   }
-  final_granges_path <- move_final_package(granges_name, type="granges", dir=dir)
+  final_granges_path <- move_final_package(granges_name, type="granges", workdir=workdir)
   granges_variable <- gsub(pattern="\\.rda$", replacement="", x=granges_name)
 
   chr_entries <- read.delim(file=input_gff, header=FALSE, sep="")
@@ -122,14 +122,14 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinst
     bad_syms <- paste(names(is_OK)[!is_OK], collapse=", ")
     stop(" values for symbols ", bad_syms, " are not single strings")
   }
-  if (!file.exists(dir)) {
-    tt <- dir.create(dir, recursive=TRUE)
+  if (!file.exists(workdir)) {
+    tt <- dir.create(workdir, recursive=TRUE)
   }
 
-  pkg_list <- Biobase::createPackage(pkgname=pkgname, destinationDir=dir,
+  pkg_list <- Biobase::createPackage(pkgname=pkgname, destinationDir=workdir,
                                      originDir=template_path, symbolValues=symvals,
                                      unlink=TRUE)
-  db_dir <- file.path(dir, pkgname, "inst", "extdata")
+  db_dir <- file.path(workdir, pkgname, "inst", "extdata")
   if (!file.exists(db_dir)) {
     tt <- dir.create(db_dir, recursive=TRUE)
   }
@@ -141,7 +141,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinst
   }
   closed <- try(RSQLite::dbDisconnect(BiocGenerics::dbconn(obj)), silent=TRUE)
 
-  install_dir <- file.path(dir, pkgname)
+  install_dir <- file.path(workdir, pkgname)
   install_dir <- clean_pkg(install_dir)
   install_dir <- clean_pkg(install_dir, removal="_", replace="")
   install_dir <- clean_pkg(install_dir, removal="_like", replace="like")
@@ -159,7 +159,7 @@ make_eupath_txdb <- function(entry=NULL, dir="EuPathDB", eu_version=NULL, reinst
     if (class(inst) != "try-error") {
       built <- try(devtools::build(install_dir, quiet=TRUE))
       if (class(built) != "try-error") {
-        final_path <- move_final_package(pkgname, type="txdb", dir=dir)
+        final_path <- move_final_package(pkgname, type="txdb", workdir=workdir)
         final_deleted <- unlink(x=install_dir, recursive=TRUE, force=TRUE)
       }
     }

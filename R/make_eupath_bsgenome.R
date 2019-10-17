@@ -7,7 +7,7 @@
 #'
 #' @param entry Single eupathdb metadata entry.
 #' @param eu_version Which version of the eupathdb to use for creating the BSGenome?
-#' @param dir Working directory.
+#' @param workdir Working directory.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param installp Install the resulting package?
 #' @param reinstall Rewrite an existing package directory.
@@ -15,7 +15,7 @@
 #' @return List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3=FALSE,
+make_eupath_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", copy_s3=FALSE,
                                  installp=TRUE, reinstall=FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -37,9 +37,9 @@ make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3
   }
 
   ## Check that a directory exists to leave the final package
-  dir <- file.path(dir)
-  if (!file.exists(dir)) {
-    tt <- dir.create(dir, recursive=TRUE)
+  workdir <- file.path(workdir)
+  if (!file.exists(workdir)) {
+    tt <- dir.create(workdir, recursive=TRUE)
   }
   ## Check for an incomplete installation directory and clear it out.
   if (file.exists(pkgname)) {
@@ -61,11 +61,11 @@ make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3
   fasta_hostname <- sub(pattern="https://(.*)\\.(org|net).*$",
                         replacement="\\1",
                         x=fasta_start)
-  ## genome_filename <- file.path(dir, paste0(pkgname, ".fasta"))
-  genome_filename <- file.path(dir, glue::glue("{pkgname}.fasta"))
+  ## genome_filename <- file.path(workdir, paste0(pkgname, ".fasta"))
+  genome_filename <- file.path(workdir, glue::glue("{pkgname}.fasta"))
 
   ## Find a spot to dump the fasta files
-  bsgenome_dir <- file.path(dir, pkgname)
+  bsgenome_dir <- file.path(workdir, pkgname)
   if (!file.exists(bsgenome_dir)) {
     created <- dir.create(bsgenome_dir, recursive=TRUE)
   }
@@ -138,6 +138,7 @@ make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3
   ## Otherwise I get error in cannot find uniqueLetters (this seems to be a new development)
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
+  uniqueLetters <- Biostrings::uniqueLetters
   tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
 
@@ -164,7 +165,7 @@ make_eupath_bsgenome <- function(entry, eu_version=NULL, dir="EuPathDB", copy_s3
     deleted <- unlink(x=bsgenome_dir, recursive=TRUE, force=TRUE)
     built <- try(devtools::build(pkgname, quiet=TRUE))
     if (class(built) != "try-error") {
-      final_path <- move_final_package(pkgname, type="bsgenome", dir=dir)
+      final_path <- move_final_package(pkgname, type="bsgenome", workdir=workdir)
       final_deleted <- unlink(x=pkgname, recursive=TRUE, force=TRUE)
     }
   } else {

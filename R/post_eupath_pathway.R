@@ -1,14 +1,14 @@
 #' Use the post interface to get pathway data.
 #'
 #' @param entry The full annotation entry.
-#' @param dir Location to which to save intermediate savefile.
+#' @param workdir Location to which to save intermediate savefile.
 #' @param overwrite If trying again, overwrite the savefile?
 #' @return A big honking table.
-post_eupath_pathway_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
+post_eupath_pathway_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need a eupathdb entry.")
   }
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }

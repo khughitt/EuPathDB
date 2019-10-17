@@ -10,7 +10,7 @@
 #' @return Somewhat nicer data frame.
 #' @author atb
 #' @export
-extract_gene_locations <- function(annot_df, location_column="annot_location_text") {
+extract_gene_locations <- function(annot_df, location_column="annot_gene_location_text") {
   newdf <- annot_df %>%
     tidyr::separate(location_column,
                     c("chromosome", "location"), ":")

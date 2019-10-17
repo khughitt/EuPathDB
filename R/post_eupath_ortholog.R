@@ -4,18 +4,18 @@
 #' which makes it possible for me to use this function without trouble.
 #'
 #' @param entry The full annotation entry.
-#' @param dir Location to which to save an intermediate savefile.
+#' @param workdir Location to which to save an intermediate savefile.
 #' @param table This defaults to the 'OrthologsLite' table, but that does not
 #'   exist at all eupathdb subprojects.
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="OrthologsLite",
+post_eupath_ortholog_table <- function(entry=NULL, workdir="EuPathDB", table="OrthologsLite",
                                        gene_ids=NULL, overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }
@@ -57,7 +57,7 @@ post_eupath_ortholog_table <- function(entry=NULL, dir="EuPathDB", table="Orthol
   result <- post_eupath_table(query_body, entry, table_name="orthologs")
   if (nrow(result) == 0) {
     message("Failed to download the OrthologsLite table, attempting to download 1 gene at a time.")
-    result <- get_orthologs_all_genes(entry, dir=dir,
+    result <- get_orthologs_all_genes(entry, workdir=workdir,
                                       gene_ids=gene_ids, overwrite=overwrite)
   } else {
     colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",

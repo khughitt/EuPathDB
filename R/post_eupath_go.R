@@ -1,15 +1,15 @@
 #' Use the POST interface to get GO data from the EuPathDB.
 #'
 #' @param entry The full annotation entry.
-#' @param dir Location to write savefiles.
+#' @param workdir Location to write savefiles.
 #' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return  A big honking table.
-post_eupath_go_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
+post_eupath_go_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
 
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }

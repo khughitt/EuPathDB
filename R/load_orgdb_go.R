@@ -24,7 +24,7 @@
 #'   messed with it pretty extensively.
 #' @export
 load_orgdb_go <- function(orgdb=NULL, gene_ids=NULL, keytype="gid",
-                          columns=c("go", "goall", "goid")) {
+                          columns=c("go", "evidence")) {
   if (is.null(orgdb)) {
     message("Assuming Homo.sapiens.")
     org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
