@@ -7,6 +7,15 @@
 download_uniprot_annotations(gids, entry, dir = "EuPathDB",
   overwrite = FALSE)
 }
+\arguments{
+\item{gids}{Gene IDs to cross reference against uniprot.}
+
+\item{entry}{Eupath entry to cross reference.}
+
+\item{dir}{Working directory.}
+
+\item{overwrite}{Overwrite the savefile.}
+}
 \description{
 I have been working on getting stupid v42 eupathdb into annotationhub
 forever, it is not particularly interesting to me, and for reasons passing

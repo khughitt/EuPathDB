@@ -4,13 +4,13 @@
 \alias{post_eupath_ortholog_table}
 \title{Use the post interface to get ortholog data.}
 \usage{
-post_eupath_ortholog_table(entry = NULL, dir = "EuPathDB",
+post_eupath_ortholog_table(entry = NULL, workdir = "EuPathDB",
   table = "OrthologsLite", gene_ids = NULL, overwrite = FALSE)
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{dir}{Location to which to save an intermediate savefile.}
+\item{workdir}{Location to which to save an intermediate savefile.}
 
 \item{table}{This defaults to the 'OrthologsLite' table, but that does not
 exist at all eupathdb subprojects.}

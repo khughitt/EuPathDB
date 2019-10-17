@@ -57,6 +57,7 @@ Collate:
  'get_orthologs_all_genes.R'
  'get_orthologs_one_gene.R'
  'kegg_vector_to_df.R'
+ 'load_ah_annotations.R'
  'load_eupath_annotations.R'
  'load_kegg_annotations.R'
  'load_orgdb_annotations.R'

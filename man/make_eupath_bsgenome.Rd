@@ -4,7 +4,7 @@
 \alias{make_eupath_bsgenome}
 \title{Generate a BSgenome package from the eupathdb.}
 \usage{
-make_eupath_bsgenome(entry, eu_version = NULL, dir = "EuPathDB",
+make_eupath_bsgenome(entry, eu_version = NULL, workdir = "EuPathDB",
   copy_s3 = FALSE, installp = TRUE, reinstall = FALSE, ...)
 }
 \arguments{
@@ -12,7 +12,7 @@ make_eupath_bsgenome(entry, eu_version = NULL, dir = "EuPathDB",
 
 \item{eu_version}{Which version of the eupathdb to use for creating the BSGenome?}
 
-\item{dir}{Working directory.}
+\item{workdir}{Working directory.}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 

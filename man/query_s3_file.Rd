@@ -10,9 +10,11 @@ Thus the md5 sum may be added to the metadata.}
 query_s3_file(row, file_type = "OrgDb", file_column = "OrgdbFile")
 }
 \arguments{
+\item{row}{Metadata row to query.}
+
 \item{file_type}{Currently I have 3 file types of interest.}
 
-\item{file}{Filename to query.}
+\item{file_column}{Column of the metadata to use to get the filename.}
 }
 \description{
 Perform what should be a completely silly final check on the file which is to be copied to s3.

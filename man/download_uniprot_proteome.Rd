@@ -12,6 +12,8 @@ download_uniprot_proteome(accession = NULL, species = NULL,
 
 \item{species}{Or perhaps species?}
 
+\item{taxonomy}{Taxon to query.}
+
 \item{all}{If there are more than 1 hit, grab them all?}
 
 \item{first}{Or perhaps just grab the first hit?}

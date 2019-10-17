@@ -18,6 +18,7 @@
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param do_go Create the gene ontology table?
 #' @param do_goslim Create the GOSLIM gene ontology table?
+#' @param godb_source Which table to use for the putative union of the GO tables.
 #' @param do_orthologs Create the gene ortholog table?
 #' @param do_interpro Create the interpro table?
 #' @param do_linkout Create a table of linkout data?

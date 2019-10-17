@@ -3,8 +3,9 @@
 #' data in the s3 staging directory is loadable in R and return the md5 sum of the file.
 #' Thus the md5 sum may be added to the metadata.
 #'
-#' @param file Filename to query.
+#' @param row Metadata row to query.
 #' @param file_type Currently I have 3 file types of interest.
+#' @param file_column Column of the metadata to use to get the filename.
 query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
   ret <- NULL
   file <- row[[file_column]]
@@ -20,11 +21,16 @@ query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
   return(ret)
 }
 
+#' As yet another test, this function will download all the AH data one species at a time.
+#'
+#' @param testing Use the annotationHub TESTING service rather than production.
+#' @param file_type Type of data to query.
+#' @param cachedir Place to put the downloaded files, useful for if one's homedirectory is too small.
 query_s3_ah <- function(testing=TRUE, file_type="OrgDb", cachedir="~/scratch/eupathdb/cache") {
   testing <- AnnotationHub::setAnnotationHubOption("TESTING", testing)
   cache <- AnnotationHub::setAnnotationHubOption("CACHE", cachedir)
   ah <- AnnotationHub::AnnotationHub()
-  entries <- AnnotationHub::query(x=ah, pattern=c("EuPathDB", eu_version, file_type))
+  entries <- AnnotationHub::query(x=ah, pattern=c("EuPathDB", file_type))
   sad <- c()
   happy <- c()
   start <- 1

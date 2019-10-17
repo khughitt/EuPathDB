@@ -21,7 +21,7 @@ check_s3 <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   table[["md5sum"]] <- ""
   for (f in 1:length(files)) {
     file <- files[f]
-    queried <- try(query_s3_file(table[f, ], type="local", file_column=column, file_type=file_type))
+    queried <- try(query_s3_file(table[f, ], file_column=column, file_type=file_type))
     if (file.exists(file) & class(queried)[1] == "character") {
       keepers <- c(keepers, f)
       table[f, "md5sum"] <- queried

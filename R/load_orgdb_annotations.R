@@ -10,14 +10,8 @@
 #' @param orgdb OrganismDb instance.
 #' @param gene_ids Search for a specific set of genes?
 #' @param include_go Ask the Dbi for gene ontology information?
-#' @param keytype the primary key of the tables, 'gid' for EuPathDB data.
-#' @param strand_column There are a few fields I want to gather by default:
-#'   start, end, strand, chromosome, type, and name; but these do not
-#'   necessarily have consistent names, use this column for the chromosome
-#'   strand.
-#' @param start_column Use this column for the gene start.
-#' @param end_column Use this column for the gene end.
-#' @param chromosome_column Use this column to identify the chromosome.
+#' @param keytype Primary key of the tables, 'gid' for EuPathDB data.
+#' @param location_column Which column contains the location data for the genes?
 #' @param type_column Use this column to identify the gene type.
 #' @param name_column Use this column to identify the gene name.
 #' @param fields Columns included in the output.

@@ -4,13 +4,13 @@
 \alias{post_eupath_pathway_table}
 \title{Use the post interface to get pathway data.}
 \usage{
-post_eupath_pathway_table(entry = NULL, dir = "EuPathDB",
+post_eupath_pathway_table(entry = NULL, workdir = "EuPathDB",
   overwrite = FALSE)
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{dir}{Location to which to save intermediate savefile.}
+\item{workdir}{Location to which to save intermediate savefile.}
 
 \item{overwrite}{If trying again, overwrite the savefile?}
 }
