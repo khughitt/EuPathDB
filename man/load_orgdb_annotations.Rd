@@ -6,9 +6,8 @@
 \usage{
 load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
   include_go = FALSE, keytype = "gid",
-  strand_column = "annot_cdsstrand", start_column = "annot_cdsstart",
-  end_column = "annot_cdsend", chromosome_column = "annot_cdschrom",
-  type_column = "annot_gene_type", name_column = "annot_cdsname",
+  location_column = "annot_location_text",
+  type_column = "annot_gene_type", name_column = "annot_gene_product",
   fields = NULL, sum_exon_widths = FALSE)
 }
 \arguments{
@@ -18,7 +17,15 @@ load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
 
 \item{include_go}{Ask the Dbi for gene ontology information?}
 
-\item{keytype}{mmm the key type used?}
+\item{keytype}{the primary key of the tables, 'gid' for EuPathDB data.}
+
+\item{type_column}{Use this column to identify the gene type.}
+
+\item{name_column}{Use this column to identify the gene name.}
+
+\item{fields}{Columns included in the output.}
+
+\item{sum_exon_widths}{Perform a sum of the exons in the data set?}
 
 \item{strand_column}{There are a few fields I want to gather by default:
 start, end, strand, chromosome, type, and name; but these do not
@@ -30,14 +37,6 @@ strand.}
 \item{end_column}{Use this column for the gene end.}
 
 \item{chromosome_column}{Use this column to identify the chromosome.}
-
-\item{type_column}{Use this column to identify the gene type.}
-
-\item{name_column}{Use this column to identify the gene name.}
-
-\item{fields}{Columns included in the output.}
-
-\item{sum_exon_widths}{Perform a sum of the exons in the data set?}
 }
 \value{
 Table of geneids, chromosomes, descriptions, strands, types, and lengths.

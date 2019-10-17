@@ -12,8 +12,6 @@ context("010annotation_eupathdb.R
 ##  Most of these are implicitly tested via make_eupath_organismdbi().
 
 testing <- download_eupath_metadata()
-## Looks like 8 new species were added.
-## oh wow, some species were removed now!
 expected <- 350
 actual <- nrow(testing[["valid"]])
 ## 01

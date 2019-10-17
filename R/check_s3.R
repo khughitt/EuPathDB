@@ -7,7 +7,7 @@
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
 #' @export
-check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
+check_s3 <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   column <- stringr::str_to_title(file_type)
   column <- glue::glue("{column}File")
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
@@ -21,7 +21,7 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   table[["md5sum"]] <- ""
   for (f in 1:length(files)) {
     file <- files[f]
-    queried <- try(query_s3_file(file, file_type=file_type))
+    queried <- try(query_s3_file(table[f, ], type="local", file_column=column, file_type=file_type))
     if (file.exists(file) & class(queried)[1] == "character") {
       keepers <- c(keepers, f)
       table[f, "md5sum"] <- queried

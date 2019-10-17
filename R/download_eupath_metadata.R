@@ -35,16 +35,30 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
                   "microsporidiadb", "piroplasmadb", "plasmodb",
                   "schistodb", "toxodb", "trichdb", "tritrypdb")
+    results <- list()
     valid_metadata <- data.frame()
     invalid_metadata <- data.frame()
-    for (p in projects) {
-      project_metadata <- download_eupath_metadata(webservice=p, overwrite=overwrite,
-                                                   bioc_version=bioc_version, dir=dir,
-                                                   eu_version=eu_version,
-                                                   write_csv=FALSE)
-      valid_metadata <- rbind(valid_metadata, project_metadata[["valid"]])
-      invalid_metadata <- rbind(invalid_metadata, project_metadata[["invalid"]])
+    ##cl <- parallel::makeCluster(11)
+    ##par <- doParallel::registerDoParallel(cl)
+    ##tt <- requireNamespace("parallel")
+    ##tt <- requireNamespace("doParallel")
+    ##tt <- requireNamespace("iterators")
+    ##tt <- requireNamespace("foreach")
+    ##res <- foreach(c=1:length(projects), .packages=c("EuPathDB")) %dopar% {
+    for (c in 1:length(projects)) {
+    webservice <- projects[c]
+    results[[webservice]] <- download_eupath_metadata(webservice=webservice, overwrite=overwrite,
+                                                      bioc_version=bioc_version, dir=dir,
+                                                      eu_version=eu_version,
+                                                      write_csv=FALSE)
     }
+    ##stopped <- parallel::stopCluster(cl)
+    ##for (r in res) {
+    for (r in results) {
+        valid_metadata <- rbind(valid_metadata, r[["valid"]])
+        invalid_metadata <- rbind(invalid_metadata, r[["invalid"]])
+    }
+
     if (isTRUE(write_csv)) {
       message("Writing csv files.")
       written <- write_eupath_metadata(valid_metadata, "eupathdb",

@@ -8,17 +8,17 @@
 #' or pathological can pass it 'all'.
 #'
 #' @param orgdb OrganismDb instance.
-#' @param gene_ids  Search for a specific set of genes?
-#' @param include_go  Ask the Dbi for gene ontology information?
-#' @param keytype mmm the key type used?
-#' @param strand_column  There are a few fields I want to gather by default:
+#' @param gene_ids Search for a specific set of genes?
+#' @param include_go Ask the Dbi for gene ontology information?
+#' @param keytype the primary key of the tables, 'gid' for EuPathDB data.
+#' @param strand_column There are a few fields I want to gather by default:
 #'   start, end, strand, chromosome, type, and name; but these do not
 #'   necessarily have consistent names, use this column for the chromosome
 #'   strand.
-#' @param start_column  Use this column for the gene start.
-#' @param end_column  Use this column for the gene end.
-#' @param chromosome_column  Use this column to identify the chromosome.
-#' @param type_column  Use this column to identify the gene type.
+#' @param start_column Use this column for the gene start.
+#' @param end_column Use this column for the gene end.
+#' @param chromosome_column Use this column to identify the chromosome.
+#' @param type_column Use this column to identify the gene type.
 #' @param name_column Use this column to identify the gene name.
 #' @param fields Columns included in the output.
 #' @param sum_exon_widths Perform a sum of the exons in the data set?
@@ -33,13 +33,11 @@
 #' @author atb
 #' @export
 load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
-                                   keytype="gid", strand_column="annot_cdsstrand",
-                                   start_column="annot_cdsstart", end_column="annot_cdsend",
-                                   chromosome_column="annot_cdschrom",
-                                   type_column="annot_gene_type", name_column="annot_cdsname",
+                                   keytype="gid", location_column="annot_location_text",
+                                   type_column="annot_gene_type", name_column="annot_gene_product",
                                    fields=NULL, sum_exon_widths=FALSE) {
   if (is.null(orgdb)) {
-    message("Assuming Homo.sapiens.")
+    message("No orgdb provided, assuming Homo.sapiens.")
     org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
     eval(parse(text=org_pkgstring))
   } else if ("character" %in% class(orgdb)) {
@@ -47,10 +45,7 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
     eval(parse(text=org_pkgstring))
   }
   keytype <- toupper(keytype)
-  strand_column <- toupper(strand_column)
-  start_column <- toupper(start_column)
-  end_column <- toupper(end_column)
-  chromosome_column <- toupper(chromosome_column)
+  location_column <- toupper(location_column)
   type_column <- toupper(type_column)
   name_column <- toupper(name_column)
   ## Caveat: if fields was NULL, now it is character(0)
@@ -70,29 +65,15 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
     message("Unable to find ", type_column, " in the db, removing it.")
     type_column <- NULL
   }
-  if (! chromosome_column %in% all_fields) {
-    message("Unable to find ", chromosome_column, " in the db, removing it.")
-    chromosome_column <- NULL
-  }
-  if (! strand_column %in% all_fields) {
-    message("Unable to find ", strand_column, " in the db, removing it.")
-    strand_column <- NULL
-  }
-  if (! start_column %in% all_fields) {
-    message("Unable to find ", start_column, " in the db, removing it.")
-    start_column <- NULL
-  }
-  if (! end_column %in% all_fields) {
-    message("Unable to find ", end_column, " in the db, removing it.")
-    end_column <- NULL
+  if (! location_column %in% all_fields) {
+    message("Unable to find ", location_column, " in the db, removing it.")
+    location_column <- NULL
   }
 
   if (length(fields) == 0) {
-    chosen_fields <- c(name_column, type_column, chromosome_column, strand_column,
-                       start_column, end_column)
+    chosen_fields <- c(name_column, type_column, location_column)
   } else {
-    chosen_fields <- c(name_column, type_column, chromosome_column, strand_column,
-                       start_column, end_column, fields)
+    chosen_fields <- c(name_column, type_column, location_column, fields)
   }
 
   if ("ALL" %in% chosen_fields) {
@@ -136,6 +117,14 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
             " which I think references select-method.R in GenomicFeatures.")
     message("So, try replacing columns with stuff like 'tx*' with 'cds*'?")
     stop()
+  }
+
+  chromosome_column <- NULL
+  strand_column <- NULL
+  start_column <- NULL
+  end_column <- NULL
+  if (location_column %in% all_fields) {
+    gene_info <- extract_gene_locations(gene_info, location_column=location_column)
   }
 
   ## Compute total transcript lengths (for all exons)

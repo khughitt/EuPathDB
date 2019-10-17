@@ -1,18 +1,18 @@
-#' Use the post interface to get linkout data.
+#' Use the post interface to get pathway data.
 #'
 #' @param entry The full annotation entry.
 #' @param workdir Location to which to save intermediate savefile.
-#' @param overwrite Overwrite the savefile when attempting a redo?
-#' @return  A big honking table.
-post_eupath_linkout_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
+#' @param overwrite If trying again, overwrite the savefile?
+#' @return A big honking table.
+post_eupath_pathway_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
-    stop("  Need an entry from the eupathdb.")
+    stop("  Need a eupathdb entry.")
   }
   rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }
-  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_linkout_table.rda"))
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_pathway_table.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
@@ -26,11 +26,8 @@ post_eupath_linkout_table <- function(entry=NULL, workdir="EuPathDB", overwrite=
   }
 
   species <- entry[["TaxonUnmodified"]]
-  ## query body as a structured list
-  ## Parameters taken from the pdf "Exporting Data - Web Services.pdf" received
-  ## from Cristina
   query_body <- list(
-    ## 3 elements, answerSpec, formatting, format.
+    ## 2 elements, answerSpec, formatting.
     "answerSpec" = list(
       "questionName" = jsonlite::unbox("GeneQuestions.GenesByTaxonGene"),
       "parameters" = list("organism" = jsonlite::unbox(species)),
@@ -39,15 +36,18 @@ post_eupath_linkout_table <- function(entry=NULL, workdir="EuPathDB", overwrite=
     ),
     "formatting" = list(
       "formatConfig" = list(
-        "tables" = "GeneLinkouts",
-        "includeEmptyTables" = jsonlite::unbox("true"),
+        "tables" = "MetabolicPathways",
+        "includeEmptyTables" = jsonlite::unbox("false"),
         "attachmentType" = jsonlite::unbox("plain")
       ),
       "format" = jsonlite::unbox("tableTabular")
     ))
 
-  result <- post_eupath_table(query_body, entry, table_name="linkout")
-
+  result <- post_eupath_table(query_body, entry, table_name="pathway")
+  colnames(result) <- gsub(x=colnames(result), pattern="^PATHWAY_PATHWAY$",
+                           replacement="PATHWAY_ID")
+  colnames(result) <- gsub(x=colnames(result), pattern="PATHWAY_PATHWAY",
+                           replacement="PATHWAY")
   message("  Saving ", savefile)
   save(result, file=savefile)
   return(result)

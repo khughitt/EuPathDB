@@ -66,34 +66,44 @@ if (isTRUE(bsgenome)) {
   bs_csv <- check_csv(file_type="BSgenome", bioc_version=bioc_version, eu_version=eu_version)
   bs_files <- check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", bs_csv)
-  file.copy(bs_csv, csv_copy_path)
+  copied <- file.copy(bs_csv, csv_copy_path)
+  expect_true(copied)
   bs_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), bs_csv)
+  save(list=c("bs_checked"), file="bsgenome_metadata.rda")
 }
 if (isTRUE(orgdb)) {
   org_csv <- check_csv(file_type="OrgDb", bioc_version=bioc_version, eu_version=eu_version)
   org_files <- check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", org_csv)
-  file.copy(org_csv, csv_copy_path)
+  copied <- file.copy(org_csv, csv_copy_path)
+  expect_true(copied)
   org_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), org_csv)
+  save(list=c("org_checked"), file="orgdb_metadata.rda")
 }
 if (isTRUE(txdb)) {
   txdb_csv <- check_csv(file_type="TxDb", bioc_version=bioc_version, eu_version=eu_version)
   tx_files <- check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", txdb_csv)
-  file.copy(txdb_csv, csv_copy_path)
+  copied <- file.copy(txdb_csv, csv_copy_path)
+  expect_true(copied)
   tx_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), txdb_csv)
+  save(list=c("tx_checked"), file="txdb_metadata.rda")
 }
 if (isTRUE(organdb)) {
   organ_csv <- check_csv(file_type="OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
   organ_files <- check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", organ_csv)
-  file.copy(organ_csv, csv_copy_path)
+  copied <- file.copy(organ_csv, csv_copy_path)
+  expect_true(copied)
   organ_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), organ_csv)
+  save(list=c("organ_checked"), file="organdb_metadata.rda")
 }
 if (isTRUE(granges)) {
   grange_csv <- check_csv(file_type="GRanges", bioc_version=bioc_version, eu_version=eu_version)
   grange_files <- check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", grange_csv)
-  file.copy(grange_csv, csv_copy_path)
+  copied <- file.copy(grange_csv, csv_copy_path)
+  expect_true(copied)
   grange_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), grange_csv)
+  save(list=c("grange_checked"), file="granges_metadata.rda")
 }
