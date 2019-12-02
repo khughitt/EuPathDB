@@ -4,8 +4,15 @@
 \alias{make_eupath_bsgenome}
 \title{Generate a BSgenome package from the eupathdb.}
 \usage{
-make_eupath_bsgenome(entry, eu_version = NULL, workdir = "EuPathDB",
-  copy_s3 = FALSE, installp = TRUE, reinstall = FALSE, ...)
+make_eupath_bsgenome(
+  entry,
+  eu_version = NULL,
+  workdir = "EuPathDB",
+  copy_s3 = FALSE,
+  installp = TRUE,
+  reinstall = FALSE,
+  ...
+)
 }
 \arguments{
 \item{entry}{Single eupathdb metadata entry.}

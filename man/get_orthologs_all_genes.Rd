@@ -4,8 +4,13 @@
 \alias{get_orthologs_all_genes}
 \title{Query ortholog tables from the eupathdb one gene at a time.}
 \usage{
-get_orthologs_all_genes(entry = NULL, workdir = "EuPathDB",
-  gene_ids = NULL, overwrite = TRUE, species_list = NULL)
+get_orthologs_all_genes(
+  entry = NULL,
+  workdir = "EuPathDB",
+  gene_ids = NULL,
+  overwrite = TRUE,
+  species_list = NULL
+)
 }
 \arguments{
 \item{entry}{An entry from the eupathdb metadata to use for other parameters.}

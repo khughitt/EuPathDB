@@ -2,10 +2,7 @@
 % Please edit documentation in R/post_eupath_table.R
 \name{post_eupath_table}
 \alias{post_eupath_table}
-\title{Queries one of the EuPathDB APIs using a POST request and returns a
-dataframe representation of the result.
-Note: As of 2017/07/13, POST requests are not yet supported on EuPathDB.
-Note: 2017/07/13 POST queries can only use the new API}
+\title{Queries one of the EuPathDB APIs using a POST request.}
 \usage{
 post_eupath_table(query_body, entry, table_name = NULL, minutes = 30)
 }
@@ -27,10 +24,9 @@ More information
 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 }
 \description{
-Queries one of the EuPathDB APIs using a POST request and returns a
-dataframe representation of the result.
-Note: As of 2017/07/13, POST requests are not yet supported on EuPathDB.
-Note: 2017/07/13 POST queries can only use the new API
+This should return a dataframe representation of one table at the eupathdb.
+It should also simplify the column names into something a bit more
+consistent.
 }
 \author{
 Keith Hughitt

@@ -4,11 +4,17 @@
 \alias{load_orgdb_annotations}
 \title{Load organism annotation data from an orgdb sqlite package.}
 \usage{
-load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
-  include_go = FALSE, keytype = "gid",
+load_orgdb_annotations(
+  orgdb = NULL,
+  gene_ids = NULL,
+  include_go = FALSE,
+  keytype = "gid",
   location_column = "annot_location_text",
-  type_column = "annot_gene_type", name_column = "annot_gene_product",
-  fields = NULL, sum_exon_widths = FALSE)
+  type_column = "annot_gene_type",
+  name_column = "annot_gene_product",
+  fields = NULL,
+  sum_exon_widths = FALSE
+)
 }
 \arguments{
 \item{orgdb}{OrganismDb instance.}

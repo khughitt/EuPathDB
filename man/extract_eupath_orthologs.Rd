@@ -4,10 +4,17 @@
 \alias{extract_eupath_orthologs}
 \title{Given 2 species names from the eupathdb, make orthology tables betwixt them.}
 \usage{
-extract_eupath_orthologs(db, master = "GID", query_species = NULL,
-  id_column = "ORTHOLOGS_ORTHOLOG", org_column = "ORTHOLOGS_ORGANISM",
-  url_column = "ORTHOLOGS_PRODUCT", count_column = "ORTHOLOGS_COUNT",
-  print_speciesnames = FALSE, webservice = "eupathdb")
+extract_eupath_orthologs(
+  db,
+  master = "GID",
+  query_species = NULL,
+  id_column = "ORTHOLOGS_ORTHOLOG",
+  org_column = "ORTHOLOGS_ORGANISM",
+  url_column = "ORTHOLOGS_PRODUCT",
+  count_column = "ORTHOLOGS_COUNT",
+  print_speciesnames = FALSE,
+  webservice = "eupathdb"
+)
 }
 \arguments{
 \item{db}{Species name (subset) from one eupath database.}

@@ -12,6 +12,24 @@
 #' @return List containing the filenames written.
 write_eupath_metadata <- function(metadata, service="eupathdb", type="valid",
                                   bioc_version="3.9", eu_version="44") {
+
+  db_version <- NULL
+  if (is.null(eu_version)) {
+    ## One could just as easily choose any of the other eupathdb hosts.
+    db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
+    eu_version <- gsub(x=db_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+  } else {
+    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
+    ## eupath_version
+  }
+
+  if (is.null(bioc_version)) {
+    bioc_version <- as.character(BiocManager::version())
+  } else {
+    bioc_version <- as.character(bioc_version)
+  }
+
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   file_lst <- list(
     "granges" = glue::glue("GRanges_biocv{bioc_version}_{service}{eu_version}_metadata.csv"),

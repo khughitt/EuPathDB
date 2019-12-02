@@ -4,8 +4,13 @@
 \alias{write_eupath_metadata}
 \title{Standardize the writing of csv metadata.}
 \usage{
-write_eupath_metadata(metadata, service = "eupathdb", type = "valid",
-  bioc_version = "3.9", eu_version = "44")
+write_eupath_metadata(
+  metadata,
+  service = "eupathdb",
+  type = "valid",
+  bioc_version = "3.9",
+  eu_version = "44"
+)
 }
 \arguments{
 \item{metadata}{Set of metadata.}

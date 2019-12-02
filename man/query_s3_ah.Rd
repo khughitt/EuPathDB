@@ -4,8 +4,11 @@
 \alias{query_s3_ah}
 \title{As yet another test, this function will download all the AH data one species at a time.}
 \usage{
-query_s3_ah(testing = TRUE, file_type = "OrgDb",
-  cachedir = "~/scratch/eupathdb/cache")
+query_s3_ah(
+  testing = TRUE,
+  file_type = "OrgDb",
+  cachedir = "~/scratch/eupathdb/cache"
+)
 }
 \arguments{
 \item{testing}{Use the annotationHub TESTING service rather than production.}
@@ -15,5 +18,6 @@ query_s3_ah(testing = TRUE, file_type = "OrgDb",
 \item{cachedir}{Place to put the downloaded files, useful for if one's homedirectory is too small.}
 }
 \description{
-As yet another test, this function will download all the AH data one species at a time.
+This may be run after the data has been uploaded to the annotationhub to
+ensure that all the uploaded files are actually functional.
 }

@@ -193,7 +193,7 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
     ## a lot of GIDs are from the _other_ haplotype...
     k_gid <- kegg_table[["GID"]]
     g_gid <- gene_table[["GID"]]
-    found_gids <- k_gid %in% g_gid
+    found_gids <- sum(k_gid %in% g_gid)
     if (found_gids == 0) {
       message("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
       extra_string <- ""
@@ -407,8 +407,6 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent=TRUE)
   message(" Calling makeOrgPackage() for ", entry[["Species"]])
-  message(" Arguments provided to makeOrgPackage include: ",
-          toString(names(orgdb_args)), ".")
   verbose <- FALSE
   orgdb_path <- ""
   if (isTRUE(verbose)) {

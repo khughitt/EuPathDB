@@ -4,12 +4,25 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(entry = NULL, workdir = "EuPathDB",
-  installp = TRUE, kegg_abbreviation = NULL, reinstall = FALSE,
-  overwrite = FALSE, copy_s3 = FALSE, do_go = TRUE,
-  do_goslim = TRUE, godb_source = NULL, do_orthologs = TRUE,
-  do_interpro = TRUE, do_linkout = TRUE, do_pubmed = TRUE,
-  do_pathway = TRUE, do_kegg = TRUE, do_uniprot = FALSE)
+make_eupath_orgdb(
+  entry = NULL,
+  workdir = "EuPathDB",
+  installp = TRUE,
+  kegg_abbreviation = NULL,
+  reinstall = FALSE,
+  overwrite = FALSE,
+  copy_s3 = FALSE,
+  do_go = TRUE,
+  do_goslim = TRUE,
+  godb_source = NULL,
+  do_orthologs = TRUE,
+  do_interpro = TRUE,
+  do_linkout = TRUE,
+  do_pubmed = TRUE,
+  do_pathway = TRUE,
+  do_kegg = TRUE,
+  do_uniprot = FALSE
+)
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}

@@ -4,8 +4,11 @@
 \alias{post_eupath_linkout_table}
 \title{Use the post interface to get linkout data.}
 \usage{
-post_eupath_linkout_table(entry = NULL, workdir = "EuPathDB",
-  overwrite = FALSE)
+post_eupath_linkout_table(
+  entry = NULL,
+  workdir = "EuPathDB",
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}

@@ -32,6 +32,3 @@ One thing I should consider is to add some of this logic to my eupath queries
 rather than perform these clunky modifications to the already-generated
 packages.
 }
-\author{
-atb
-}

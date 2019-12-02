@@ -4,8 +4,7 @@
 \alias{download_uniprot_annotations}
 \title{Make a table of uniprot anntotations when possible.}
 \usage{
-download_uniprot_annotations(gids, entry, dir = "EuPathDB",
-  overwrite = FALSE)
+download_uniprot_annotations(gids, entry, dir = "EuPathDB", overwrite = FALSE)
 }
 \arguments{
 \item{gids}{Gene IDs to cross reference against uniprot.}

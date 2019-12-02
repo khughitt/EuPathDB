@@ -1,11 +1,15 @@
 #' Perform what should be a completely silly final check on the file which is to be copied to s3.
+#'
 #' This function really should not be needed.  But damn.  This will do a final check that the
 #' data in the s3 staging directory is loadable in R and return the md5 sum of the file.
 #' Thus the md5 sum may be added to the metadata.
 #'
 #' @param row Metadata row to query.
 #' @param file_type Currently I have 3 file types of interest.
-#' @param file_column Column of the metadata to use to get the filename.
+#' @param file_column Name of the column with the locations of the files of
+#'   interest.
+#' @return MD5 checksum of the resulting file, or NULL.
+#' @export
 query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
   ret <- NULL
   file <- row[[file_column]]
@@ -22,6 +26,9 @@ query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
 }
 
 #' As yet another test, this function will download all the AH data one species at a time.
+#'
+#' This may be run after the data has been uploaded to the annotationhub to
+#' ensure that all the uploaded files are actually functional.
 #'
 #' @param testing Use the annotationHub TESTING service rather than production.
 #' @param file_type Type of data to query.
@@ -86,8 +93,19 @@ query_s3_ah <- function(testing=TRUE, file_type="OrgDb", cachedir="~/scratch/eup
   } ## Ending the for loop
 }
 
+#' Perform what should be a completely silly final check on the file which is to be copied to s3.
+#'
+#' This function really should not be needed.  But damn.  This will do a final check that the
+#' data in the s3 staging directory is loadable in R and return the md5 sum of the file.
+#' Thus the md5 sum may be added to the metadata.
+#'
+#' @param file Filename to query.
+#' @return MD5 sum of the file or NULL.
 query_s3_granges <- function(file) {
-  con <- attach(file)
+  con <- try(attach(file), silent=TRUE)
+  if (class(con)[1] == "try-error") {
+    return(NULL)
+  }
   expected_class <- "environment"
   testthat::expect_equal(class(con)[1], expected_class)
   ## Test that there is some data...
@@ -103,6 +121,14 @@ query_s3_granges <- function(file) {
   return(md)
 }
 
+#' Perform what should be a completely silly final check on the file which is to be copied to s3.
+#'
+#' This function really should not be needed.  But damn.  This will do a final check that the
+#' data in the s3 staging directory is loadable in R and return the md5 sum of the file.
+#' Thus the md5 sum may be added to the metadata.
+#'
+#' @param file Filename to query.
+#' @return MD5 sum of the file or NULL.
 query_s3_orgdb <- function(file) {
   con <- RSQLite::dbConnect(RSQLite::SQLite(), file)
   expected_class <- "SQLiteConnection"
@@ -110,8 +136,10 @@ query_s3_orgdb <- function(file) {
   ## Test that we have some tables.
   required_tables <- c("chromosome", "gene_info", "genes")
   found_tables <- RSQLite::dbListTables(con)
-  for (t in required_tables) {
-    testthat::expect_true(t %in% found_tables)
+  found_idx <- required_tables %in% found_tables
+  if (length(found_idx) == 0 | sum(found_idx) != length(required_tables)) {
+    message("Incomplete data for ", file, ".")
+    return(NULL)
   }
   ## And that they have data.
   min_rows <- 25
@@ -125,6 +153,14 @@ query_s3_orgdb <- function(file) {
   return(md)
 }
 
+#' Perform what should be a completely silly final check on the file which is to be copied to s3.
+#'
+#' This function really should not be needed.  But damn.  This will do a final check that the
+#' data in the s3 staging directory is loadable in R and return the md5 sum of the file.
+#' Thus the md5 sum may be added to the metadata.
+#'
+#' @param file Filename to query.
+#' @return MD5 sum of the file or NULL.
 query_s3_txdb <- function(file) {
   con <- RSQLite::dbConnect(RSQLite::SQLite(), file)
   expected_class <- "SQLiteConnection"
@@ -132,15 +168,19 @@ query_s3_txdb <- function(file) {
   ## Test that we have some tables.
   required_tables <- c("cds", "gene", "exon")
   found_tables <- RSQLite::dbListTables(con)
-  for (t in required_tables) {
-    testthat::expect_true(t %in% found_tables)
+  found_idx <- required_tables %in% found_tables
+  if (length(found_idx) == 0 | sum(found_idx) != length(required_tables)) {
+    message("Incomplete data for ", file, ".")
+    return(NULL)
   }
   ## And that they have data.
   min_rows <- 25
   data <- RSQLite::dbReadTable(con, "cds")
   found_rows <- nrow(data)
-  testthat::expect_gt(found_rows, min_rows)
-  RSQLite::dbDisconnect(con)
+  if (found_rows < min_rows) {
+    message("Insufficient rows observed for ", file, ".")
+    return(NULL)
+  }
   ## If we get here, then the data should be usable
   ## return the md5sum of the file.
   md <- as.character(tools::md5sum(file))

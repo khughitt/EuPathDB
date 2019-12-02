@@ -4,8 +4,12 @@
 \alias{get_eupath_entry}
 \title{Search the eupathdb metadata for a given species substring.}
 \usage{
-get_eupath_entry(species = "Leishmania major", webservice = "eupathdb",
-  column = "TaxonUnmodified", ...)
+get_eupath_entry(
+  species = "Leishmania major",
+  webservice = "eupathdb",
+  column = "TaxonUnmodified",
+  ...
+)
 }
 \arguments{
 \item{species}{String containing some reasonably unique text in the desired

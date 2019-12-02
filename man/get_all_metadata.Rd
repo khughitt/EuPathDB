@@ -9,6 +9,10 @@ get_all_metadata(webservice = "all")
 \arguments{
 \item{webservice}{Assume all services are desired.}
 }
+\value{
+Dataframe of the various species metadata.
+}
 \description{
-Invoke download_eupath_metadata() using all the sub-projects of the EuPathDB.
+This just iterates over a list of existing EuPathDB web resources and
+attempts to download the metadata from them.
 }

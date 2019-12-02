@@ -4,9 +4,13 @@
 \alias{load_ah_annotations}
 \title{Shortcut for loading annotation data from AnnotationHub, making some EupathDB assumptions.}
 \usage{
-load_ah_annotations(species = "Leishmania major strain Friedlin",
-  service = "TriTrypDB", type = "OrgDb", eu_version = NULL,
-  wanted_fields = NULL)
+load_ah_annotations(
+  species = "Leishmania major strain Friedlin",
+  service = "TriTrypDB",
+  type = "OrgDb",
+  eu_version = NULL,
+  wanted_fields = NULL
+)
 }
 \arguments{
 \item{species}{String containing a unique portion of the desired species.}
