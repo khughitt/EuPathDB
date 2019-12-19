@@ -44,7 +44,7 @@
 #' @author atb
 #' @export
 extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
-                                     id_column="ORTHOLOGS_ORTHOLOG",
+                                     id_column="ORTHOLOGS_GID",
                                      org_column="ORTHOLOGS_ORGANISM",
                                      url_column="ORTHOLOGS_PRODUCT",
                                      count_column="ORTHOLOGS_COUNT",
