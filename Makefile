@@ -1,6 +1,26 @@
 VERSION=1.0.0
 export _R_CHECK_FORCE_SUGGESTS_=FALSE
 
+ah:
+	@echo "Checking the upload status of all the s3 data."
+	R -e "devtools::load_all('.'); query_s3_ah(); query_s3_ah(file_type='TxDb'); query_s3_ah(file_type='GRanges')"
+
+aws_list:
+	@echo "Printing list of files on aws."
+	aws configure --profile AnnotationContributor
+	aws --profile AnnotationContributor s3api list-objects --bucket annotationhub --page-size 8000 --query 'Contents[].{Key: Key}' |\
+cut -f2 -d$$'\t' |\
+grep '^EuPathDB/GRanges/3.10' |\
+cut -f4 -d'/' > GRangeS3List.txt
+⎄	aws --profile AnnotationContributor s3api list-objects --bucket annotationhub --page-size 8000 --query 'Contents[].{Key: Key}' |\
+cut -f2 -d$$'\t' |\
+grep '^EuPathDB/OrgDb/3.10' |\
+cut -f4 -d'/' > OrgDbS3List.txt
+	aws --profile AnnotationContributor s3api list-objects --bucket annotationhub --page-size 8000 --query 'Contents[].{Key: Key}' |\
+cut -f2 -d$$'\t' |\
+grep '^EuPathDB/TxDb/3.10' |\
+cut -f4 -d'/' > TxDbS3List.txt
+
 all: clean roxygen reference check build test
 
 build:
@@ -51,12 +71,21 @@ roxygen:
 	@echo "Generating documentation with devtools::document()"
 	R -e "suppressPackageStartupMessages(devtools::document())"
 
+rclone:
+	@echo "Invoking rclone to upload sqlite/rda/etc files to s3."
+	rclone sync "inst/scripts/EuPathDB/OrgDb/"   "ah:annotation-contributor/EuPathDB/OrgDb/"
+	rclone sync "inst/scripts/EuPathDB/GRanges/"   "ah:annotation-contributor/EuPathDB/GRanges/"
+	rclone sync "inst/scripts/EuPathDB/TxDb/"   "ah:annotation-contributor/EuPathDB/TxDb/"
+	rclone sync "inst/scripts/EuPathDB/OrgDb/"   "ah:annotation-contributor/EuPathDB/OrgDb/"
+	rclone sync "inst/scripts/EuPathDB/GRanges/"   "ah:annotation-contributor/EuPathDB/GRanges/"
+	rclone sync "inst/scripts/EuPathDB/TxDb/"   "ah:annotation-contributor/EuPathDB/TxDb/"
+
 s3:
 	@echo "Invoking the aws client to upload the sqlite/rda/etc files to s3."
 	aws configure --profile AnnotationContributor
-	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrgDb "s3://annotation-contributor/EuPathDB/OrgDb" --recursive --acl public-read
-	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/GRanges "s3://annotation-contributor/EuPathDB/GRanges" --recursive --acl public-read
-	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/TxDb "s3://annotation-contributor/EuPathDB/TxDb" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp "inst/scripts/EuPathDB/OrgDb/"   "s3://annotation-contributor/EuPathDB/OrgDb/" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp "inst/scripts/EuPathDB/GRanges/"   "s3://annotation-contributor/EuPathDB/GRanges" --recursive --acl public-read
+	aws --profile AnnotationContributor s3 cp "inst/scripts/EuPathDB/TxDb/"   "s3://annotation-contributor/EuPathDB/TxDb" --recursive --acl public-read
 ##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/OrganismDBI "s3://annotation-contributor/EuPathDB/OrganismDBI" --recursive --acl public-read
 ##	aws --profile AnnotationContributor s3 cp inst/scripts/EuPathDB/BSGenome "s3://annotation-contributor/EuPathDB/BSGenome" --recursive --acl public-read
 
