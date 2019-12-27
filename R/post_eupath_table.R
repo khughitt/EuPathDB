@@ -1,7 +1,8 @@
-#' Queries one of the EuPathDB APIs using a POST request and returns a
-#' dataframe representation of the result.
-#' Note: As of 2017/07/13, POST requests are not yet supported on EuPathDB.
-#' Note: 2017/07/13 POST queries can only use the new API
+#' Queries one of the EuPathDB APIs using a POST request.
+#'
+#' This should return a dataframe representation of one table at the eupathdb.
+#' It should also simplify the column names into something a bit more
+#' consistent.
 #'
 #' @param query_body String of additional query arguments
 #' @param entry The single metadatum containing the base url of the provider, species, etc.

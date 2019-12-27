@@ -37,8 +37,9 @@ make_eupath_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPath
   }
   orgdb_name <- pkgnames[["orgdb"]]
   txdb_name <- pkgnames[["txdb"]]
-  orgdb_ret <- make_eupath_orgdb(entry, eu_version=eu_version, workdir=workdir,
-                                 kegg_abbreviation=kegg_abbreviation, reinstall=reinstall)
+  orgdb_ret <- make_eupath_orgdb(entry, workdir=workdir,
+                                 kegg_abbreviation=kegg_abbreviation,
+                                 reinstall=reinstall)
   if (is.null(orgdb_ret)) {
     return(NULL)
   }

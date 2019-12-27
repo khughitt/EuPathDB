@@ -5,8 +5,12 @@
 \title{This peculiar and slow querying of orthologs is due to me crashing the
 eupathdb web servers.}
 \usage{
-get_orthologs_one_gene(entry = NULL, gene = "LmjF.01.0010",
-  dir = "EuPathDB", species_list = NULL)
+get_orthologs_one_gene(
+  entry = NULL,
+  gene = "LmjF.01.0010",
+  dir = "EuPathDB",
+  species_list = NULL
+)
 }
 \arguments{
 \item{entry}{Metadata entry.}

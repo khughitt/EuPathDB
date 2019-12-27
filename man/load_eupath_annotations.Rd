@@ -4,8 +4,12 @@
 \alias{load_eupath_annotations}
 \title{Shortcut for loading annotation data from a eupathdb-based orgdb.}
 \usage{
-load_eupath_annotations(species = "Leishmania major",
-  webservice = "tritrypdb", eu_version = NULL, wanted_fields = NULL)
+load_eupath_annotations(
+  species = "Leishmania major",
+  webservice = "tritrypdb",
+  eu_version = NULL,
+  wanted_fields = NULL
+)
 }
 \arguments{
 \item{species}{String containing a unique portion of the desired species.}

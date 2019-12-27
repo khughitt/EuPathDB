@@ -4,17 +4,23 @@
 \alias{make_eupath_organismdbi}
 \title{Create an organismDbi instance for an eupathdb organism.}
 \usage{
-make_eupath_organismdbi(entry = NULL, eu_version = NULL,
-  dir = "EuPathDB", installp = TRUE, reinstall = FALSE,
-  kegg_abbreviation = NULL, exclude_join = "ENTREZID",
-  copy_s3 = FALSE)
+make_eupath_organismdbi(
+  entry = NULL,
+  eu_version = NULL,
+  workdir = "EuPathDB",
+  installp = TRUE,
+  reinstall = FALSE,
+  kegg_abbreviation = NULL,
+  exclude_join = "ENTREZID",
+  copy_s3 = FALSE
+)
 }
 \arguments{
 \item{entry}{A row from the eupathdb metadataframe.}
 
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
-\item{dir}{Directory in which to build the packages.}
+\item{workdir}{Directory in which to build the packages.}
 
 \item{installp}{Install the resulting package?}
 

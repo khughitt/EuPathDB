@@ -4,17 +4,30 @@
 \alias{make_eupath_orgdb}
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
-make_eupath_orgdb(entry = NULL, dir = "EuPathDB", installp = TRUE,
-  kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
-  copy_s3 = FALSE, do_go = TRUE, do_goslim = TRUE,
-  do_orthologs = TRUE, do_interpro = TRUE, linkout = TRUE,
-  do_pubmed = TRUE, do_pathway = TRUE, do_kegg = TRUE,
-  do_uniprot = FALSE)
+make_eupath_orgdb(
+  entry = NULL,
+  workdir = "EuPathDB",
+  installp = TRUE,
+  kegg_abbreviation = NULL,
+  reinstall = FALSE,
+  overwrite = FALSE,
+  copy_s3 = FALSE,
+  do_go = TRUE,
+  do_goslim = TRUE,
+  godb_source = NULL,
+  do_orthologs = TRUE,
+  do_interpro = TRUE,
+  do_linkout = TRUE,
+  do_pubmed = TRUE,
+  do_pathway = TRUE,
+  do_kegg = TRUE,
+  do_uniprot = FALSE
+)
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}
 
-\item{dir}{Where to put all the various temporary files.}
+\item{workdir}{Where to put all the various temporary files.}
 
 \item{installp}{Install the resulting package?}
 
@@ -30,9 +43,13 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", installp = TRUE,
 
 \item{do_goslim}{Create the GOSLIM gene ontology table?}
 
+\item{godb_source}{Which table to use for the putative union of the GO tables.}
+
 \item{do_orthologs}{Create the gene ortholog table?}
 
 \item{do_interpro}{Create the interpro table?}
+
+\item{do_linkout}{Create a table of linkout data?}
 
 \item{do_pubmed}{Create a table of pubmed entries?}
 
@@ -41,8 +58,6 @@ make_eupath_orgdb(entry = NULL, dir = "EuPathDB", installp = TRUE,
 \item{do_kegg}{Attempt to create the kegg table?}
 
 \item{do_uniprot}{Attempt to create a uniprot table?}
-
-\item{do_linkout}{Create a table of linkout data?}
 }
 \value{
 Currently only the name of the installed package.  This should

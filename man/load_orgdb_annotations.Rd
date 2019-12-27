@@ -4,11 +4,17 @@
 \alias{load_orgdb_annotations}
 \title{Load organism annotation data from an orgdb sqlite package.}
 \usage{
-load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
-  include_go = FALSE, keytype = "gid",
+load_orgdb_annotations(
+  orgdb = NULL,
+  gene_ids = NULL,
+  include_go = FALSE,
+  keytype = "gid",
   location_column = "annot_location_text",
-  type_column = "annot_gene_type", name_column = "annot_gene_product",
-  fields = NULL, sum_exon_widths = FALSE)
+  type_column = "annot_gene_type",
+  name_column = "annot_gene_product",
+  fields = NULL,
+  sum_exon_widths = FALSE
+)
 }
 \arguments{
 \item{orgdb}{OrganismDb instance.}
@@ -17,7 +23,9 @@ load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
 
 \item{include_go}{Ask the Dbi for gene ontology information?}
 
-\item{keytype}{the primary key of the tables, 'gid' for EuPathDB data.}
+\item{keytype}{Primary key of the tables, 'gid' for EuPathDB data.}
+
+\item{location_column}{Which column contains the location data for the genes?}
 
 \item{type_column}{Use this column to identify the gene type.}
 
@@ -26,17 +34,6 @@ load_orgdb_annotations(orgdb = NULL, gene_ids = NULL,
 \item{fields}{Columns included in the output.}
 
 \item{sum_exon_widths}{Perform a sum of the exons in the data set?}
-
-\item{strand_column}{There are a few fields I want to gather by default:
-start, end, strand, chromosome, type, and name; but these do not
-necessarily have consistent names, use this column for the chromosome
-strand.}
-
-\item{start_column}{Use this column for the gene start.}
-
-\item{end_column}{Use this column for the gene end.}
-
-\item{chromosome_column}{Use this column to identify the chromosome.}
 }
 \value{
 Table of geneids, chromosomes, descriptions, strands, types, and lengths.

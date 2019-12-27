@@ -5,9 +5,14 @@
 \title{The new eupath system provides 3 output types for downloading data.  This
 uses the raw one.}
 \usage{
-post_eupath_raw(entry, question = "GeneQuestions.GenesByMolecularWeight",
-  parameters = NULL, table_name = NULL, columns = NULL,
-  minutes = 10)
+post_eupath_raw(
+  entry,
+  question = "GeneQuestions.GenesByMolecularWeight",
+  parameters = NULL,
+  table_name = NULL,
+  columns = NULL,
+  minutes = 10
+)
 }
 \arguments{
 \item{entry}{Annotation entry for a given species}

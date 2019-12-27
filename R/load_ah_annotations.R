@@ -1,7 +1,8 @@
 #' Shortcut for loading annotation data from AnnotationHub, making some EupathDB assumptions.
 #'
-#' @param species  String containing a unique portion of the desired species.
-#' @param webservice Which eupath webservice is desired?
+#' @param species String containing a unique portion of the desired species.
+#' @param service Which eupath webservice is desired?
+#' @param type Data type to load.
 #' @param eu_version Gather data from a specific eupathdb version?
 #' @param wanted_fields If not provided, this will gather all columns starting
 #'   with 'annot'.

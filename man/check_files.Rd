@@ -4,8 +4,13 @@
 \alias{check_files}
 \title{List the directory containing the various sqlite files and make sure they all have entries.}
 \usage{
-check_files(file_type = "OrgDb", bioc_version = "3.9",
-  eu_version = "44", verbose = FALSE, destination = NULL)
+check_files(
+  file_type = "OrgDb",
+  bioc_version = "3.9",
+  eu_version = "44",
+  verbose = FALSE,
+  destination = NULL
+)
 }
 \arguments{
 \item{file_type}{Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?}

@@ -30,24 +30,30 @@ load_kegg_annotations <- function(species="coli", abbreviation=NULL, flatten=TRU
     chosen <- abbreviation[[1]]
   }
 
-  ## Getting a list of genes is easy, as they are unique.
-  genes_vector <- try(KEGGREST::keggConv("ncbi-geneid", chosen))
-  if (class(genes_vector) == "try-error") {
-    if (grepl(pattern="HTTP 400", x=genes_vector)) {
-      warning("KEGGREST returned bad request.")
-      return(data.frame())
-    }
+
+  genes_df <- data.frame("ncbi_geneid" = "undef", "GID" = "undef")
+  genes_vector <- try(KEGGREST::keggConv("ncbi-geneid", chosen), silent=TRUE)
+  if (class(genes_vector)[1] != "try-error") {
+    genes_df <- kegg_vector_to_df(genes_vector, final_colname="ncbi_geneid", flatten=flatten)
   }
-  genes_df <- kegg_vector_to_df(genes_vector, final_colname="ncbi_geneid", flatten=flatten)
 
-  prot_vector <- KEGGREST::keggConv("ncbi-proteinid", chosen)
-  prot_df <- kegg_vector_to_df(prot_vector, final_colname="ncbi_proteinid", flatten=flatten)
+  prot_df <- data.frame("ncbi-proteinid" = "undef", "GID" = "undef")
+  prot_vector <- try(KEGGREST::keggConv("ncbi-proteinid", chosen), silent=TRUE)
+  if (class(prot_vector)[1] != "try-error") {
+    prot_df <- kegg_vector_to_df(prot_vector, final_colname="ncbi_proteinid", flatten=flatten)
+  }
 
-  uniprot_vector <- KEGGREST::keggConv("uniprot", chosen)
-  uniprot_df <- kegg_vector_to_df(uniprot_vector, final_colname="uniprotid", flatten=flatten)
+  uniprot_df <- data.frame("uniprotid" = "undef", "GID" = "undef")
+  uniprot_vector <- try(KEGGREST::keggConv("uniprot", chosen), silent=TRUE)
+  if (class(uniprot_vector)[1] != "try-error") {
+    uniprot_df <- kegg_vector_to_df(uniprot_vector, final_colname="uniprotid", flatten=flatten)
+  }
 
-  path_vector <- KEGGREST::keggLink("pathway", chosen)
-  path_df <- kegg_vector_to_df(path_vector, final_colname="pathways", flatten=flatten)
+  path_df <- data.frame("pathways" = "undef", "GID" = "undef")
+  path_vector <- try(KEGGREST::keggLink("pathway", chosen), silent=TRUE)
+  if (class(path_vector)[1] != "try-error") {
+    path_df <- kegg_vector_to_df(path_vector, final_colname="pathways", flatten=flatten)
+  }
 
   if (isTRUE(flatten)) {
     result <- merge(genes_df, prot_df, by="GID", all=TRUE)
@@ -61,6 +67,8 @@ load_kegg_annotations <- function(species="coli", abbreviation=NULL, flatten=TRU
     result <- merge(result, uniprot_df, by="GID", all=TRUE)
     result <- merge(result, path_df, by="GID", all=TRUE)
   }
+  drop_idx <- result[["GID"]] == "undef"
+  result <- result[!drop_idx, ]
 
   result[["ncbi_geneid"]] <- gsub(
     pattern="ncbi-geneid:", replacement="", x=result[["ncbi_geneid"]])

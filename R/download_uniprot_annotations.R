@@ -11,6 +11,11 @@
 #'
 #' This is just a silly initial implementation because I have been sipping on
 #' whisky.  But I think it gets the idea across.
+#'
+#' @param gids Gene IDs to cross reference against uniprot.
+#' @param entry Eupath entry to cross reference.
+#' @param dir Working directory.
+#' @param overwrite Overwrite the savefile.
 download_uniprot_annotations <- function(gids, entry, dir="EuPathDB", overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
@@ -19,7 +24,7 @@ download_uniprot_annotations <- function(gids, entry, dir="EuPathDB", overwrite=
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive=TRUE)
   }
-  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_pubmed_table.rda"))
+  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_uniprot_table.rda"))
   if (file.exists(savefile)) {
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
@@ -74,10 +79,11 @@ download_uniprot_annotations <- function(gids, entry, dir="EuPathDB", overwrite=
 
 #' Download the txt uniprot data for a given accession/species
 #'
-#' @param accession  Which accession to grab?
-#' @param species  Or perhaps species?
-#' @param all  If there are more than 1 hit, grab them all?
-#' @param first  Or perhaps just grab the first hit?
+#' @param accession Which accession to grab?
+#' @param species Or perhaps species?
+#' @param taxonomy Taxon to query.
+#' @param all If there are more than 1 hit, grab them all?
+#' @param first Or perhaps just grab the first hit?
 #' @return A filename/accession tuple.
 #' @export
 download_uniprot_proteome <- function(accession=NULL, species=NULL,

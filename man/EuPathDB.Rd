@@ -3,7 +3,6 @@
 \docType{package}
 \name{EuPathDB}
 \alias{EuPathDB}
-\alias{EuPathDB-package}
 \title{EuPathDB: Access EuPathDB annotations using AnnotationHub}
 \description{
 EuPathDB provides an R interface for retrieving annotation resources from

@@ -17,7 +17,6 @@
 #' @param replace  What to replace removal with, when necessary.
 #' @param sqlite  Also modify the sqlite database?
 #' @return  A hopefully cleaner OrgDb/TxDb/OrganismDbi sqlite package.
-#' @author atb
 #' @export
 clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
   ## This is because TxDb creation fails if you have an author like 'abelew <abelew@gmail.com>'

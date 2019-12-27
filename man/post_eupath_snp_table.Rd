@@ -4,8 +4,7 @@
 \alias{post_eupath_snp_table}
 \title{Use the post interface to get SNP data.}
 \usage{
-post_eupath_snp_table(entry = NULL, dir = "EuPathDB",
-  overwrite = FALSE)
+post_eupath_snp_table(entry = NULL, dir = "EuPathDB", overwrite = FALSE)
 }
 \arguments{
 \item{entry}{The full annotation entry.}

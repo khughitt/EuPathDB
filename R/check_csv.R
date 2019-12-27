@@ -21,7 +21,9 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
   table[["md5sum"]] <- ""
   for (f in 1:length(files)) {
     file <- files[f]
-    queried <- try(query_s3_file(file, file_type=file_type))
+    row <- table[f, ]
+    message("Checking CSV entry: ", f, " file: ", file, ".")
+    queried <- query_s3_file(row, file_type=file_type, file_column=column)
     if (file.exists(file) & class(queried)[1] == "character") {
       keepers <- c(keepers, f)
       table[f, "md5sum"] <- queried
@@ -47,6 +49,11 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
     message("Removing species: ", toString(kept_table[!valid_idx, "Species"]))
   }
 
+  ## Add a check for duplicated data
+  final_table <- final_table %>%
+    distinct()
+  failed_table <- failed_table %>%
+    distinct()
   written <- readr::write_csv(x=final_table, path=csv_file)
   failed_written <- readr::write_csv(x=failed_table, path=failed_file)
   return(csv_file)

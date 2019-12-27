@@ -2,28 +2,20 @@
 % Please edit documentation in R/post_eupath_annotations.R
 \name{post_eupath_annotations}
 \alias{post_eupath_annotations}
-\title{Gather all available annotation data for a given eupathdb species.}
+\title{Create a series of POST requests which download all the annotation data for a species.}
 \usage{
-post_eupath_annotations(entry = NULL, dir = "EuPathDB",
-  overwrite = FALSE)
+post_eupath_annotations(entry = NULL, workdir = "EuPathDB", overwrite = FALSE)
 }
 \arguments{
-\item{entry}{The full annotation entry.}
+\item{entry}{Eupathdb annotation entry.}
 
-\item{dir}{A directory into which to write the intermediate savefile.}
+\item{workdir}{Location to dump the resulting data.}
 
-\item{overwrite}{If a partial table exists, overwrite it?}
-}
-\value{
-A big honking table.
+\item{overwrite}{Overwrite existing data if it exists?}
 }
 \description{
-This function fills in the parameters to post_eupath_raw() so that one can
-download all the available data for a given parasite into one massive table.
-It should also provide some constraints to the data rather than leaving it
-all as characters.  Caveat:  I manually filled in the list 'field_list' to
-include the variable names and their text associations.  This is likely to
-change in future releases of the tritrypdb.  It is probably possible to
-automagically fill it in.  In addition, I am using GenesByMolecularWeight to
-get the data, which is a bit weird.
+The only way I have figured out how to download mass data from the eupathdb
+is to ask for a raw dump of all available data using the GenesByGeneType
+WADL.  Therefore, this function iterates over the various sequence types that
+I have noticed at the eupathdb and does that for each type.
 }

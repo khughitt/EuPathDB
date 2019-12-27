@@ -4,9 +4,15 @@
 \alias{download_eupath_metadata}
 \title{Returns metadata for all eupathdb organisms.}
 \usage{
-download_eupath_metadata(overwrite = FALSE, webservice = "eupathdb",
-  bioc_version = NULL, dir = "EuPathDB", eu_version = NULL,
-  write_csv = FALSE, verbose = FALSE)
+download_eupath_metadata(
+  overwrite = FALSE,
+  webservice = "eupathdb",
+  bioc_version = NULL,
+  dir = "EuPathDB",
+  eu_version = NULL,
+  write_csv = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{overwrite}{Overwrite existing data?}

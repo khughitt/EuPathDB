@@ -18,6 +18,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   if (is.null(eu_version)) {
     ## One could just as easily choose any of the other eupathdb hosts.
     db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
+    eu_version <- gsub(x=db_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   } else {
     eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
     db_version <- gsub(x=eu_version, pattern="^v", replacement="")
@@ -26,8 +27,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
 
   ## For when releasing a new bioconductor release which I don't yet have.
   if (is.null(bioc_version)) {
-    ##bioc_version <- BiocInstaller::biocVersion()
-    bioc_version <- BiocManager::version()
+    bioc_version <- as.character(BiocManager::version())
   }
 
   ## Get EuPathDB version (same for all databases)
@@ -38,13 +38,6 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
     results <- list()
     valid_metadata <- data.frame()
     invalid_metadata <- data.frame()
-    ##cl <- parallel::makeCluster(11)
-    ##par <- doParallel::registerDoParallel(cl)
-    ##tt <- requireNamespace("parallel")
-    ##tt <- requireNamespace("doParallel")
-    ##tt <- requireNamespace("iterators")
-    ##tt <- requireNamespace("foreach")
-    ##res <- foreach(c=1:length(projects), .packages=c("EuPathDB")) %dopar% {
     for (c in 1:length(projects)) {
     webservice <- projects[c]
     results[[webservice]] <- download_eupath_metadata(webservice=webservice, overwrite=overwrite,
@@ -52,8 +45,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                                       eu_version=eu_version,
                                                       write_csv=FALSE)
     }
-    ##stopped <- parallel::stopCluster(cl)
-    ##for (r in res) {
+
     for (r in results) {
         valid_metadata <- rbind(valid_metadata, r[["valid"]])
         invalid_metadata <- rbind(invalid_metadata, r[["invalid"]])
@@ -61,8 +53,9 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
 
     if (isTRUE(write_csv)) {
       message("Writing csv files.")
-      written <- write_eupath_metadata(valid_metadata, "eupathdb",
-                                       bioc_version, db_version)
+      written <- write_eupath_metadata(valid_metadata, service="eupathdb",
+                                       type="valid", bioc_version=bioc_version,
+                                       eu_version=eu_version)
     }
     return(list(
       "valid" = valid_metadata,
