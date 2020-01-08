@@ -7,7 +7,8 @@
 #' @param testing Use the annotationHub TESTING service rather than production.
 #' @param file_type Type of data to query.
 #' @param cachedir Place to put the downloaded files, useful for if one's homedirectory is too small.
-query_s3_ah <- function(testing=TRUE, file_type="OrgDb", cachedir="~/scratch/eupathdb/cache") {
+query_s3_ah <- function(testing=TRUE, file_type="OrgDb", cachedir="~/scratch/eupathdb/cache",
+                        csv="inst/extdata/OrgDb_biocv3.10_eupathdbv46_metadata.csv") {
   testing <- AnnotationHub::setAnnotationHubOption("TESTING", testing)
   cache <- AnnotationHub::setAnnotationHubOption("CACHE", cachedir)
   ah <- AnnotationHub::AnnotationHub()

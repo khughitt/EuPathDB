@@ -24,7 +24,11 @@ check_csv <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
     row <- table[f, ]
     message("Checking CSV entry: ", f, " file: ", file, ".")
     queried <- query_s3_file(row, file_type=file_type, file_column=column)
-    if (file.exists(file) & class(queried)[1] == "character") {
+    valid <- file.exists(file) & class(queried)[1] == "character" & file.size(file) > 0
+    if (file.size(file) == 0) {
+      removed_zero <- file.remove(file)
+    }
+    if (isTRUE(valid)) {
       keepers <- c(keepers, f)
       table[f, "md5sum"] <- queried
     } else {
