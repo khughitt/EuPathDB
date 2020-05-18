@@ -11,17 +11,9 @@ make_eupath_orgdb(
   kegg_abbreviation = NULL,
   reinstall = FALSE,
   overwrite = FALSE,
+  verbose = FALSE,
   copy_s3 = FALSE,
-  do_go = TRUE,
-  do_goslim = TRUE,
-  godb_source = NULL,
-  do_orthologs = TRUE,
-  do_interpro = TRUE,
-  do_linkout = TRUE,
-  do_pubmed = TRUE,
-  do_pathway = TRUE,
-  do_kegg = TRUE,
-  do_uniprot = FALSE
+  godb_source = NULL
 )
 }
 \arguments{
@@ -39,25 +31,7 @@ make_eupath_orgdb(
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 
-\item{do_go}{Create the gene ontology table?}
-
-\item{do_goslim}{Create the GOSLIM gene ontology table?}
-
 \item{godb_source}{Which table to use for the putative union of the GO tables.}
-
-\item{do_orthologs}{Create the gene ortholog table?}
-
-\item{do_interpro}{Create the interpro table?}
-
-\item{do_linkout}{Create a table of linkout data?}
-
-\item{do_pubmed}{Create a table of pubmed entries?}
-
-\item{do_pathway}{Create the pathway table?}
-
-\item{do_kegg}{Attempt to create the kegg table?}
-
-\item{do_uniprot}{Attempt to create a uniprot table?}
 }
 \value{
 Currently only the name of the installed package.  This should

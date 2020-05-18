@@ -36,7 +36,7 @@ biocViews: AnnotationData, AnnotationHub, DataImport, EuPathDB
 License: Artistic-2.0
 URL: https://github.com/khughitt/EuPathDB
 BugReports: https://github.com/khughitt/EuPathDB/issues
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 Collate:
  'check_csv.R'
@@ -57,8 +57,10 @@ Collate:
  'get_orthologs_all_genes.R'
  'get_orthologs_one_gene.R'
  'kegg_vector_to_df.R'
+ 'get_versions.R'
  'load_ah_annotations.R'
  'load_eupath_annotations.R'
+ 'load_eupath_go.R'
  'load_kegg_annotations.R'
  'load_orgdb_annotations.R'
  'load_orgdb_go.R'
@@ -77,6 +79,7 @@ Collate:
  'post_eupath_linkout.R'
  'post_eupath_ortholog.R'
  'post_eupath_pathway.R'
+ 'post_eupath_pdb.R'
  'post_eupath_pubmed.R'
  'post_eupath_raw.R'
  'post_eupath_snps.R'

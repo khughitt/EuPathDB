@@ -25,6 +25,8 @@ make_eupath_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", cop
   if (is.null(entry)) {
     stop("Need an entry.")
   }
+  versions <- get_versions(eu_version=eu_version)
+  eu_version <- versions[["eu_version"]]
   taxa <- make_taxon_names(entry)
   pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["bsgenome"]]

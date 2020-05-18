@@ -1,3 +1,33 @@
+remove_eupath_nas <- function(table, name="annot") {
+  ## At this point, there should be no NA values in the gene_table, there is
+  ## logic in post_eupath_annotations() which should preclude this possibility,
+  ## however this has been proven untrue.
+  ## Therefore, I will here set any remaining NAs to either 0 or "" depending on
+  ## cast.
+  gene_cols <- colnames(table)
+  for (col in 1:length(gene_cols)) {
+    na_idx <- is.na(table[[col]])
+    na_sum <- sum(na_idx)
+    if (na_sum > 0) {
+      column_class <- class(table[[col]])[1]
+      message("    I found ", na_sum, " NAs in the ", gene_cols[col],
+              " column of type ", column_class, " from the table: ", name,
+              " table, removing them now.")
+      if (column_class == "character") {
+        table[na_idx, col] <- ""
+      } else if (column_class == "factor") {
+        table[na_idx, col] <- 0
+      } else if (column_class == "numeric") {
+        table[na_idx, col] <- 0
+      } else {
+        ## There should only really be characters, factors, and numbers...
+        table[na_idx, col] <- 0
+      }
+    }
+  }
+  return(table)
+}
+
 #' Create an orgdb SQLite database from the tables in eupathdb.
 #'
 #' This function has passed through multiple iterations as the preferred
@@ -16,26 +46,14 @@
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
-#' @param do_go Create the gene ontology table?
-#' @param do_goslim Create the GOSLIM gene ontology table?
 #' @param godb_source Which table to use for the putative union of the GO tables.
-#' @param do_orthologs Create the gene ortholog table?
-#' @param do_interpro Create the interpro table?
-#' @param do_linkout Create a table of linkout data?
-#' @param do_pubmed Create a table of pubmed entries?
-#' @param do_pathway Create the pathway table?
-#' @param do_kegg Attempt to create the kegg table?
-#' @param do_uniprot Attempt to create a uniprot table?
 #' @return Currently only the name of the installed package.  This should
 #'   probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
 make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
                               kegg_abbreviation=NULL, reinstall=FALSE, overwrite=FALSE,
-                              copy_s3=FALSE, do_go=TRUE, do_goslim=TRUE, godb_source=NULL,
-                              do_orthologs=TRUE, do_interpro=TRUE,
-                              do_linkout=TRUE, do_pubmed=TRUE, do_pathway=TRUE,
-                              do_kegg=TRUE, do_uniprot=FALSE) {
+                              verbose=FALSE, copy_s3=FALSE, godb_source=NULL) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -56,41 +74,12 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
     created <- dir.create(workdir, recursive=TRUE)
   }
 
+  do_kegg <- TRUE
   if (is.null(kegg_abbreviation)) {
     kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
     if (length(kegg_abbreviation) == 0) {
       do_kegg <- FALSE
     }
-  }
-
-  remove_table_nas <- function(table, name="annot") {
-    ## At this point, there should be no NA values in the gene_table, there is
-    ## logic in post_eupath_annotations() which should preclude this possibility,
-    ## however this has been proven untrue.
-    ## Therefore, I will here set any remaining NAs to either 0 or "" depending on
-    ## cast.
-    gene_cols <- colnames(table)
-    for (col in 1:length(gene_cols)) {
-      na_idx <- is.na(table[[col]])
-      na_sum <- sum(na_idx)
-      if (na_sum > 0) {
-        column_class <- class(table[[col]])[1]
-        message("    I found ", na_sum, " NAs in the ", gene_cols[col],
-                " column of type ", column_class, " from the table: ", name,
-                " table, removing them now.")
-        if (column_class == "character") {
-          table[na_idx, col] <- ""
-        } else if (column_class == "factor") {
-          table[na_idx, col] <- 0
-        } else if (column_class == "numeric") {
-          table[na_idx, col] <- 0
-        } else {
-          ## There should only really be characters, factors, and numbers...
-          table[na_idx, col] <- 0
-        }
-      }
-    }
-    return(table)
   }
 
   ## I am almost certain that wrapping these in a try() is no longer necessary.
@@ -105,73 +94,76 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
-  gene_table <- remove_table_nas(gene_table, "annot")
+  gene_table <- remove_eupath_nas(gene_table, "annot")
 
   go_table <- data.frame()
-  if (isTRUE(do_go)) {
-    go_table <- try(post_eupath_go_table(entry, workdir=workdir, overwrite=overwrite))
-    if (class(go_table)[1] == "try-error") {
-      go_table <- data.frame()
-    }
+  go_table <- try(post_eupath_go_table(entry, workdir=workdir, overwrite=overwrite))
+  if (class(go_table)[1] == "try-error") {
+    go_table <- data.frame()
   }
 
   goslim_table <- data.frame()
-  if (isTRUE(do_goslim)) {
-    goslim_table <- try(post_eupath_goslim_table(entry, workdir=workdir, overwrite=overwrite))
-    if (class(goslim_table)[1] == "try-error") {
-      goslim_table <- data.frame()
-    }
+  goslim_table <- try(post_eupath_goslim_table(entry, workdir=workdir, overwrite=overwrite))
+  if (class(goslim_table)[1] == "try-error") {
+    goslim_table <- data.frame()
   }
 
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
-  if (isTRUE(do_orthologs)) {
-    ortholog_table <- try(post_eupath_ortholog_table(entry=entry, workdir=workdir,
-                                                     gene_ids=gene_ids,
-                                                     overwrite=overwrite))
-    if (class(ortholog_table)[1] == "try-error") {
-      ortholog_table <- data.frame()
-    }
+  if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
+    ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
+    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  } else {
+    ortholog_table <- as.data.frame(gene_table[, c("GID")])
+    ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
+    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  }
+  ortholog_table <- try(post_eupath_ortholog_table(ortholog_table=ortholog_table,
+                                                   entry=entry, workdir=workdir,
+                                                   gene_ids=gene_ids,
+                                                   overwrite=overwrite))
+  if (class(ortholog_table)[1] == "try-error") {
+    ortholog_table <- data.frame()
+  }
+
+  pdb_table <- data.frame()
+  pdb_table <- try(post_eupath_pdb_table(entry=entry,
+                                         workdir=workdir,
+                                         overwrite=overwrite))
+  if (class(pdb_table)[1] == "try-error") {
+    pdb_table <- data.frame()
   }
 
   linkout_table <- data.frame()
-  if (isTRUE(do_linkout)) {
-    linkout_table <- try(post_eupath_linkout_table(entry=entry,
-                                                   workdir=workdir,
-                                                   overwrite=overwrite))
-    if (class(linkout_table)[1] == "try-error") {
-      linkout_table <- data.frame()
-    }
+  linkout_table <- try(post_eupath_linkout_table(entry=entry,
+                                                 workdir=workdir,
+                                                 overwrite=overwrite))
+  if (class(linkout_table)[1] == "try-error") {
+    linkout_table <- data.frame()
   }
 
   pubmed_table <- data.frame()
-  if (isTRUE(do_pubmed)) {
-    pubmed_table <- try(post_eupath_pubmed_table(entry=entry,
-                                                 workdir=workdir,
-                                                 overwrite=overwrite))
-    if (class(pubmed_table)[1] == "try-error") {
-      pubmed_table <- data.frame()
-    }
+  pubmed_table <- try(post_eupath_pubmed_table(entry=entry,
+                                               workdir=workdir,
+                                               overwrite=overwrite))
+  if (class(pubmed_table)[1] == "try-error") {
+    pubmed_table <- data.frame()
   }
 
   interpro_table <- data.frame()
-  if (isTRUE(do_interpro)) {
-    interpro_table <- try(post_eupath_interpro_table(entry=entry,
-                                                     workdir=workdir,
-                                                     overwrite=overwrite))
-    if (class(interpro_table)[1] == "try-error") {
-      interpro_table <- data.frame()
-    }
+  interpro_table <- try(post_eupath_interpro_table(entry=entry,
+                                                   workdir=workdir,
+                                                   overwrite=overwrite))
+  if (class(interpro_table)[1] == "try-error") {
+    interpro_table <- data.frame()
   }
 
   pathway_table <- data.frame()
-  if (isTRUE(do_pathway)) {
-    pathway_table <- try(post_eupath_pathway_table(entry=entry,
-                                                   workdir=workdir,
-                                                   overwrite=overwrite))
-    if (class(pathway_table)[1] == "try-error") {
-      pathway_table <- data.frame()
-    }
+  pathway_table <- try(post_eupath_pathway_table(entry=entry,
+                                                 workdir=workdir,
+                                                 overwrite=overwrite))
+  if (class(pathway_table)[1] == "try-error") {
+    pathway_table <- data.frame()
   }
 
   kegg_table <- data.frame()
@@ -230,14 +222,14 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   } ## End if we should try getting kegg data.
 
   uniprot_table <- data.frame()
-  if (isTRUE(do_uniprot)) {
-    uniprot_table <- try(download_uniprot_annotations(gene_table,
-                                                      entry,
-                                                      overwrite=overwrite))
-    if (class(uniprot_table)[1] == "try-error") {
-      uniprot_table <- data.frame()
-    }
-  }
+  ##if (isTRUE(do_uniprot)) {
+  ##  uniprot_table <- try(download_uniprot_annotations(gene_table,
+  ##                                                    entry,
+  ##                                                    overwrite=overwrite))
+  ##  if (class(uniprot_table)[1] == "try-error") {
+  ##    uniprot_table <- data.frame()
+  ##  }
+  ##}
 
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")
@@ -273,20 +265,10 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   } else if (nrow(goslim_table) > 0) {
     orgdb_args[["goslim_table"]] <- goslim_table
   }
-  if (is.null(ortholog_table)) {
-    message(" This should not be possible, but the ortholog table is still null.")
-  } else if (nrow(ortholog_table) > 0) {
-    orgdb_args[["ortholog_table"]] <- ortholog_table
-  }
   if (is.null(interpro_table)) {
     message(" This should not be possible, but the interpro table is still null.")
   } else if (nrow(interpro_table) > 0) {
     orgdb_args[["interpro_table"]] <- interpro_table
-  }
-  if (is.null(pathway_table)) {
-    message(" This should not be possible, but the pathway table is still null.")
-  } else if (nrow(pathway_table) > 0) {
-    orgdb_args[["pathway_table"]] <- pathway_table
   }
   if (is.null(kegg_table)) {
     message(" This should not be possible, but the kegg table is still null.")
@@ -297,6 +279,21 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
     message(" This should not be possible, but the linkout table is still null.")
   } else if (nrow(linkout_table) > 0) {
     orgdb_args[["linkout_table"]] <- linkout_table
+  }
+  if (is.null(ortholog_table)) {
+    message(" This should not be possible, but the ortholog table is still null.")
+  } else if (nrow(ortholog_table) > 0) {
+    orgdb_args[["ortholog_table"]] <- ortholog_table
+  }
+  if (is.null(pathway_table)) {
+    message(" This should not be possible, but the pathway table is still null.")
+  } else if (nrow(pathway_table) > 0) {
+    orgdb_args[["pathway_table"]] <- pathway_table
+  }
+  if (is.null(pdb_table)) {
+    message(" This should not be possible, but the pdb table is still null.")
+  } else if (nrow(pdb_table) > 0) {
+    orgdb_args[["pdb_table"]] <- pdb_table
   }
   if (is.null(pubmed_table)) {
     message(" This should not be possible, but the pubmed table is still null.")
@@ -366,7 +363,7 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
     if (nrow(go_table) > 0) {
-      tmp_table <- go_table[, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
+      tmp_table <- go_table[, c("GID", "GODB_GO_ID", "GODB_EVIDENCE_CODE")]
       colnames(tmp_table) <- c("GID", "GO", "EVIDENCE")
       godb_table <- rbind(godb_table, tmp_table)
     }
@@ -407,7 +404,6 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent=TRUE)
   message(" Calling makeOrgPackage() for ", entry[["Species"]])
-  verbose <- FALSE
   orgdb_path <- ""
   if (isTRUE(verbose)) {
     orgdb_path <- try(do.call("makeOrgPackage", orgdb_args))
@@ -425,11 +421,11 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   Sys.chmod(dbpath, mode="0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname=dbpath)
   ## update SPECIES field
-  query <- sprintf('UPDATE metadata SET value="%s" WHERE name="SPECIES";', entry[["Species"]])
+  query <- glue::glue('UPDATE metadata SET value="{entry[["Species"]]}" WHERE name="SPECIES";')
   sq_result <- RSQLite::dbSendQuery(conn=db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## update ORGANISM field
-  query <- sprintf('UPDATE metadata SET value="%s" WHERE name="ORGANISM";', entry[["Species"]])
+  query <- glue::glue('UPDATE metadata SET value="{entry[["Species"]]}" WHERE name="ORGANISM";')
   sq_result <- RSQLite::dbSendQuery(conn=db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
@@ -448,9 +444,14 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["OrgdbFile"]]
+    if (file.exists(s3_file)) {
+      removed <- file.remove(s3_file)
+    }
     copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
     if (isTRUE(copied)) {
       message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
+    } else {
+      stop(" Could not copy S3 data.")
     }
   }
 
@@ -458,7 +459,8 @@ make_eupath_orgdb <- function(entry=NULL, workdir="EuPathDB", installp=TRUE,
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
   if (isTRUE(installp)) {
-    inst <- suppressWarnings(try(devtools::install(orgdb_path)))
+    install_path <- file.path(getwd(), orgdb_path)
+    inst <- suppressWarnings(try(devtools::install_local(install_path)))
     if (class(inst) != "try-error") {
       ## I am tired of reading about unportable filenames here, so adding the suppress.
       built <- try(suppressWarnings(devtools::build(orgdb_path, quiet=TRUE)))

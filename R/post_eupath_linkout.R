@@ -48,7 +48,7 @@ post_eupath_linkout_table <- function(entry=NULL, workdir="EuPathDB", overwrite=
 
   result <- post_eupath_table(query_body, entry, table_name="linkout")
 
-  message("  Saving ", savefile)
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

@@ -124,7 +124,7 @@ post_eupath_annotations <- function(entry=NULL, workdir="EuPathDB", overwrite=FA
     }
     colnames(result) <- toupper(colnames(result))
 
-    message("  Saving ", savefile)
+    message("  Saving ", savefile, " with ", nrow(result), " rows.")
     save(result, file=savefile)
     return(result)
 }

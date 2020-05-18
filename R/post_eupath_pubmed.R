@@ -51,7 +51,7 @@ post_eupath_pubmed_table <- function(entry=NULL, workdir="EuPathDB", overwrite=F
     colnames(result) <- c("GID", "PUBMED_ID", "PUBMED_DOI",
                           "PUBMED_TITLE", "PUBMED_AUTHORS")
   }
-  message("  Saving ", savefile)
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

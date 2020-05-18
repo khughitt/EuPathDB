@@ -10,8 +10,8 @@
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(entry=NULL, workdir="EuPathDB", table="OrthologsLite",
-                                       gene_ids=NULL, overwrite=FALSE) {
+post_eupath_ortholog_table <- function(ortholog_table=NULL, entry=NULL, workdir="EuPathDB",
+                                       table="OrthologsLite", gene_ids=NULL, overwrite=FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
@@ -66,7 +66,15 @@ post_eupath_ortholog_table <- function(entry=NULL, workdir="EuPathDB", table="Or
     result[["GENE_ID"]] <- NULL
   }
 
-  message("  Saving ", savefile)
+  ## I provided a 2 column table of GIDs and MCL names, merge that now.
+  GID <- NULL ## Stop R CMD Check
+  result <- merge(ortholog_table, result, by="GID")
+  counts <- result %>%
+    group_by(GID) %>%
+    summarise("ORTHOLOGS_COUNT" = n())
+  result <- merge(result, counts, by="GID")
+
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

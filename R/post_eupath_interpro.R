@@ -49,7 +49,7 @@ post_eupath_interpro_table <- function(entry=NULL, workdir="EuPathDB", overwrite
   result <- post_eupath_table(query_body, entry, table_name="interpro")
   colnames(result) <- gsub(x=colnames(result), pattern="INTERPRO_INTERPRO",
                            replacement="INTERPRO")
-  message("  Saving ", savefile)
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

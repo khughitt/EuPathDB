@@ -14,22 +14,11 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
                                      bioc_version=NULL, dir="EuPathDB",
                                      eu_version=NULL, write_csv=FALSE,
                                      verbose=FALSE) {
-  db_version <- NULL
-  if (is.null(eu_version)) {
-    ## One could just as easily choose any of the other eupathdb hosts.
-    db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
-    eu_version <- gsub(x=db_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-  } else {
-    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
-    ## eupath_version
-  }
-
-  ## For when releasing a new bioconductor release which I don't yet have.
-  if (is.null(bioc_version)) {
-    bioc_version <- as.character(BiocManager::version())
-  }
-
+  versions <- get_versions(bioc_version=bioc_version, eu_version=eu_version)
+  eu_version <- versions[["eu_version"]]
+  db_version <- versions[["db_version"]]
+  bioc_version <- version[["bioc_version"]]
+  webservice <- tolower(webservice)
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
     projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",

@@ -356,6 +356,14 @@ if (isTRUE(granges)) {
 }
 ```
 
+## Test that the ah objects exist and are loadable in R.
+
+```{r test_ah}
+if (isTRUE(granges)) {
+  grange_ah <- query_s3_ah(file_type="GRanges")
+}
+
+```
 
 
 

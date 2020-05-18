@@ -66,4 +66,8 @@ query_s3_ah <- function(testing=TRUE, file_type="OrgDb", cachedir="~/scratch/eup
       }
     } ## Ending the else
   } ## Ending the for loop
+  retlist <- list(
+    "happy" = happy,
+    "sad" = sad)
+  return(retlist)
 }

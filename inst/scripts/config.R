@@ -4,8 +4,8 @@ orgdb <- TRUE
 txdb <- TRUE
 organdb <- FALSE
 granges <- TRUE
-eu_version <- "v42"
-bioc_version <- "v3.9"
+## eu_version <- "v42"
+## bioc_version <- "v3.9"
 
 results <- list(
   "bsgenome" = list(),

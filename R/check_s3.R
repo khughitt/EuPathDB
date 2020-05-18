@@ -7,9 +7,12 @@
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
 #' @export
-check_s3 <- function(file_type="OrgDb", bioc_version="3.9", eu_version="44") {
+check_s3 <- function(file_type="OrgDb", bioc_version=NULL, eu_version=NULL) {
   column <- stringr::str_to_title(file_type)
   column <- glue::glue("{column}File")
+  versions <- get_versions(bioc_version=bioc_version, eu_version=eu_version)
+  eu_version <- versions[["eu_version"]]
+  bioc_version <- versions[["bioc_version"]]
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
   csv_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv")
   failed_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_failed_metadata.csv")

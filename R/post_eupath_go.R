@@ -44,9 +44,10 @@ post_eupath_go_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE
       "format" = jsonlite::unbox("tableTabular")
     ))
 
-  result <- post_eupath_table(query_body, entry, table_name="go")
+  result <- post_eupath_table(query_body, entry, table_name="godb")
   colnames(result) <- gsub(x=colnames(result), pattern="GO_GO", replacement="GO")
-  message("  Saving ", savefile)
+  colnames(result) <- gsub(x=colnames(result), pattern="^GO$", replacement="GO_GOID")
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

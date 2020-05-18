@@ -48,7 +48,7 @@ post_eupath_pathway_table <- function(entry=NULL, workdir="EuPathDB", overwrite=
                            replacement="PATHWAY_ID")
   colnames(result) <- gsub(x=colnames(result), pattern="PATHWAY_PATHWAY",
                            replacement="PATHWAY")
-  message("  Saving ", savefile)
+  message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file=savefile)
   return(result)
 }

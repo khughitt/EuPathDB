@@ -7,7 +7,8 @@
 query_s3_ah(
   testing = TRUE,
   file_type = "OrgDb",
-  cachedir = "~/scratch/eupathdb/cache"
+  cachedir = "~/scratch/eupathdb/cache",
+  csv = "inst/extdata/OrgDb_biocv3.10_eupathdbv46_metadata.csv"
 )
 }
 \arguments{

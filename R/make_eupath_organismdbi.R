@@ -26,6 +26,8 @@ make_eupath_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPath
   if (is.null(entry)) {
     stop("Need an entry.")
   }
+  versions <- get_versions()
+  eu_version <- versions[["eu_version"]]
   taxa <- make_taxon_names(entry)
   pkgnames <- get_eupath_pkgnames(entry, eu_version=eu_version)
   pkgname <- pkgnames[["organismdbi"]]

@@ -5,6 +5,7 @@
 \title{Use the post interface to get ortholog data.}
 \usage{
 post_eupath_ortholog_table(
+  ortholog_table = NULL,
   entry = NULL,
   workdir = "EuPathDB",
   table = "OrthologsLite",

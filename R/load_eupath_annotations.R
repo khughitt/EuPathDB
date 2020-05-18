@@ -12,19 +12,35 @@
 #'   with 'annot'.
 #' @return Big huge data frame of annotation data.
 #' @export
-load_eupath_annotations <- function(species="Leishmania major", webservice="tritrypdb",
+load_eupath_annotations <- function(query, webservice="tritrypdb",
                                     eu_version=NULL, wanted_fields=NULL) {
-  entry <- get_eupath_entry(species=species, webservice=webservice)
-  pkg_names <- get_eupath_pkgnames(entry=entry, eu_version=eu_version)
-  pkg_installedp <- pkg_names[["orgdb_installed"]]
-  if (isFALSE(pkg_installedp)) {
-    stop("The required package is not installed.")
+  pkg <- NULL
+  entry <- NULL
+  if ("OrgDb" %in% class(query)) {
+    pkg <- query
+  } else if ("character" %in% class(query)) {
+    entry <- get_eupath_entry(species=query, webservice=webservice)
+    pkg_names <- get_eupath_pkgnames(entry=entry, eu_version=eu_version)
+    pkg_installedp <- pkg_names[["orgdb_installed"]]
+    if (isFALSE(pkg_installedp)) {
+      stop("The required package is not installed.")
+    }
+    pkg <- as.character(pkg_names[["orgdb"]])
+  } else if ("data.frame" %in% class(query)) {
+    entry <- query
+    pkg_names <- get_eupath_pkgnames(entry=entry, eu_version=eu_version)
+    pkg_installedp <- pkg_names[["orgdb_installed"]]
+    if (isFALSE(pkg_installedp)) {
+      stop("The required package is not installed.")
+    }
+    pkg <- as.character(pkg_names[["orgdb"]])
   }
-  pkg <- as.character(pkg_names[["orgdb"]])
 
   if (is.null(wanted_fields)) {
-    org_pkgstring <- glue("library({pkg}); pkg <- {pkg}")
-    eval(parse(text=org_pkgstring))
+    if ("character" %in% class(pkg)) {
+      org_pkgstring <- glue("library({pkg}); pkg <- {pkg}")
+      eval(parse(text=org_pkgstring))
+    }
     all_fields <- AnnotationDbi::keytypes(x=pkg)
     annot_fields_idx <- grepl(pattern="^ANNOT", x=all_fields)
     annot_fields <- all_fields[annot_fields_idx]
