@@ -234,4 +234,3 @@ trying http next.")
     "invalid" = species_xref[["invalid"]])
   return(retlist)
 }
-x

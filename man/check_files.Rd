@@ -6,8 +6,8 @@
 \usage{
 check_files(
   file_type = "OrgDb",
-  bioc_version = "3.9",
-  eu_version = "44",
+  bioc_version = NULL,
+  eu_version = NULL,
   verbose = FALSE,
   destination = NULL
 )
