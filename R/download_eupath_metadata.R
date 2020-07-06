@@ -17,7 +17,7 @@ download_eupath_metadata <- function(overwrite=FALSE, webservice="eupathdb",
   versions <- get_versions(bioc_version=bioc_version, eu_version=eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
-  bioc_version <- version[["bioc_version"]]
+  bioc_version <- versions[["bioc_version"]]
   webservice <- tolower(webservice)
   ## Get EuPathDB version (same for all databases)
   if (webservice == "eupathdb") {
@@ -234,3 +234,4 @@ trying http next.")
     "invalid" = species_xref[["invalid"]])
   return(retlist)
 }
+x
