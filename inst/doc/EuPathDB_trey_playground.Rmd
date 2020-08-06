@@ -39,12 +39,12 @@ library(EuPathDB)
 
 So, my workstation currently has the following installed:
 
-org.Lmajor.Friedlin.v43.eg.db
+org.Lmajor.Friedlin.v46.eg.db
 
 ```{r load, eval=FALSE}
-library(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
-keytypes(org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db)
-tc_annot <- load_orgdb_annotations("org.Tcruzi.CL.Brener.Esmeraldo.like.v43.eg.db", fields="all")
+library(org.Tcruzi.CL.Brener.Esmeraldo.like.v46.eg.db)
+keytypes(org.Tcruzi.CL.Brener.Esmeraldo.like.v46.eg.db)
+tc_annot <- load_orgdb_annotations("org.Tcruzi.CL.Brener.Esmeraldo.like.v46.eg.db", fields="all")
 genes <- tc_annot[["genes"]]
 ## Hmm I wonder if I can modify my uniprot code to use the taxonomy ID?
 

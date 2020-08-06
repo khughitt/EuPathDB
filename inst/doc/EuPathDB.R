@@ -121,7 +121,7 @@ orgdb_pkg <- get_eupath_pkgnames(sc_entry)
 sc_orgdb <- orgdb_pkg$orgdb
 ## Here is the name of the current yeast package.
 sc_orgdb
-## Thus we see the v41 (as of late 2018), a number which presumably will continue increasing.
+
 ## We can set the version parameter to change this if we have a previous version installed.
 
 ## Now get the set of available columns from it:

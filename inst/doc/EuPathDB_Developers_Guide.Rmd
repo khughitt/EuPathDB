@@ -12,11 +12,21 @@ vignette: >
 BiocStyle::markdown()
 ```
 
-# Overview
+## Overview
 
-This tutorial describes how to generate data ready for the AnnotationHubData.
+This tutorial describes how to update the EuPathDB AnnotationHub data for a new EuPathDB
+/ Bioconductor release.
 
-It has not yet been written, but mostly is comprised of doing the following:
+## Setup
+
+To begin, edit the file `inst/scripts/config.R` and update the Bioconductor / EupathDB 
+version variables:
+
+- `eu_version`
+- `bioc_version`
+
+Next, specify which Bioconductor package types you wish to build (orgdb, bsgenome,
+etc.), by setting the corresponding switches to `TRUE` or `FALSE`.
 
 ```{bash make_stuff, eval=FALSE}
 ## From the EuPathDB root directory
@@ -25,14 +35,24 @@ inst/scripts/make_data.R
 make s3
 ```
 
-Here are a few caveats:
+## Other
 
-1.  Get familiar with makeAnnotationHubMetadata().
-2.  The most likely sticking point will be mismatches between GenomeInfoDB and
-    the species IDs provided by the EuPathDB.
+To keep the package code and documentation up-to-date, you may also want to search
+through the package codebase for all instances of earlier EuPathDB/Bioconductor version
+numbers and replace them with the most recent versions.
 
 
-# Session Information
+## Caveats
+
+1. Get familiar with makeAnnotationHubMetadata().
+2. The most likely sticking point will be mismatches between GenomeInfoDB and
+   the species IDs provided by the EuPathDB.
+3. When running the `make_data.R` script for a new release, it may be useful to run the
+   commands manually and inspect the outputs / any warnings generated. API changes can
+   occur between releases leading to unexpected behavior that may got unnoticed,
+   otherwise.
+
+## Session Information
 
 ```{r}
 sessionInfo()
