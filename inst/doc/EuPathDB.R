@@ -100,24 +100,24 @@ summary(chr4_genes)
 
 ## ----example_install-----------------------------------------------------
 ## Note that some but not all web services have moved to https...
-## tri_meta <- download_eupath_metadata(webservice="tritrypdb")
+## tri_meta <- download_eupathdb_metadata(webservice="tritrypdb")
 
-sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
+sc_entry <- get_eupathdb_entry(species="cerevisiae", webservice="fungidb")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 
 ## ----pkg, eval=FALSE-----------------------------------------------------
-#  orgdb_pkg <- make_eupath_orgdb(sc_entry, reinstall=TRUE)
-#  txdb_pkg <- make_eupath_txdb(sc_entry)
-#  bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
-#  organ_pkg <- make_eupath_organismdbi(sc_entry)
+#  orgdb_pkg <- make_eupathdb_orgdb(sc_entry, reinstall=TRUE)
+#  txdb_pkg <- make_eupathdb_txdb(sc_entry)
+#  bsgenome_pkg <- make_eupathdb_bsgenome(sc_entry)
+#  organ_pkg <- make_eupathdb_organismdbi(sc_entry)
 
 ## ----lmajor, eval=FALSE--------------------------------------------------
-#  lm_entry <- get_eupath_entry(species="Friedlin", webservice="tritrypdb")
-#  lm_orgdb <- make_eupath_orgdb(lm_entry, reinstall=TRUE)
+#  lm_entry <- get_eupathdb_entry(species="Friedlin", webservice="tritrypdb")
+#  lm_orgdb <- make_eupathdb_orgdb(lm_entry, reinstall=TRUE)
 
 ## ----extract-------------------------------------------------------------
-orgdb_pkg <- get_eupath_pkgnames(sc_entry)
+orgdb_pkg <- get_eupathdb_pkgnames(sc_entry)
 sc_orgdb <- orgdb_pkg$orgdb
 ## Here is the name of the current yeast package.
 sc_orgdb
@@ -177,8 +177,8 @@ head(sc_path)
 ## Orthologs!
 
 ## ----shortcuts-----------------------------------------------------------
-## The function load_eupath_annotations() provides a shortcut to the above.
-major_annot <- load_eupath_annotations(species="major")
+## The function load_eupathdb_annotations() provides a shortcut to the above.
+major_annot <- load_eupathdb_annotations(species="major")
 dim(major_annot)
 ## This provides the same information as the results of the select up above.
 
@@ -188,10 +188,10 @@ dim(major_annot)
 #  ## limited in the information it returns, and only exists for a subset of the eupathdb
 #  ## projects.  As a result, I might just drop its usage and force the much slower queries
 #  ## to the more complete table...
-#  major_entry <- get_eupath_entry(species="major", webservice="tritrypdb")
-#  major_pkg <- get_eupath_pkgnames(major_entry)
+#  major_entry <- get_eupathdb_entry(species="major", webservice="tritrypdb")
+#  major_pkg <- get_eupathdb_pkgnames(major_entry)
 #  major_orgdb <- major_pkg$orgdb
-#  lm_ortho <- extract_eupath_orthologs(major_orgdb)
+#  lm_ortho <- extract_eupathdb_orthologs(major_orgdb)
 #  dim(lm_ortho)
 #  head(lm_ortho)
 #  summary(lm_ortho)

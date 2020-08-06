@@ -5,18 +5,18 @@ BiocStyle::markdown()
 library(EuPathDB)
 
 ## Ask for the version 46 data from fungidb for species with 'cerevisiae' in the name.
-sc_entry <- get_eupath_entry(species = "cerevisiae", webservice = "fungidb", eu_version = "v46")
+sc_entry <- get_eupathdb_entry(species = "cerevisiae", webservice = "fungidb", eu_version = "v46")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 
 ## ----02pkg---------------------------------------------------------------
-orgdb_pkg <- make_eupath_orgdb(sc_entry)
-txdb_pkg <- make_eupath_txdb(sc_entry)
-bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
-organ_pkg <- make_eupath_organismdbi(sc_entry)
+orgdb_pkg <- make_eupathdb_orgdb(sc_entry)
+txdb_pkg <- make_eupathdb_txdb(sc_entry)
+bsgenome_pkg <- make_eupathdb_bsgenome(sc_entry)
+organ_pkg <- make_eupathdb_organismdbi(sc_entry)
 
 ## ----04extract-----------------------------------------------------------
-orgdb_pkg <- get_eupath_pkgnames(sc_entry)
+orgdb_pkg <- get_eupathdb_pkgnames(sc_entry)
 sc_orgdb <- orgdb_pkg$orgdb
 ## Here is the name of the current yeast package.
 sc_orgdb
@@ -66,12 +66,12 @@ sc_path <- load_orgdb_go(sc_orgdb, columns = chosen_columns)
 head(sc_path)
 
 ## ----06shortcuts---------------------------------------------------------
-## The function load_eupath_annotations() provides a shortcut to the above.
-sc_annot <- load_eupath_annotations(species = "S288c", eu_version = "v46", webservice = "fungidb")
+## The function load_eupathdb_annotations() provides a shortcut to the above.
+sc_annot <- load_eupathdb_annotations(species = "S288c", eu_version = "v46", webservice = "fungidb")
 dim(sc_annot)
 
 ## ----07orthologs---------------------------------------------------------
-sc_ortho <- extract_eupath_orthologs(sc_orgdb)
+sc_ortho <- extract_eupathdb_orthologs(sc_orgdb)
 dim(sc_ortho)
 head(sc_ortho)
 summary(sc_ortho)
