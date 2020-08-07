@@ -11,6 +11,7 @@ Description: Brings together annotation resources from the various EuPathDB
 Depends:
     R (>= 3.5),
     GenomeInfoDbData,
+Encoding: UTF-8
 Imports: AnnotationHub, AnnotationHubData,
          Biobase, Biostrings, BiocGenerics,
          data.table, dplyr,
@@ -62,7 +63,7 @@ Collate:
  'load_kegg_annotations.R'
  'load_orgdb_annotations.R'
  'load_orgdb_go.R'
- 'logging.R
+ 'logging.R'
  'make_eupathdb_bsgenome.R'
  'make_eupathdb_granges.R'
  'make_eupathdb_organismdbi.R'

@@ -1,16 +1,25 @@
-#"
-#" helper functions for logging to the console
-#"
 library(crayon)
 
+#' Info-level logging function.
+#'
+#' @param ... One or more strings to be logged.
+#' @export
 info <- function(...) {
-  message("[" %+% cyan("INFO") %+% "] ", ...)
+  message("[" %+% crayon::cyan("INFO") %+% "] ", ...)
 }
 
+#' Warning-level logging function.
+#'
+#' @param ... One or more strings to be logged.
+#' @export
 warn <- function(...) {
-  message("[" %+% magenta("WARN") %+% "] ", ...)
+  message("[" %+% crayon::magenta("WARN") %+% "] ", ...)
 }
 
+#' Error-level logging function.
+#'
+#' @param ... One or more strings to be logged.
+#' @export
 error <- function(...) {
-  message("[" %+% yellow("ERROR") %+% "] ", ...)
+  message("[" %+% crayon::yellow("ERROR") %+% "] ", ...)
 }
