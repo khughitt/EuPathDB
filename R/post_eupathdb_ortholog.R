@@ -81,10 +81,14 @@ post_eupathdb_ortholog_table <- function(entry = NULL, workdir = "EuPathDB",
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_ortholog.R
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
 =======
   message("  Saving ", savefile)
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
+=======
+  info("Saving ", savefile)
+>>>>>>> fc81572 (Some more refactoring / fixes)
   save(result, file = savefile)
   return(result)
 }

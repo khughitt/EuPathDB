@@ -171,41 +171,45 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     # get a list of supported gene types ("protein coding", "snRNA encoding", etc.)
     gene_types <- get_eupathdb_gene_types()
 
-    result <- data.frame()
+    combined_result <- data.frame()
 
-    # iterate over gene types and query 
+    # iterate over gene types and query api separately for each one
     for (i in 1:length(gene_types)) {
         gene_type <- gene_types[i]
+
         info("Querying gene type: ", gene_type, ".")
+
+        # query parameters
         parameters <- list(
             "organism" = jsonlite::unbox(species),
             "geneType" = jsonlite::unbox(gene_type),
             "includePseudogenes" = jsonlite::unbox("Yes"))
         question <- "GeneQuestions.GenesByGeneType"
-        a_result <- try(post_eupathdb_raw(entry, question = question,
+
+        # send request
+        result <- try(post_eupathdb_raw(entry, question = question,
                                           parameters = parameters, table_name = "annot"), silent = TRUE)
-        if ("try-error" %in% class(a_result)) {
-            next
+
+        if ("try-error" %in% class(result)) {
+          next
         } else {
-            colnames(a_result) <- tolower(colnames(a_result))
-            colnames(a_result) <- gsub(x = colnames(a_result),
-                                       pattern = "annot_annotated",
-                                       replacement = "annot")
-            result <- rbind(result, a_result)
-            info("Added ", nrow(a_result), " rows on ",
-                    ncol(a_result), " columns to the data.")
+          # append query results to combined dataframe
+          colnames(result) <- gsub("annot_annotated", "annot", tolower(colnames(result)))
+          combined_result <- rbind(combined_result, result)
+
+          info(sprintf("Added %d %s entries to the result.", nrow(result), gene_type))
         }
     }
 
     ## Get rid of spurious text in the previous IDs column
-    if (!is.null(result[["annot_gene_previous_ids"]])) {
-        result[["annot_gene_previous_ids"]] <- gsub(pattern = "^Previous IDs: ", replacement = "",
-                                                    x = result[["annot_gene_previous_ids"]])
+    if (!is.null(combined_result[["annot_gene_previous_ids"]])) {
+        combined_result[["annot_gene_previous_ids"]] <- gsub("^Previous IDs: ", "",
+                                                             combined_result[["annot_gene_previous_ids"]])
     }
 
-    all_columns <- colnames(result)
+    all_columns <- colnames(combined_result)
 
-    # fix column types
+    # fix numeric cols
     numeric_columns <- c(
         "annot_gene_exon_count",
         "annot_gene_transcript_count",
@@ -231,22 +235,23 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         "annot_three_prime_utr_length")
 
     for (col in all_columns) {
-        na_idx <- is.na(result[[col]])
+        na_idx <- is.na(combined_result[[col]])
 
         if (col %in% numeric_columns) {
-            if (!is.null(result[[col]])) {
-                result[[col]] <- as.numeric(result[[col]])
+            if (!is.null(combined_result[[col]])) {
+                combined_result[[col]] <- as.numeric(combined_result[[col]])
             }
             if (sum(na_idx) > 0) {
-                result[na_idx, col] <- 0
+                combined_result[na_idx, col] <- 0
             }
         } else {
             if (sum(na_idx) > 0) {
-                result[na_idx, col] <- ""
+                combined_result[na_idx, col] <- ""
             }
         }
     }
 
+    # fix factor cols
     factor_columns <- c(
         "annot_chromosome",
         "annot_gene_type",
@@ -256,6 +261,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         "annot_is_pseudo",
         "annot_strand")
     for (col in factor_columns) {
+<<<<<<< HEAD
         if (!is.null(result[[col]])) {
             result[[col]] <- as.factor(result[[col]])
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_annotations.R
@@ -268,6 +274,17 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
             records[[col_num]] <- as.factor(records[[col_num]])
         }
     }
+=======
+        if (!is.null(combined_result[[col]])) {
+            combined_result[[col]] <- as.factor(combined_result[[col]])
+        }
+        na_idx <- is.na(combined_result[[col]])
+        if (sum(na_idx) > 0) {
+            combined_result[na_idx, col] <- 0
+        }
+    }
+    colnames(combined_result) <- toupper(colnames(combined_result))
+>>>>>>> fc81572 (Some more refactoring / fixes)
 
 <<<<<<< HEAD
 <<<<<<< HEAD:R/post_eupath_annotations.R
@@ -288,10 +305,15 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     message("  Saving ", savefile)
 =======
     info("Saving ", savefile)
+<<<<<<< HEAD
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
     save(result, file = savefile)
     return(result)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_annotations.R
+=======
+    save(combined_result, file = savefile)
+    return(combined_result)
+>>>>>>> fc81572 (Some more refactoring / fixes)
 }
 
 #' Attempt to get a list of sequence types.

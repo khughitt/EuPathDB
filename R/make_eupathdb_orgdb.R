@@ -120,6 +120,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_orgdb.R
   ## I am almost certain that wrapping these in a try() is no longer necessary.
   gene_table <- try(post_eupath_annotations(entry, build_dir = build_dir, overwrite = overwrite))
@@ -154,6 +155,39 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     }
     return(table)
   }
+=======
+  # remove_table_nas <- function(dat) {
+  #   ## At this point, there should be no NA values in the gene_table, there is
+  #   ## logic in post_eupathdb_annotations() which should preclude this possibility,
+  #   ## however this has been proven untrue.
+  #   ## Therefore, I will here set any remaining NAs to either 0 or "" depending on cast.
+  #   gene_cols <- colnames(dat)
+  #
+  #   for (i in 1:length(gene_cols)) {
+  #     na_idx <- is.na(dat[[i]])
+  #     na_sum <- sum(na_idx)
+  #
+  #     if (na_sum > 0) {
+  #       col_type <- class(dat[[i]])[1]
+  #
+  #       info(sprintf("Removing %s NA's found in column '%s' (%s)",
+  #                    na_sum, gene_cols[i], col_type))
+  #
+  #       if (col_type == "character") {
+  #         dat[na_idx, i] <- ""
+  #       } else if (col_type == "factor") {
+  #         dat[na_idx, i] <- 0
+  #       } else if (col_type == "numeric") {
+  #         dat[na_idx, i] <- 0
+  #       } else {
+  #         ## There should only really be characters, factors, and numbers...
+  #         dat[na_idx, i] <- 0
+  #       }
+  #     }
+  #   }
+  #   return(dat)
+  # }
+>>>>>>> fc81572 (Some more refactoring / fixes)
 
   # query eupathdb api for gene table
   gene_table <- post_eupathdb_annotations(entry, workdir = workdir, overwrite = overwrite)
@@ -177,7 +211,15 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     warning(msg)
     return(NULL)
   }
+<<<<<<< HEAD
     colnames(gene_table)[1] <- "GID"
+=======
+
+  # Aug 7, 2020 KH
+  # disabling for now; should be okay to leave missing values in?
+  # may want to replace "N/A" character values with NA's though..
+  # gene_table <- remove_table_nas(gene_table)
+>>>>>>> fc81572 (Some more refactoring / fixes)
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
   gene_table <- remove_eupath_nas(gene_table, "annot")
@@ -393,6 +435,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
                                replacement = "\\1",
                                x = g)
           info("The missing string is: ", extra_string)
+
           ## Finished searching!
           searching <- FALSE
         }

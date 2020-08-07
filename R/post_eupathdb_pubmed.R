@@ -59,7 +59,12 @@ post_eupathdb_pubmed_table <- function(entry=NULL, workdir="EuPathDB", overwrite
     colnames(result) <- c("GID", "PUBMED_ID", "PUBMED_DOI",
                           "PUBMED_TITLE", "PUBMED_AUTHORS")
   }
+<<<<<<< HEAD
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
+=======
+  info("Saving ", savefile)
+  save(result, file=savefile)
+>>>>>>> fc81572 (Some more refactoring / fixes)
   return(result)
 }

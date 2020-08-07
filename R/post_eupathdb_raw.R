@@ -105,6 +105,7 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
   # check response status code to make sure request succeeded
   if (result[["status_code"]] == "422") {
 <<<<<<< HEAD
+<<<<<<< HEAD
     warning(sprintf("   The provided species (%s) does not have a table of weights.", species))
 <<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_raw.R
@@ -113,10 +114,13 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     message(sprintf("[WARN] API Request failed for %s (code = 422): ", entry$Taxon))
     message(sprintf("[WARN]   %s", cont))
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
+=======
+    warn(sprintf("API request failed for %s (code = 422): ", entry$Taxon))
+    warn(cont)
+>>>>>>> fc81572 (Some more refactoring / fixes)
     warning(cont)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
     return(data.frame())
-
   } else if (result[["status_code"]] == "400") {
 <<<<<<< HEAD
     ## likely due to bad formatConfig
@@ -131,20 +135,25 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     warn("Very small amount of content returned for :", entry[["Taxon"]])
 =======
     # likely due to bad formatConfig
-    message(sprintf("[WARN] API Request failed for %s (code = 400): ", entry$Taxon))
-    warning(cont)
+    warn(sprintf("API Request failed for %s (code = 400): ", entry$Taxon))
+    warn(cont)
   } else if (result[["status_code"]] == "404") {
-    message(sprintf("[WARN] API Request failed for %s (code = 404): ", entry$Taxon))
-    warning(cont)
+    warn(sprintf("API Request failed for %s (code = 404): ", entry$Taxon))
+    warn(cont)
   } else if (result[["status_code"]] != "200") {
-    message(sprintf("[WARN] API Request failed for %s (code = %d): ", 
+    warn(sprintf("API Request failed for %s (code = %d): ", 
                     entry$Taxon, result[["status_code"]]))
-    warning(cont)
+    warn(cont)
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
+<<<<<<< HEAD
     message(sprintf("[WARN] Very small amount of content returned for %s: ", entry$Taxon))
     warning(sprintf("[WARN] Very small amount of content returned for %s: ", entry$Taxon))
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
+=======
+    warn("Very small amount of content returned for :", entry$Taxon)
+    warn(cont)
+>>>>>>> fc81572 (Some more refactoring / fixes)
   }
 
 <<<<<<< HEAD
@@ -160,10 +169,14 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
   ## expressions in order to extract the column names and data.
   entries <- strsplit(
     x = cont, split = "\n\n------------------------------------------------------------\n\n")[[1]]
+<<<<<<< HEAD
 <<<<<<< HEAD:R/post_eupath_raw.R
 
 =======
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_raw.R
+=======
+
+>>>>>>> fc81572 (Some more refactoring / fixes)
   ## We will read the first entry in order to extract the column names.
   connection <- textConnection(entries[1])
   a_row <- read.delim(connection, sep = "\n", header = FALSE, quote = "", stringsAsFactors = FALSE)
@@ -176,6 +189,7 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
   ## stuff: otherstuff
   regex_column_names <- gsub(pattern = mypattern, replacement = "\\1",
                              x = a_row[["V1"]], perl = TRUE)
+
   ## At least one column is completely nutty, in that it includes return characters inside its data.
   ## 'Cellular localization images:' contains <span>stuff\nstuff\nstuff</span>
   ## which of course causes my read.delim above to think it is three separate columns.
@@ -243,7 +257,7 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     test_error <- grepl(pattern = "\\*\\*\\* ERROR \\*\\*\\*", x = a_row)
     if (isTRUE(test_error)) {
       msg <- sprintf("Downloading the annotation data failed for: %s", entry$Taxon)
-      message("[WARN] ", msg)
+      warn(msg)
       warning(msg)
       next
     }

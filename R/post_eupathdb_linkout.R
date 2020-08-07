@@ -38,7 +38,8 @@ post_eupathdb_linkout_table <- function(entry=NULL, workdir="EuPathDB", overwrit
 =======
   result <- post_eupathdb_table(query_body, entry, table_name="linkout")
 
-  message("  Saving ", savefile)
+  info("Saving ", savefile)
+
   save(result, file=savefile)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_linkout.R
   return(result)

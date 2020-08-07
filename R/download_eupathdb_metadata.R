@@ -6,7 +6,11 @@
 #' @param build_dir Where to put the json.
 #' @param eupathdb_version Choose a specific eupathdb version?
 #' @param write_csv Write a csv file in the format expected by AnnotationHubData?
+<<<<<<< HEAD
 #' @param limit_n Maximum number of valid entries to return.
+=======
+#' @param limit_n Maximum number of valid entries to return; useful for testing
+>>>>>>> fc81572 (Some more refactoring / fixes)
 #' @param verbose Print helper message about species matching?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
@@ -34,7 +38,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
 =======
                                        bioc_version = NULL, build_dir = "EuPathDB",
                                        eupathdb_version = NULL, write_csv = FALSE,
-                                       verbose = FALSE) {
+                                       limit_n = Inf, verbose = FALSE) {
   db_version <- NULL
 
   if (is.null(eupathdb_version)) {
@@ -102,7 +106,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
       results[[webservice]] <- download_eupathdb_metadata(webservice = webservice,
                                                           overwrite = overwrite,
                                                           bioc_version = bioc_version,
-                                                          build_dir = build_dir, 
+                                                          build_dir = build_dir,
                                                           eupathdb_version = eupathdb_version,
                                                           write_csv = FALSE)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
@@ -113,8 +117,13 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
         invalid_metadata <- rbind(invalid_metadata, entry[["invalid"]])
     }
 
+<<<<<<< HEAD
     ## if enabled, limit metadata table to N entries;
     ## this can be helpful during development and testing
+=======
+    # if enabled, limit metadata table to N entries;
+    # this can be helpful during development and testing
+>>>>>>> fc81572 (Some more refactoring / fixes)
     if (limit_n < Inf && limit_n < nrow(valid_metadata)) {
       set.seed(1)
       info(sprintf("Limiting metadata results to %d entries", limit_n))
@@ -124,6 +133,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     }
 
     if (isTRUE(write_csv)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
       message("Writing metadata csv files.")
       written <- write_eupath_metadata(
@@ -138,14 +148,26 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
 =======
                                          type = "valid", bioc_version = bioc_version,
+=======
+      info("Writing metadata csv files.")
+
+      written <- write_eupathdb_metadata(valid_metadata, service = "eupathdb",
+                                         file_type = "valid", bioc_version = bioc_version,
+>>>>>>> fc81572 (Some more refactoring / fixes)
                                          eupathdb_version = eupathdb_version,
                                          build_dir = build_dir)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
     }
     return(list(
       "valid" = valid_metadata,
+<<<<<<< HEAD
       "invalid" = invalid_metadata))
   }  ## End if we are asking for all services, it may be worth splitting this off.
+=======
+      "invalid" = invalid_metadata
+    ))
+  }
+>>>>>>> fc81572 (Some more refactoring / fixes)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -280,8 +302,8 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   if (class(file) == "try-error") {
     ## Try again without https?
     if (isTRUE(verbose)) {
-      message("Downloading the https file failed, not all eupathdb services have 
-               migrated to https, trying http next.")
+      warn("Downloading the https file failed, not all eupathdb services have ",
+           "migrated to https, trying http next.")
     }
 
     base_url <- glue::glue("http://{webservice}.{tld}/{service_directory}/webservices/")
@@ -740,6 +762,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   species_xref <- xref_species(valid = taxa_xref[["matched_metadata"]],
                                invalid = taxa_xref[["unmatched_metadata"]],
                                verbose = verbose)
+<<<<<<< HEAD
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
   if (isTRUE(write_csv)) {
 <<<<<<< HEAD
@@ -763,12 +786,26 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
 =======
     message("[Info] Writing EuPathDB metadata csv files.")
+=======
+
+  # if enabled, limit metadata table to N entries;
+  if (limit_n < Inf && limit_n < nrow(species_xref$valid)) {
+    set.seed(1)
+    info(sprintf("Limiting metadata results to %d entries", limit_n))
+
+    ind <- sample(nrow(species_xref$valid), limit_n)
+    species_xref$valid <- species_xref$valid[ind, ]
+  }
+
+  if (isTRUE(write_csv)) {
+    info("Writing EuPathDB metadata csv files.")
+>>>>>>> fc81572 (Some more refactoring / fixes)
 
     written <- write_eupathdb_metadata(species_xref[["valid"]], webservice,
-                                       bioc_version, db_version, type = "valid",
+                                       bioc_version, db_version, file_type = "valid",
                                        build_dir = build_dir)
     invalid_written <- write_eupathdb_metadata(species_xref[["invalid"]], webservice,
-                                               bioc_version, db_version, type = "invalid",
+                                               bioc_version, db_version, file_type = "invalid",
                                                build_dir = build_dir)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }

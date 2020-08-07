@@ -5,8 +5,13 @@
 #'
 #' @param metadata Set of metadata.
 #' @param service EupathDB subproject, or the set of all projects named
+<<<<<<< HEAD
 #'  'eupathdb'.
 #' @param type Either valid or invalid, defines the final output filenames.
+=======
+#'   'eupathdb'.
+#' @param file_type Either valid or invalid, defines the final output filenames.
+>>>>>>> fc81572 (Some more refactoring / fixes)
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
 #' @param eupathdb_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.
@@ -26,7 +31,7 @@ write_eupathdb_metadata <- function(metadata, service="eupathdb", type="valid",
 =======
 write_eupathdb_metadata <- function(metadata, service = "eupathdb", 
                                     bioc_version = "v3.12", eupathdb_version = "v46",
-                                    type = "valid",
+                                    file_type = "valid",
                                     build_dir = "EuPathDB") {
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
 
@@ -82,7 +87,7 @@ write_eupathdb_metadata <- function(metadata, service = "eupathdb",
   )
 
   # add invalid suffix, depending on metadata type
-  if (type == "invalid") {
+  if (file_type == "invalid") {
     output_paths <- sub('metadata.csv', 'invalid_metadata.csv', output_paths)
   }
 
@@ -213,13 +218,20 @@ Combined information for {.data[['Taxon']]}"),
       RDataPath = .data[["GrangesFile"]]
     )
 
-  if (file.exists(output_paths[["granges"]])) {
-    message("[Info] Appending to existing file: ", output_paths[["granges"]])
+  # fix column types
+  numeric_cols <- c("NumGenes", "NumOrthologs", "SourceVersion", "TaxonomyId")
 
-    readr::read_csv(output_paths$granges) %>%
+  for (x in numeric_cols) {
+    granges_metadata[, x] <- as.numeric(granges_metadata[, x])
+  }
+
+  if (file.exists(output_paths[["granges"]])) {
+    info("Appending to existing file: ", output_paths[["granges"]])
+
+    readr::read_csv(output_paths$granges, col_types = readr::cols()) %>%
       bind_rows(granges_metadata) %>%
       distinct() %>%
-      write_csv(path = output_paths$granges)
+      readr::write_csv(path = output_paths$granges)
 
   } else {
     readr::write_csv(x = granges_metadata, path = output_paths[["granges"]],
@@ -239,13 +251,18 @@ Combined information for {.data[['Taxon']]}"),
       RDataPath = .data[["OrgdbFile"]]
     )
 
-  if (file.exists(output_paths[["orgdb"]])) {
-    message("[Info] Appending to existing file: ", output_paths[["orgdb"]])
+  # fix column types
+  for (x in numeric_cols) {
+    orgdb_metadata[, x] <- as.numeric(orgdb_metadata[, x])
+  }
 
-    readr::read_csv(output_paths$orgdb) %>%
+  if (file.exists(output_paths[["orgdb"]])) {
+    info("Appending to existing file: ", output_paths[["orgdb"]])
+
+    readr::read_csv(output_paths$orgdb, col_types = readr::cols()) %>%
       bind_rows(orgdb_metadata) %>%
       distinct() %>%
-      write_csv(path = output_paths$orgdb)
+      readr::write_csv(path = output_paths$orgdb)
 
   } else {
     readr::write_csv(x = orgdb_metadata, path = output_paths[["orgdb"]],
@@ -265,13 +282,18 @@ Combined information for {.data[['Taxon']]}"),
       RDataPath = .data[["TxdbFile"]]
   )
 
-  if (file.exists(output_paths[["txdb"]])) {
-    message("[Info] Appending to existing file: ", output_paths[["txdb"]])
+  # fix column types
+  for (x in numeric_cols) {
+    txdb_metadata[, x] <- as.numeric(txdb_metadata[, x])
+  }
 
-    readr::read_csv(output_paths$txdb) %>%
+  if (file.exists(output_paths[["txdb"]])) {
+    info("Appending to existing file: ", output_paths[["txdb"]])
+
+    readr::read_csv(output_paths$txdb, col_types = readr::cols()) %>%
       bind_rows(txdb_metadata) %>%
       distinct() %>%
-      write_csv(path = output_paths$txdb)
+      readr::write_csv(path = output_paths$txdb)
 
   } else {
     readr::write_csv(x = txdb_metadata, path = output_paths[["txdb"]],
@@ -291,13 +313,18 @@ Combined information for {.data[['Taxon']]}"),
       RDataPath = .data[["OrganismdbiFile"]]
     )
 
-  if (file.exists(output_paths[["organismdb"]])) {
-    message("[Info] Appending to existing file: ", output_paths[["organismdb"]])
+  # fix column types
+  for (x in numeric_cols) {
+    organismdbi_metadata[, x] <- as.numeric(organismdbi_metadata[, x])
+  }
 
-    readr::read_csv(output_paths$organismdb) %>%
+  if (file.exists(output_paths[["organismdb"]])) {
+    info("Appending to existing file: ", output_paths[["organismdb"]])
+
+    readr::read_csv(output_paths$organismdb, col_types = readr::cols()) %>%
       bind_rows(organismdbi_metadata) %>%
       distinct() %>%
-      write_csv(path = output_paths$organismdb)
+      readr::write_csv(path = output_paths$organismdb)
 
   } else {
     readr::write_csv(x = organismdbi_metadata, path = output_paths[["organismdb"]],
@@ -335,13 +362,18 @@ Genome for {.data[['Taxon']]}"),
       RDataPath = .data[["BsgenomeFile"]]
   )
 
-  if (file.exists(output_paths[["bsgenome"]])) {
-    message("[Info] Appending to existing file: ", output_paths[["bsgenome"]])
+  # fix column types
+  for (x in numeric_cols) {
+    bsgenome_metadata[, x] <- as.numeric(bsgenome_metadata[, x])
+  }
 
-    readr::read_csv(output_paths$bsgenome) %>%
+  if (file.exists(output_paths[["bsgenome"]])) {
+    info("Appending to existing file: ", output_paths[["bsgenome"]])
+
+    readr::read_csv(output_paths$bsgenome, col_types = readr::cols()) %>%
       bind_rows(bsgenome_metadata) %>%
       distinct() %>%
-      write_csv(path = output_paths$Vsgenome)
+      readr::write_csv(path = output_paths$Vsgenome)
 
   } else {
     readr::write_csv(x = bsgenome_metadata, path = output_paths[["bsgenome"]],

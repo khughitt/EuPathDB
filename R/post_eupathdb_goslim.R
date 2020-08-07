@@ -54,7 +54,7 @@ post_eupathdb_goslim_table <- function(entry=NULL, workdir="EuPathDB", overwrite
     ))
 
   result <- post_eupathdb_table(query_body, entry, table_name="goslim")
-  message("  Saving ", savefile)
+  info("Saving ", savefile)
   save(result, file=savefile)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_goslim.R
   return(result)

@@ -6,10 +6,14 @@
 ###############################################################################
 source("config.R")
 
+# TESTING (Aug 8, 2020)
+LIMIT_N <- 3
+
 info("Downloading EuPathDB metadata...")
 meta <- download_eupathdb_metadata(bioc_version = bioc_version, build_dir = build_dir,
-                                   overwrite = TRUE, webservice = "eupathdb", verbose = TRUE,
-                                   eupathdb_version = eupathdb_version, write_csv = TRUE)
+                                   overwrite = TRUE, webservice = "eupathdb", 
+                                   eupathdb_version = eupathdb_version, write_csv = TRUE, 
+                                   limit_n = LIMIT_N, verbose = TRUE)
 info("Finished downloading metadata.")
 
 num_total <- nrow(meta$valid)
@@ -22,9 +26,6 @@ for (x in meta$invalid$TaxonUnmodified) {
 }
 
 all_metadata <- meta$valid
-
-# DEV AUG 7, 2020
-all_metadata <- all_metadata[2:3, ]
 
 for (i in 1:nrow(all_metadata)) {
   entry <- all_metadata[i, ]
