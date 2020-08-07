@@ -47,7 +47,7 @@ make_eupathdb_organismdbi <- function(entry=NULL, eupathdb_version=NULL, workdir
   pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version=eupathdb_version)
   pkgname <- pkgnames[["organismdbi"]]
   if (isTRUE(pkgnames[["organismdbi_installed"]]) & !isTRUE(reinstall)) {
-    message(" ", pkgname, " is already installed.")
+    info(pkgname, " is already installed.")
     retlist <- list(
       "organismdb_name" = pkgname)
     return(retlist)

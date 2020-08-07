@@ -26,7 +26,7 @@ post_eupathdb_snp_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FA
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("  Delete the file ", savefile, " to regenerate.")
+      info(savefile, " already exists! Delete this file if you wish to regenerate it.")
       result <- new.env()
       load(savefile, envir = result)
       result <- result[["result"]]
@@ -86,7 +86,12 @@ post_eupathdb_snp_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FA
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_snps.R
     all_snps <- rbind(all_snps, data.table::as.data.table(result))
   }
+<<<<<<< HEAD
   message("  Saving ", savefile)
   save(result, file = savefile)
+=======
+  info("Saving ", savefile)
+  save(result, file=savefile)
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
   return(result)
 }

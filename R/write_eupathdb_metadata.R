@@ -25,7 +25,7 @@ write_eupathdb_metadata <- function(metadata, service="eupathdb", type="valid",
                                   bioc_version="3.12", eu_version="46") {
 =======
 write_eupathdb_metadata <- function(metadata, service = "eupathdb", 
-                                    bioc_version = "3.12", eupathdb_version = "46",
+                                    bioc_version = "v3.12", eupathdb_version = "v46",
                                     type = "valid",
                                     build_dir = "EuPathDB") {
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
@@ -216,7 +216,7 @@ Combined information for {.data[['Taxon']]}"),
   if (file.exists(output_paths[["granges"]])) {
     message("[Info] Appending to existing file: ", output_paths[["granges"]])
 
-    read_csv(output_paths$granges) %>%
+    readr::read_csv(output_paths$granges) %>%
       bind_rows(granges_metadata) %>%
       distinct() %>%
       write_csv(path = output_paths$granges)
@@ -242,7 +242,7 @@ Combined information for {.data[['Taxon']]}"),
   if (file.exists(output_paths[["orgdb"]])) {
     message("[Info] Appending to existing file: ", output_paths[["orgdb"]])
 
-    read_csv(output_paths$orgdb) %>%
+    readr::read_csv(output_paths$orgdb) %>%
       bind_rows(orgdb_metadata) %>%
       distinct() %>%
       write_csv(path = output_paths$orgdb)
@@ -268,7 +268,7 @@ Combined information for {.data[['Taxon']]}"),
   if (file.exists(output_paths[["txdb"]])) {
     message("[Info] Appending to existing file: ", output_paths[["txdb"]])
 
-    read_csv(output_paths$txdb) %>%
+    readr::read_csv(output_paths$txdb) %>%
       bind_rows(txdb_metadata) %>%
       distinct() %>%
       write_csv(path = output_paths$txdb)
@@ -294,7 +294,7 @@ Combined information for {.data[['Taxon']]}"),
   if (file.exists(output_paths[["organismdb"]])) {
     message("[Info] Appending to existing file: ", output_paths[["organismdb"]])
 
-    read_csv(output_paths$organismdb) %>%
+    readr::read_csv(output_paths$organismdb) %>%
       bind_rows(organismdbi_metadata) %>%
       distinct() %>%
       write_csv(path = output_paths$organismdb)
@@ -338,7 +338,7 @@ Genome for {.data[['Taxon']]}"),
   if (file.exists(output_paths[["bsgenome"]])) {
     message("[Info] Appending to existing file: ", output_paths[["bsgenome"]])
 
-    read_csv(output_paths$bsgenome) %>%
+    readr::read_csv(output_paths$bsgenome) %>%
       bind_rows(bsgenome_metadata) %>%
       distinct() %>%
       write_csv(path = output_paths$Vsgenome)

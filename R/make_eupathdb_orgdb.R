@@ -91,7 +91,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   # check to see if package is already installed and if so, skip if requested
   if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
-    message("[INFO] ", pkgname, " is already installed.")
+    info(pkgname, " is already installed.")
     retlist <- list("orgdb_name" = pkgname)
     return(retlist)
   }
@@ -137,7 +137,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
       na_sum <- sum(na_idx)
       if (na_sum > 0) {
         column_class <- class(table[[col]])[1]
-        message("[INFO] Found ", na_sum, " NAs in the ", gene_cols[col],
+        info("Found ", na_sum, " NAs in the ", gene_cols[col],
                 " column of type '", column_class, "' from the table: ", name,
                 ", removing them now...")
         if (column_class == "character") {
@@ -163,7 +163,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     gene_table <- data.frame()
 
     msg <- sprintf(" Unable to create an orgdb package: %s (error encountered).", entry[["OrgdbFile"]])
-    message("[WARN] ", msg)
+    warn(msg)
     warning(msg)
 
     return(NULL)
@@ -173,7 +173,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
     msg <- sprintf(" Unable to create an orgdb package: %s (empty result)", entry[["OrgdbFile"]])
 
-    message("[WARN] ", msg)
+    warn(msg)
     warning(msg)
     return(NULL)
   }
@@ -369,7 +369,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     g_gid <- gene_table[["GID"]]
     found_gids <- sum(k_gid %in% g_gid)
     if (found_gids == 0) {
-      message("[INFO] Attempting to match the kegg GIDs to the EuPathDB GIDs...")
+      info("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
       extra_string <- ""
       count <- 0
       searching <- TRUE
@@ -386,13 +386,13 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
         } else {
           f <- found[1]
           g <- g_gid[f]
-          message("[INFO] Found a gid: ", g, ".")
+          info("Found a gid: ", g, ".")
           pat <- paste0("^(.+)", k, "$")
-          message("[INFO] Matching ", pat, " against ", g, ".")
+          info("Matching ", pat, " against ", g, ".")
           extra_string <- gsub(pattern = pat,
                                replacement = "\\1",
                                x = g)
-          message("[INFO] The missing string is: ", extra_string)
+          info("The missing string is: ", extra_string)
           ## Finished searching!
           searching <- FALSE
         }
@@ -590,7 +590,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   godb_table <- data.frame()
 
   if (is.null(godb_source)) {
-    message("[INFO] Setting the godb source to the union of go and goslim.")
+    info("Setting the godb source to the union of go and goslim.")
     if (nrow(goslim_table) > 0) {
         godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
         godb_table[["EVIDENCE"]] <- "GOSlim"
@@ -620,7 +620,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     dup_idx <- duplicated(godb_table)
     godb_table <- godb_table[!dup_idx, ]
     godb_table[["EVIDENCE"]] <- as.factor(godb_table[["EVIDENCE"]])
-    message("[INFO] Adding the goTable argument with: ", nrow(godb_table), " rows.")
+    info("Adding the goTable argument with: ", nrow(godb_table), " rows.")
 
     orgdb_args[["godb_xref"]] <- godb_table
   }
@@ -637,16 +637,20 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
   if (file.exists(backup_path)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     message(backup_path, " already exists, deleting it.")
     ## Something which bit me in the ass for file operations in R, always
     ## set a return value and check it.
 =======
     message("[INFO] ", backup_path, " already exists, deleting it.")
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+    info(backup_path, " already exists, deleting it.")
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
     ret <- unlink(backup_path, recursive = TRUE)
   }
   if (file.exists(first_path)) {
-    message("[INFO] ", first_path, " already exists, backing it up.")
+    info(first_path, " already exists, backing it up.")
     ret <- file.rename(first_path, backup_path)
   }
 
@@ -655,9 +659,13 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   att_result <- try(attachNamespace("AnnotationForge"), silent = TRUE)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   message(" Calling makeOrgPackage() for ", entry[["Species"]])
 =======
   message("[INFO] Calling makeOrgPackage() for ", entry[["Species"]])
+=======
+  info("Calling makeOrgPackage() for ", entry[["Species"]])
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
   verbose <- FALSE
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   orgdb_path <- ""
@@ -708,12 +716,16 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
     if (isTRUE(copied)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
     } else {
       stop(" Could not copy S3 data.")
 =======
       message("[INFO] Successfully copied the orgdb sqlite database to the s3 staging directory.")
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+      info("Successfully copied the orgdb sqlite database to the s3 staging directory.")
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
     }
   }
 

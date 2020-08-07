@@ -54,7 +54,7 @@ make_eupathdb_bsgenome <- function(entry, eupathdb_version = NULL, workdir = "Eu
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   pkgname <- pkgnames[["bsgenome"]]
   if (pkgname %in% installed.packages() & !isTRUE(reinstall)) {
-    message(" ", pkgname, " is already installed.")
+    info(pkgname, " is already installed.")
     retlist <- list(
       "bsgenome_name" = pkgname
     )

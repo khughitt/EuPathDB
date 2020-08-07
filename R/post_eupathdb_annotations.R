@@ -14,7 +14,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
 post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwrite = FALSE) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_annotations.R
     if (is.null(entry)) {
-        stop("  Need an entry from the eupathdb.")
+        stop("[ERROR] Need an entry from the eupathdb.")
     }
 
 <<<<<<< HEAD:R/post_eupath_annotations.R
@@ -42,7 +42,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         if (isTRUE(overwrite)) {
             removed <- file.remove(savefile)
         } else {
-            message("  Delete the file ", savefile, " to regenerate.")
+            info(savefile, " already exists! Delete this file if you wish to regenerate it.")
             result <- new.env()
             load(savefile, envir = result)
             result <- result[["result"]]
@@ -176,7 +176,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     # iterate over gene types and query 
     for (i in 1:length(gene_types)) {
         gene_type <- gene_types[i]
-        message(" Querying gene type: ", gene_type, ".")
+        info("Querying gene type: ", gene_type, ".")
         parameters <- list(
             "organism" = jsonlite::unbox(species),
             "geneType" = jsonlite::unbox(gene_type),
@@ -192,7 +192,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
                                        pattern = "annot_annotated",
                                        replacement = "annot")
             result <- rbind(result, a_result)
-            message("Added ", nrow(a_result), " rows on ",
+            info("Added ", nrow(a_result), " rows on ",
                     ncol(a_result), " columns to the data.")
         }
     }
@@ -269,6 +269,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD:R/post_eupath_annotations.R
     ## orgdbs seem to like uppercase column names
     colnames(records) <- toupper(colnames(records))
@@ -285,6 +286,9 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     return(records)
 =======
     message("  Saving ", savefile)
+=======
+    info("Saving ", savefile)
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
     save(result, file = savefile)
     return(result)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_annotations.R

@@ -131,7 +131,7 @@ start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
-  message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
+  info("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
   pkgnames <- get_eupathdb_pkgnames(entry)
   if (isTRUE(bsgenome)) {
     bsgenome_result <- make_eupathdb_bsgenome(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
@@ -145,7 +145,7 @@ for (it in start:end) {
   if (isTRUE(orgdb)) {
     orgdb_result <- make_eupathdb_orgdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the OrgDB.")
+      warn("There is insufficient data for ", species, " to make the OrgDB.")
     } else {
       actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
@@ -157,8 +157,9 @@ for (it in start:end) {
   }
   if (isTRUE(txdb)) {
     txdb_result <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
+
     if (is.null(txdb_result)) {
-      message("Unable to create the txdb package.")
+      warn("Unable to create the txdb package: ", entry$TxdbFile)
     } else {
       actual <- txdb_result[["txdb_name"]]
       expected <- pkgnames[["txdb"]]
@@ -261,7 +262,7 @@ start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
-  message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
+  info("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
   pkgnames <- get_eupathdb_pkgnames(entry)
   if (isTRUE(bsgenome)) {
     bsgenome_result <- make_eupathdb_bsgenome(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
@@ -275,7 +276,7 @@ for (it in start:end) {
   if (isTRUE(orgdb)) {
     orgdb_result <- make_eupathdb_orgdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the OrgDB.")
+      warn("There is insufficient data for ", species, " to make the OrgDB.")
     } else {
       actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
@@ -288,7 +289,7 @@ for (it in start:end) {
   if (isTRUE(txdb)) {
     txdb_result <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(txdb_result)) {
-      message("Unable to create the txdb package.")
+      warn("Unable to create the txdb package: ", entry$TxdbFile)
     } else {
       actual <- txdb_result[["txdb_name"]]
       expected <- pkgnames[["txdb"]]
@@ -361,8 +362,8 @@ if (isTRUE(granges)) {
 
 ```{r saveme}
 pander::pander(sessionInfo())
-message(paste0("This is hpgltools commit: ", get_git_commit()))
+info("This is hpgltools commit: ", get_git_commit())
 this_save <- paste0(gsub("\\.Rmd", "", rmd_file), "-v", ver, ".rda.xz")
-message(paste0("Saving to ", this_save))
+info("Saving to ", this_save)
 tmp <- sm(saveme(filename=this_save))
 ```

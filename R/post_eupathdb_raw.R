@@ -104,14 +104,21 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
 
   # check response status code to make sure request succeeded
   if (result[["status_code"]] == "422") {
+<<<<<<< HEAD
     warning(sprintf("   The provided species (%s) does not have a table of weights.", species))
 <<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_raw.R
 =======
+=======
+    message(sprintf("[WARN] API Request failed for %s (code = 422): ", entry$Taxon))
+    message(sprintf("[WARN]   %s", cont))
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
     warning(cont)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
     return(data.frame())
+
   } else if (result[["status_code"]] == "400") {
+<<<<<<< HEAD
     ## likely due to bad formatConfig
     warn(sprintf("API Request failed for %s (code = 400): ", entry[["Taxon"]]))
   } else if (result[["status_code"]] == "404") {
@@ -122,6 +129,22 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
     warn("Very small amount of content returned for :", entry[["Taxon"]])
+=======
+    # likely due to bad formatConfig
+    message(sprintf("[WARN] API Request failed for %s (code = 400): ", entry$Taxon))
+    warning(cont)
+  } else if (result[["status_code"]] == "404") {
+    message(sprintf("[WARN] API Request failed for %s (code = 404): ", entry$Taxon))
+    warning(cont)
+  } else if (result[["status_code"]] != "200") {
+    message(sprintf("[WARN] API Request failed for %s (code = %d): ", 
+                    entry$Taxon, result[["status_code"]]))
+    warning(cont)
+    return(data.frame())
+  } else if (length(result[["content"]]) < 100) {
+    message(sprintf("[WARN] Very small amount of content returned for %s: ", entry$Taxon))
+    warning(sprintf("[WARN] Very small amount of content returned for %s: ", entry$Taxon))
+>>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
   }
 
 <<<<<<< HEAD
@@ -219,7 +242,9 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     a_row[["V1"]] <- as.character(a_row[["V1"]])
     test_error <- grepl(pattern = "\\*\\*\\* ERROR \\*\\*\\*", x = a_row)
     if (isTRUE(test_error)) {
-      warning("   Downloading the annotation data failed.")
+      msg <- sprintf("Downloading the annotation data failed for: %s", entry$Taxon)
+      message("[WARN] ", msg)
+      warning(msg)
       next
     }
 <<<<<<< HEAD:R/post_eupath_raw.R

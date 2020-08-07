@@ -62,6 +62,7 @@ Collate:
  'load_kegg_annotations.R'
  'load_orgdb_annotations.R'
  'load_orgdb_go.R'
+ 'logging.R
  'make_eupathdb_bsgenome.R'
  'make_eupathdb_granges.R'
  'make_eupathdb_organismdbi.R'

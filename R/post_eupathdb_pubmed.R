@@ -21,7 +21,7 @@ post_eupathdb_pubmed_table <- function(entry=NULL, workdir="EuPathDB", overwrite
     if (isTRUE(overwrite)) {
       removed <- file.remove(savefile)
     } else {
-      message("  Delete the file ", savefile, " to regenerate.")
+      info(savefile, " already exists! Delete this file if you wish to regenerate it.")
       result <- new.env()
       load(savefile, envir = result)
       result <- result[["result"]]
