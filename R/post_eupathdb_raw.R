@@ -20,9 +20,14 @@
 post_eupath_raw <- function(entry, question = "GeneQuestions.GenesByMolecularWeight",
 =======
 post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularWeight",
+<<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_raw.R
                             parameters = NULL, table_name = NULL, columns = NULL,
                             minutes = 10) {
+=======
+                              parameters = NULL, table_name = NULL, columns = NULL,
+                              minutes = 10) {
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   species <- entry[["TaxonUnmodified"]]
   provider <- tolower(entry[["DataProvider"]])
 
@@ -39,6 +44,7 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
 
   ## If the user does not ask for specific columns, get them all!
   query_columns <- columns
+
   if (is.null(columns)) {
     query_columns <- get_eupathdb_fields(provider)
   }
@@ -49,19 +55,28 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     "parameters" = parameters,
     "viewFilters" = list(),
     "filters" = list())
+
   formattinglist <- list(
     "formatConfig" = list(
       "includeHeaders" = jsonlite::unbox("true"),
       "attributes" = query_columns,
       "attachmentType" = jsonlite::unbox("plain")),
     "format" = jsonlite::unbox("fullRecord"))
+<<<<<<< HEAD
   query_body <- list(
     "answerSpec" = answerlist,
     "formatting" = formattinglist)
   body <- jsonlite::toJSON(query_body)
+=======
+
+  query_body <- jsonlite::toJSON(list(
+    "answerSpec" = answerlist,
+    "formatting" = formattinglist))
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 
   ## Figure out the appropriate url and query
   tld <- "org"
+
   if (provider == "schistodb") {
     tld <- "net"
   }
@@ -79,14 +94,22 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
 =======
 
   # submit POST request using JSON 
-  result <- httr::POST(url = api_uri, body = body,
+  result <- httr::POST(url = api_uri, body = query_body,
                        httr::content_type("application/json"),
                        httr::timeout(minutes * 60))
+
+  ## Get the content, this will take a while, as the result from eupathdb might
+  ## be > 50 Mb of stuff.
+  cont <- httr::content(result, encoding="UTF-8")
 
   # check response status code to make sure request succeeded
   if (result[["status_code"]] == "422") {
     warning(sprintf("   The provided species (%s) does not have a table of weights.", species))
+<<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_raw.R
+=======
+    warning(cont)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     return(data.frame())
   } else if (result[["status_code"]] == "400") {
     ## likely due to bad formatConfig
@@ -101,7 +124,10 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     warn("Very small amount of content returned for :", entry[["Taxon"]])
   }
 
+<<<<<<< HEAD
   cont <- httr::content(result, encoding = "UTF-8")
+=======
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   ## Sadly, most of that stuff is completely unwanted.  This is because we are
   ## using the 'fullRecord' format, as it is the only format I have been able to
   ## get to work so far. This format is newline separated fields with entries

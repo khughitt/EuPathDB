@@ -22,7 +22,7 @@ This tutorial describes how to update the EuPathDB AnnotationHub data for a new 
 To begin, edit the file `inst/scripts/config.R` and update the Bioconductor / EupathDB 
 version variables:
 
-- `eu_version`
+- `eupathdb_version`
 - `bioc_version`
 
 Next, specify which Bioconductor package types you wish to build (orgdb, bsgenome,

@@ -7,7 +7,7 @@
 #'
 #' @param species  String containing a unique portion of the desired species.
 #' @param webservice Which eupath webservice is desired?
-#' @param eu_version Gather data from a specific eupathdb version?
+#' @param eupathdb_version Gather data from a specific eupathdb version?
 #' @param wanted_fields If not provided, this will gather all columns starting
 #'  with 'annot'.
 #' @return Big huge data frame of annotation data.
@@ -37,9 +37,9 @@ load_eupath_annotations <- function(query, webservice = "tritrypdb",
     pkg <- as.character(pkg_names[["orgdb"]])
 =======
 load_eupathdb_annotations <- function(species="Leishmania major", webservice="tritrypdb",
-                                    eu_version=NULL, wanted_fields=NULL) {
+                                    eupathdb_version=NULL, wanted_fields=NULL) {
   entry <- get_eupathdb_entry(species=species, webservice=webservice)
-  pkg_names <- get_eupathdb_pkgnames(entry=entry, eu_version=eu_version)
+  pkg_names <- get_eupathdb_pkgnames(entry=entry, eupathdb_version=eupathdb_version)
   pkg_installedp <- pkg_names[["orgdb_installed"]]
   if (isFALSE(pkg_installedp)) {
     stop("The required package is not installed.")

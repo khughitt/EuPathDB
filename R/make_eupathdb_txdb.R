@@ -5,19 +5,28 @@
 #' download of a gff file from the eupathdb.
 #'
 #' @param entry One row from the organism metadata.
+<<<<<<< HEAD
 #' @param build_dir Base directory for building the package.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
+=======
+#' @param workdir Base directory for building the package.
+#' @param eupathdb_version Which version of the eupathdb to use for creating this package?
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 #' @param reinstall Overwrite an existing installed package?
 #' @param installp Install the resulting package?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_txdb.R
 make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = NULL, reinstall = FALSE,
                              installp = TRUE, copy_s3 = FALSE) {
 =======
 make_eupathdb_txdb <- function(entry=NULL, workdir="EuPathDB", eu_version=NULL, reinstall=FALSE,
+=======
+make_eupathdb_txdb <- function(entry=NULL, workdir="EuPathDB", eupathdb_version=NULL, reinstall=FALSE,
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
                              installp=TRUE, copy_s3=FALSE) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_txdb.R
   if (is.null(entry)) {
@@ -25,11 +34,15 @@ make_eupathdb_txdb <- function(entry=NULL, workdir="EuPathDB", eu_version=NULL, 
   }
 
   taxa <- make_taxon_names(entry)
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_txdb.R
   pkgnames <- get_eupath_pkgnames(entry, eu_version = eu_version)
 =======
   pkgnames <- get_eupathdb_pkgnames(entry, eu_version=eu_version)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_txdb.R
+=======
+  pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version=eupathdb_version)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   pkgname <- pkgnames[["txdb"]]
 
   input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))

@@ -80,12 +80,12 @@ extract_eupath_orthologs <- function(db, master = "GID", query_species = NULL,
                                      webservice = "eupathdb") {
 =======
 extract_eupathdb_orthologs <- function(db, master="GID", query_species=NULL,
-                                     id_column="ORTHOLOGS_GID",
-                                     org_column="ORTHOLOGS_ORGANISM",
-                                     url_column="ORTHOLOGS_PRODUCT",
-                                     count_column="ORTHOLOGS_COUNT",
-                                     print_speciesnames=FALSE,
-                                     webservice="eupathdb") {
+                                       id_column="ORTHOLOGS_GID",
+                                       org_column="ORTHOLOGS_ORGANISM",
+                                       url_column="ORTHOLOGS_PRODUCT",
+                                       count_column="ORTHOLOGS_COUNT",
+                                       print_speciesnames=FALSE,
+                                       webservice="eupathdb") {
 
   load_pkg <- function(name, ...) {
     first_try <- try(do.call("library", as.list(name)), silent=TRUE)
@@ -141,8 +141,15 @@ extract_eupathdb_orthologs <- function(db, master="GID", query_species=NULL,
     message("Removing them, which may end badly.")
     columns <- columns[column_intersect]
   }
+<<<<<<< HEAD
   all_orthos <- AnnotationDbi::select(x = pkg, keytype = master,
                                       keys = gene_set, columns = columns)
+=======
+  all_orthos <- AnnotationDbi::select(x=pkg, keytype=master,
+                                      keys=gene_set, columns=columns)
+  all_orthos[["ORTHOLOGS_GROUP_ID"]] <- gsub(pattern="^.*>(.*)<\\/a>$",
+                                             replacement="\\1", x=all_orthos[[url_column]])
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   all_orthos[[org_column]] <- as.factor(all_orthos[[org_column]])
   num_possible <- 1
   species_names <- levels(all_orthos[[org_column]])

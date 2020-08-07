@@ -3,8 +3,8 @@
 #' @param overwrite Overwrite existing data?
 #' @param webservice Optional alternative webservice for hard-to-find species.
 #' @param bioc_version Manually set the bioconductor release if desired.
-#' @param dir Where to put the json.
-#' @param eu_version Choose a specific eupathdb version?
+#' @param build_dir Where to put the json.
+#' @param eupathdb_version Choose a specific eupathdb version?
 #' @param write_csv Write a csv file in the format expected by AnnotationHubData?
 #' @param limit_n Maximum number of valid entries to return.
 #' @param verbose Print helper message about species matching?
@@ -24,18 +24,27 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
 =======
 =======
 download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
+<<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/download_eupathdb_metadata.R
                                      bioc_version = NULL, dir = "EuPathDB",
                                      eu_version = NULL, write_csv = FALSE,
                                      verbose = FALSE) {
   db_version <- NULL
   if (is.null(eu_version)) {
+=======
+                                       bioc_version = NULL, build_dir = "EuPathDB",
+                                       eupathdb_version = NULL, write_csv = FALSE,
+                                       verbose = FALSE) {
+  db_version <- NULL
+
+  if (is.null(eupathdb_version)) {
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     ## One could just as easily choose any of the other eupathdb hosts.
     db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
-    eu_version <- gsub(x = db_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
+    eupathdb_version <- gsub(x = db_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
   } else {
-    eu_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
-    db_version <- gsub(x = eu_version, pattern = "^v", replacement = "")
+    eupathdb_version <- gsub(x = eupathdb_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
+    db_version <- gsub(x = eupathdb_version, pattern = "^v", replacement = "")
     ## eupathdb_version
   }
 
@@ -45,8 +54,13 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   }
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
 
+<<<<<<< HEAD
   ## Choose which service(s) to query, if it is 'eupathdb' do them all.
   webservice <- tolower(webservice)
+=======
+  # if webservice is set to "eupathdb", iterate over different front-ends and generate
+  # metadata for each of them separately
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (webservice == "eupathdb") {
     ##projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
     ##              "microsporidiadb", "piroplasmadb", "plasmodb",
@@ -65,6 +79,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     invalid_metadata <- data.frame()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     for (i in 1:length(projects)) {
     webservice <- projects[i]
     results[[webservice]] <- download_eupath_metadata(
@@ -80,6 +95,17 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
                                                         dir = dir, eu_version = eu_version,
                                                         write_csv = FALSE)
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
+=======
+    for (proj in 1:length(projects)) {
+      webservice <- projects[proj]
+
+      results[[webservice]] <- download_eupathdb_metadata(webservice = webservice,
+                                                          overwrite = overwrite,
+                                                          bioc_version = bioc_version,
+                                                          build_dir = build_dir, 
+                                                          eupathdb_version = eupathdb_version,
+                                                          write_csv = FALSE)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     }
 
     for (entry in results) {
@@ -106,15 +132,22 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
 =======
       message("Writing csv files.")
       written <- write_eupathdb_metadata(valid_metadata, service = "eupathdb",
+<<<<<<< HEAD
                                        type = "valid", bioc_version = bioc_version,
                                        eu_version = eu_version)
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
+=======
+                                         type = "valid", bioc_version = bioc_version,
+                                         eupathdb_version = eupathdb_version,
+                                         build_dir = build_dir)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     }
     return(list(
       "valid" = valid_metadata,
       "invalid" = invalid_metadata))
   }  ## End if we are asking for all services, it may be worth splitting this off.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   ## Create the build directory if it is not already there.
   if (!dir.exists(build_dir)) {
@@ -123,10 +156,16 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   if (!dir.exists(dir)) {
     dir.create(dir, recursive = TRUE)
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
+=======
+  # create build directory if needed
+  if (!dir.exists(build_dir)) {
+    dir.create(build_dir, recursive = TRUE)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
 
   .data <- NULL  ## To satisfy R CMD CHECK
   shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
+
   tags <- list(
     "AmoebaDB" = c(shared_tags, "Amoeba"),
     "CryptoDB" = c(shared_tags, "Cryptosporidium"),
@@ -143,9 +182,14 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     paste(x, collapse = ":")
   })
 
+<<<<<<< HEAD
   ## Excepting schistodb, all the services are .orgs which is a .net.
+=======
+  # most of the api's are located at .org sites
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   tld <- "org"
 
+  # schistodb is the one exception and is hosted on a .net site
   if (webservice == "schistodb") {
       tld <- "net"
   }
@@ -228,10 +272,11 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   request_url <- glue::glue("{base_url}{query_string}")
 
   ## retrieve organism metadata from EuPathDB
-  metadata_json <- glue::glue("{dir}/metadata.json")
+  metadata_json <- glue::glue("{build_dir}/metadata.json")
 
-  ## It turns out that not all eupathdb hosts have moved to https...
+  # It turns out that not all eupathdb hosts have moved to https...
   file <- try(download.file(url = request_url, destfile = metadata_json), silent = TRUE)
+
   if (class(file) == "try-error") {
     ## Try again without https?
     if (isTRUE(verbose)) {
@@ -244,12 +289,16 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     request_url <- glue::glue("{base_url}{query_string}")
 
     ## retrieve organism metadata from EuPathDB
-    metadata_json <- glue::glue("{dir}/metadata.json")
+    metadata_json <- glue::glue("{build_dir}/metadata.json")
     file <- download.file(url = request_url, destfile = metadata_json)
   }
 
   result <- try(jsonlite::fromJSON(metadata_json), silent = TRUE)
+<<<<<<< HEAD
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
+=======
+
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (class(result)[1] == "try-error") {
       stop("There was a parsing failure when reading the metadata.")
   }
@@ -268,13 +317,15 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
       stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
 =======
 
+  # each record contains:
+  # id, fields, tables
   records <- result[["response"]][["recordset"]][["records"]]
-  ##message("Downloaded: ", request_url)
 
-  ## convert to a dataframe
+  # process "fields" portion of response and extract name
   dat <- data.frame(t(sapply(records[["fields"]], function(x) {
     x[, "value"] })),
     stringsAsFactors = FALSE)
+
   colnames(dat) <- records[["fields"]][[1]][["name"]]
 
   ## Once again, this is filling in schisto.org, which is weird.
@@ -282,6 +333,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     dat,
     is.character,
     stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
+<<<<<<< HEAD
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
 
   ## The NULL is because NSE semantics are still a bit nonsensical to me.
@@ -367,6 +419,12 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   ## Thus I am not going to chain the following operations, because until everything stabilizes
   ## I am just going to have to come back in here and fix weird stuff.
   metadata <- records %>%
+=======
+
+  SourceUrl <- NULL
+
+  metadata <- dat %>%
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     dplyr::transmute(
 <<<<<<< HEAD
                ## "annotation_version"
@@ -497,9 +555,9 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
                                      x = SourceUrl))
 
   ## Add project-specific tags for each entry
-  metadata[["Tags"]] <- sapply(metadata[["DataProvider"]],
-                               function(x) {
-                                 tag_strings[[x]] })
+  metadata[["Tags"]] <- sapply(metadata[["DataProvider"]], function(x) {
+                                 tag_strings[[x]]
+                               })
 
   ## replace missing taxonomy ids with NAs
   metadata[["TaxonomyId"]][metadata[["TaxonomyId"]] == ""] <- NA
@@ -552,22 +610,33 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
   db_version <- metadata[1, "SourceVersion"]
 
   ## A couple changes to try to make the metadata I generate pass
+<<<<<<< HEAD
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
 <<<<<<< HEAD:R/download_eupath_metadata.R
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
     ## In most invocations of make_taxon_names and get_eupath_pkgnames,
 =======
+=======
+  for (i in 1:nrow(metadata)) {
+    entry <- metadata[i, ]
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     ## In most invocations of make_taxon_names and get_eupathdb_pkgnames,
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/download_eupathdb_metadata.R
     ## we use the column 'TaxonUnmodified', because we are modifying Species to
     ## match what is acquired from GenomeInfoDb::loadTaxonomyDb().
     ## But, right now we are in the process of making that match, so use the
     ## Species column here.
+<<<<<<< HEAD
 <<<<<<< HEAD:R/download_eupath_metadata.R
 <<<<<<< HEAD
     pkg_names <- get_eupath_pkgnames(metadatum, column = "TaxonomyName")
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
+=======
+    pkg_names <- get_eupathdb_pkgnames(entry, column = "Species")
+    species_info <- make_taxon_names(entry, column = "Species")
+
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     metadata[i, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
     metadata[i, "BsgenomeFile"] <- file.path(
       build_dir, "BSgenome", metadata[i, "BiocVersion"],
@@ -587,6 +656,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     metadata[i, "TxdbFile"] <- file.path(
       build_dir, "TxDb", metadata[i, "BiocVersion"],
       glue::glue("{metadata[i, 'TxdbPkg']}.sqlite"))
+<<<<<<< HEAD
     metadata[i, "GenusSpecies"] <- gsub(x = species_info[["genus_species"]],
                                     pattern = "\\.", replacement = " ")
     metadata[i, "Strain"] <- species_info[["strain"]]
@@ -653,13 +723,16 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
       dir, "TxDb", metadata[it, "BiocVersion"],
       glue::glue("{metadata[it, 'TxdbPkg']}.sqlite"))
     metadata[it, "Species"] <- gsub(x = species_info[["genus_species"]],
+=======
+    metadata[i, "Species"] <- gsub(x = species_info[["genus_species"]],
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
                                     pattern = "\\.", replacement = " ")
-    metadata[it, "Strain"] <- species_info[["strain"]]
-    metadata[it, "Genus"] <- species_info[["genus"]]
-    metadata[it, "Sp"] <- species_info[["species"]]
-    metadata[it, "Taxon"] <- gsub(x = species_info[["taxon"]],
+    metadata[i, "Strain"] <- species_info[["strain"]]
+    metadata[i, "Genus"] <- species_info[["genus"]]
+    metadata[i, "Sp"] <- species_info[["species"]]
+    metadata[i, "Taxon"] <- gsub(x = species_info[["taxon"]],
                                   pattern = "\\.", replacement = " ")
-    metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
+    metadata[i, "TaxonUnmodified"] <- species_info[["unmodified"]]
   }
 
   taxa_xref <- xref_taxonomy(metadata, verbose = verbose)
@@ -669,6 +742,7 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
                                verbose = verbose)
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
   if (isTRUE(write_csv)) {
+<<<<<<< HEAD
 <<<<<<< HEAD:R/download_eupath_metadata.R
     message("Writing EuPathDB metadata csv files.")
     written <- write_eupath_metadata(species_xref[["valid"]], webservice,
@@ -687,6 +761,16 @@ download_eupathdb_metadata <- function(overwrite = FALSE, webservice = "eupathdb
     invalid_written <- write_eupathdb_metadata(species_xref[["invalid"]], webservice,
                                              bioc_version, db_version, type = "invalid")
 >>>>>>> 13b1ccc (updated email; coding style tweaks)
+=======
+    message("[Info] Writing EuPathDB metadata csv files.")
+
+    written <- write_eupathdb_metadata(species_xref[["valid"]], webservice,
+                                       bioc_version, db_version, type = "valid",
+                                       build_dir = build_dir)
+    invalid_written <- write_eupathdb_metadata(species_xref[["invalid"]], webservice,
+                                               bioc_version, db_version, type = "invalid",
+                                               build_dir = build_dir)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
   retlist <- list(
     "valid" = species_xref[["valid"]],

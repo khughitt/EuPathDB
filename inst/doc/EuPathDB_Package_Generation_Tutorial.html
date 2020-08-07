@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(EuPathDB)</a>
 <a class="sourceLine" id="cb2-2" title="2"></a>
 <a class="sourceLine" id="cb2-3" title="3"><span class="co">## Ask for the version 42 data from fungidb for species with 'cerevisiae' in the name.</span></a>
-<a class="sourceLine" id="cb2-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>, <span class="dt">eu_version=</span><span class="st">&quot;v42&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb2-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>, <span class="dt">eupathdb_version=</span><span class="st">&quot;v42&quot;</span>)</a></code></pre></div>
 <pre><code>## Found: Saccharomyces cerevisiae S288c</code></pre>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">sc_name &lt;-<span class="st"> </span>sc_entry[[<span class="st">&quot;Species&quot;</span>]]</a>
 <a class="sourceLine" id="cb4-2" title="2">sc_entry</a></code></pre></div>
@@ -991,7 +991,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <h3>Shortcut methods</h3>
 <p>Remembering the keytype and package names and everything can be annoying. The following attempts to make that easier. In this instance, the only thing we need to provide is a unique substring for the species of interest. If the substring is not unique, this should show the matches and choose the first.</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" title="1"><span class="co">## The function load_eupathdb_annotations() provides a shortcut to the above.</span></a>
-<a class="sourceLine" id="cb51-2" title="2">sc_annot &lt;-<span class="st"> </span><span class="kw">load_eupathdb_annotations</span>(<span class="dt">species=</span><span class="st">&quot;S288c&quot;</span>, <span class="dt">eu_version=</span><span class="st">&quot;v42&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb51-2" title="2">sc_annot &lt;-<span class="st"> </span><span class="kw">load_eupathdb_annotations</span>(<span class="dt">species=</span><span class="st">&quot;S288c&quot;</span>, <span class="dt">eupathdb_version=</span><span class="st">&quot;v42&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
 <pre><code>## Found: Saccharomyces cerevisiae S288c</code></pre>
 <pre><code>## Returning fields which start with 'annot'</code></pre>
 <pre><code>## Unable to find ANNOT_CDSNAME, setting it to ANNOT_GENE_NAME.</code></pre>

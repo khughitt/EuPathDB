@@ -58,10 +58,21 @@ remove_eupath_nas <- function(table, name = "annot") {
 make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
 =======
 make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = TRUE,
+<<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
                               kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
   ## Pull out the metadata for this species.
+=======
+                                kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
+                                copy_s3 = FALSE, do_go = TRUE, do_goslim = TRUE, godb_source = NULL,
+                                do_orthologs = TRUE, do_interpro = TRUE,
+                                do_linkout = TRUE, do_pubmed = TRUE, do_pathway = TRUE,
+                                do_kegg = TRUE, do_uniprot = FALSE) {
+  if (is.null(entry)) {
+    stop("Need an entry.")
+  }
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if ("character" %in% class(entry)) {
     entry <- get_eupathdb_entry(entry)
   }
@@ -80,7 +91,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   # check to see if package is already installed and if so, skip if requested
   if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
-    message(" ", pkgname, " is already installed.")
+    message("[INFO] ", pkgname, " is already installed.")
     retlist <- list("orgdb_name" = pkgname)
     return(retlist)
   }
@@ -126,9 +137,9 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
       na_sum <- sum(na_idx)
       if (na_sum > 0) {
         column_class <- class(table[[col]])[1]
-        message("    I found ", na_sum, " NAs in the ", gene_cols[col],
-                " column of type ", column_class, " from the table: ", name,
-                " table, removing them now.")
+        message("[INFO] Found ", na_sum, " NAs in the ", gene_cols[col],
+                " column of type '", column_class, "' from the table: ", name,
+                ", removing them now...")
         if (column_class == "character") {
           table[na_idx, col] <- ""
         } else if (column_class == "factor") {
@@ -150,12 +161,20 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   if (class(gene_table) == "try-error") {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
     gene_table <- data.frame()
-    warning(" Unable to create an orgdb for this species.")
+
+    msg <- sprintf(" Unable to create an orgdb package: %s (error encountered).", entry[["OrgdbFile"]])
+    message("[WARN] ", msg)
+    warning(msg)
+
     return(NULL)
   }
   if (nrow(gene_table) == 0) {
     gene_table <- data.frame()
-    warning(" Unable to create an orgdb for this species.")
+
+    msg <- sprintf(" Unable to create an orgdb package: %s (empty result)", entry[["OrgdbFile"]])
+
+    message("[WARN] ", msg)
+    warning(msg)
     return(NULL)
   }
     colnames(gene_table)[1] <- "GID"
@@ -248,6 +267,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   if (isTRUE(do_go)) {
     go_table <- try(post_eupathdb_go_table(entry, workdir = workdir, overwrite = overwrite))
+
     if (class(go_table)[1] == "try-error") {
       go_table <- data.frame()
     }
@@ -258,6 +278,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   if (isTRUE(do_goslim)) {
     goslim_table <- try(post_eupathdb_goslim_table(entry, workdir = workdir, overwrite = overwrite))
+
     if (class(goslim_table)[1] == "try-error") {
       goslim_table <- data.frame()
     }
@@ -269,8 +290,8 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   
   if (isTRUE(do_orthologs)) {
     ortholog_table <- try(post_eupathdb_ortholog_table(entry = entry, workdir = workdir,
-                                                     gene_ids = gene_ids,
-                                                     overwrite = overwrite))
+                                                       gene_ids = gene_ids,
+                                                       overwrite = overwrite))
     if (class(ortholog_table)[1] == "try-error") {
       ortholog_table <- data.frame()
     }
@@ -281,8 +302,8 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   
   if (isTRUE(do_linkout)) {
     linkout_table <- try(post_eupathdb_linkout_table(entry = entry,
-                                                   workdir = workdir,
-                                                   overwrite = overwrite))
+                                                     workdir = workdir,
+                                                     overwrite = overwrite))
     if (class(linkout_table)[1] == "try-error") {
       linkout_table <- data.frame()
     }
@@ -293,8 +314,8 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   if (isTRUE(do_pubmed)) {
     pubmed_table <- try(post_eupathdb_pubmed_table(entry = entry,
-                                                 workdir = workdir,
-                                                 overwrite = overwrite))
+                                                   workdir = workdir,
+                                                   overwrite = overwrite))
     if (class(pubmed_table)[1] == "try-error") {
       pubmed_table <- data.frame()
     }
@@ -305,8 +326,8 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   if (isTRUE(do_interpro)) {
     interpro_table <- try(post_eupathdb_interpro_table(entry = entry,
-                                                     workdir = workdir,
-                                                     overwrite = overwrite))
+                                                       workdir = workdir,
+                                                       overwrite = overwrite))
     if (class(interpro_table)[1] == "try-error") {
       interpro_table <- data.frame()
     }
@@ -317,8 +338,8 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
   if (isTRUE(do_pathway)) {
     pathway_table <- try(post_eupathdb_pathway_table(entry = entry,
-                                                   workdir = workdir,
-                                                   overwrite = overwrite))
+                                                     workdir = workdir,
+                                                     overwrite = overwrite))
     if (class(pathway_table)[1]  == "try-error") {
       pathway_table <- data.frame()
     }
@@ -348,7 +369,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     g_gid <- gene_table[["GID"]]
     found_gids <- sum(k_gid %in% g_gid)
     if (found_gids == 0) {
-      message("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
+      message("[INFO] Attempting to match the kegg GIDs to the EuPathDB GIDs...")
       extra_string <- ""
       count <- 0
       searching <- TRUE
@@ -365,13 +386,13 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
         } else {
           f <- found[1]
           g <- g_gid[f]
-          message("Found a gid: ", g, ".")
+          message("[INFO] Found a gid: ", g, ".")
           pat <- paste0("^(.+)", k, "$")
-          message("Regexing ", pat, " against ", g, ".")
+          message("[INFO] Matching ", pat, " against ", g, ".")
           extra_string <- gsub(pattern = pat,
                                replacement = "\\1",
                                x = g)
-          message("The missing string is: ", extra_string)
+          message("[INFO] The missing string is: ", extra_string)
           ## Finished searching!
           searching <- FALSE
         }
@@ -427,31 +448,54 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   ## add any non-empty tables, this is sort of our last sanity check before
   ## making the package.
   if (is.null(go_table)) {
-    message(" This should not be possible, but the go table is still null.")
+    message("[ERROR] This should not be possible, but the go table is still null.")
+    stop()
   } else if (nrow(go_table) > 0) {
     orgdb_args[["go_table"]] <- go_table
   }
 
   if (is.null(goslim_table)) {
-    message(" This should not be possible, but the goslim table is still null.")
+    message("[ERROR] This should not be possible, but the goslim table is still null.")
+    stop()
   } else if (nrow(goslim_table) > 0) {
     orgdb_args[["goslim_table"]] <- goslim_table
   }
+<<<<<<< HEAD
 
+=======
+  if (is.null(ortholog_table)) {
+    message("[ERROR] This should not be possible, but the ortholog table is still null.")
+    stop()
+  } else if (nrow(ortholog_table) > 0) {
+    orgdb_args[["ortholog_table"]] <- ortholog_table
+  }
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (is.null(interpro_table)) {
-    message(" This should not be possible, but the interpro table is still null.")
+    message("[ERROR] This should not be possible, but the interpro table is still null.")
+    stop()
   } else if (nrow(interpro_table) > 0) {
     orgdb_args[["interpro_table"]] <- interpro_table
   }
+<<<<<<< HEAD
 
+=======
+  if (is.null(pathway_table)) {
+    message("[ERROR] This should not be possible, but the pathway table is still null.")
+    stop()
+  } else if (nrow(pathway_table) > 0) {
+    orgdb_args[["pathway_table"]] <- pathway_table
+  }
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (is.null(kegg_table)) {
-    message(" This should not be possible, but the kegg table is still null.")
+    message("[ERROR] This should not be possible, but the kegg table is still null.")
+    stop()
   } else if (nrow(kegg_table) > 0) {
     orgdb_args[["kegg_table"]] <- kegg_table
   }
 
   if (is.null(linkout_table)) {
-    message(" This should not be possible, but the linkout table is still null.")
+    message("[ERROR] This should not be possible, but the linkout table is still null.")
+    stop()
   } else if (nrow(linkout_table) > 0) {
     orgdb_args[["linkout_table"]] <- linkout_table
   }
@@ -475,10 +519,20 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   }
 
   if (is.null(pubmed_table)) {
-    message(" This should not be possible, but the pubmed table is still null.")
+    message("[ERROR] This should not be possible, but the pubmed table is still null.")
+    stop()
   } else if (nrow(pubmed_table) > 0) {
     orgdb_args[["pubmed_table"]] <- pubmed_table
   }
+<<<<<<< HEAD
+=======
+  if (is.null(uniprot_table)) {
+    message("[ERROR] This should not be possible, but the uniprot table is still null.")
+    stop()
+  } else if (nrow(uniprot_table) > 0) {
+    orgdb_args[["uniprot_table"]] <- uniprot_table
+  }
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 
   ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
   ## Make sure that every GID field is character, too
@@ -536,7 +590,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   godb_table <- data.frame()
 
   if (is.null(godb_source)) {
-    message("Setting the godb source to the union of go and goslim.")
+    message("[INFO] Setting the godb source to the union of go and goslim.")
     if (nrow(goslim_table) > 0) {
         godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
         godb_table[["EVIDENCE"]] <- "GOSlim"
@@ -566,7 +620,7 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     dup_idx <- duplicated(godb_table)
     godb_table <- godb_table[!dup_idx, ]
     godb_table[["EVIDENCE"]] <- as.factor(godb_table[["EVIDENCE"]])
-    message("Adding the goTable argument with: ", nrow(godb_table), " rows.")
+    message("[INFO] Adding the goTable argument with: ", nrow(godb_table), " rows.")
 
     orgdb_args[["godb_xref"]] <- godb_table
   }
@@ -582,13 +636,17 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
   if (file.exists(backup_path)) {
+<<<<<<< HEAD
     message(backup_path, " already exists, deleting it.")
     ## Something which bit me in the ass for file operations in R, always
     ## set a return value and check it.
+=======
+    message("[INFO] ", backup_path, " already exists, deleting it.")
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     ret <- unlink(backup_path, recursive = TRUE)
   }
   if (file.exists(first_path)) {
-    message(first_path, " already exists, backing it up.")
+    message("[INFO] ", first_path, " already exists, backing it up.")
     ret <- file.rename(first_path, backup_path)
   }
 
@@ -596,7 +654,12 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent = TRUE)
 
+<<<<<<< HEAD
   message(" Calling makeOrgPackage() for ", entry[["Species"]])
+=======
+  message("[INFO] Calling makeOrgPackage() for ", entry[["Species"]])
+  verbose <- FALSE
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   orgdb_path <- ""
 
   if (isTRUE(verbose)) {
@@ -644,15 +707,20 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     }
     copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
     if (isTRUE(copied)) {
+<<<<<<< HEAD
       message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
     } else {
       stop(" Could not copy S3 data.")
+=======
+      message("[INFO] Successfully copied the orgdb sqlite database to the s3 staging directory.")
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
     }
   }
 
   ## And install the resulting package.
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
+<<<<<<< HEAD
   if (isTRUE(install)) {
     install_path <- file.path(getwd(), orgdb_path)
     inst <- suppressWarnings(try(devtools::install_local(install_path)))
@@ -662,6 +730,17 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
       built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
       if (! "try-error" %in% class(built)) {
         final_path <- move_final_package(orgdb_path, type = "orgdb", build_dir = build_dir)
+=======
+  if (isTRUE(installp)) {
+    inst <- suppressWarnings(try(devtools::install(orgdb_path)))
+
+    if (class(inst) != "try-error") {
+      ## I am tired of reading about unportable filenames here, so adding the suppress.
+      built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
+
+      if (class(built) != "try-error") {
+        final_path <- move_final_package(orgdb_path, type = "orgdb", workdir = workdir)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
         final_deleted <- unlink(x = orgdb_path, recursive = TRUE, force = TRUE)
       }
     }

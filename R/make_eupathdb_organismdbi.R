@@ -6,8 +6,13 @@
 #' couple columns from the orgdb, txdb, GO.db, and reactome.db.
 #'
 #' @param entry A row from the eupathdb metadataframe.
+<<<<<<< HEAD
 #' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param build_dir Directory in which to build the packages.
+=======
+#' @param eupathdb_version Which version of the eupathdb to use for creating this package?
+#' @param workdir Directory in which to build the packages.
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 #' @param installp Install the resulting package?
 #' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation For when we cannot automagically find the kegg species id.
@@ -20,12 +25,16 @@
 #' @return The result of attempting to install the organismDbi package.
 #' @author Keith Hughitt, modified by atb.
 #' @export
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_organismdbi.R
 make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir = "EuPathDB",
                                     installp = TRUE, reinstall = FALSE, kegg_abbreviation = NULL,
                                     exclude_join = "ENTREZID", copy_s3 = FALSE) {
 =======
 make_eupathdb_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPathDB", installp=TRUE,
+=======
+make_eupathdb_organismdbi <- function(entry=NULL, eupathdb_version=NULL, workdir="EuPathDB", installp=TRUE,
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
                                     reinstall=FALSE, kegg_abbreviation=NULL,
                                     exclude_join="ENTREZID", copy_s3=FALSE) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_organismdbi.R
@@ -35,12 +44,12 @@ make_eupathdb_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPa
   versions <- get_versions()
   eu_version <- versions[["eu_version"]]
   taxa <- make_taxon_names(entry)
-  pkgnames <- get_eupathdb_pkgnames(entry, eu_version=eu_version)
+  pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version=eupathdb_version)
   pkgname <- pkgnames[["organismdbi"]]
   if (isTRUE(pkgnames[["organismdbi_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
     retlist <- list(
-      "organdb_name" = pkgname)
+      "organismdb_name" = pkgname)
     return(retlist)
   }
   orgdb_name <- pkgnames[["orgdb"]]
@@ -55,11 +64,15 @@ make_eupathdb_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPa
   if (is.null(orgdb_ret)) {
     return(NULL)
   }
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_organismdbi.R
   txdb_ret <- make_eupath_txdb(entry, eu_version=eu_version, build_dir=build_dir, reinstall=reinstall)
 =======
   txdb_ret <- make_eupathdb_txdb(entry, eu_version=eu_version, workdir=workdir, reinstall=reinstall)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_organismdbi.R
+=======
+  txdb_ret <- make_eupathdb_txdb(entry, eupathdb_version=eupathdb_version, workdir=workdir, reinstall=reinstall)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (is.null(txdb_ret)) {
     return(NULL)
   }
@@ -127,7 +140,7 @@ make_eupathdb_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPa
     dir.create(tmp_pkg_dir, recursive=TRUE)
   }
   version_string <- format(Sys.time(), "%Y.%m")
-  organdb <- OrganismDbi::makeOrganismPackage(
+  organismdb <- OrganismDbi::makeOrganismPackage(
                             pkgname=pkgname,
                             graphData=graph_data,
                             organism=organism,
@@ -142,36 +155,41 @@ make_eupathdb_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPa
   }
   renamed <- file.rename(srcdir, final_dir)
 
-  organdb_path <- clean_pkg(final_dir)
-  organdb_path <- clean_pkg(organdb_path, removal="_", replace="", sqlite=FALSE)
-  organdb_path <- clean_pkg(organdb_path, removal="_like", replace="like", sqlite=FALSE)
+  organismdb_path <- clean_pkg(final_dir)
+  organismdb_path <- clean_pkg(organismdb_path, removal="_", replace="", sqlite=FALSE)
+  organismdb_path <- clean_pkg(organismdb_path, removal="_like", replace="like", sqlite=FALSE)
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["OrganismdbiFile"]]
-    copied <- copy_s3_file(src_dir=organdb_path, type="organismdbi", s3_file=s3_file)
+    copied <- copy_s3_file(src_dir=organismdb_path, type="organismdbi", s3_file=s3_file)
     if (isTRUE(copied)) {
       message("Successfully copied the organismdbi map to the s3 staging directory.")
     }
   }
 
   if (isTRUE(installp)) {
-    if (class(organdb) == "list") {
-      inst <- try(devtools::install(organdb_path))
+    if (class(organismdb) == "list") {
+      inst <- try(devtools::install(organismdb_path))
       if (class(inst) != "try-error") {
-        built <- try(devtools::build(organdb_path, quiet=TRUE))
+        built <- try(devtools::build(organismdb_path, quiet=TRUE))
         if (class(built) != "try-error") {
-          final_deleted <- unlink(x=organdb_path, recursive=TRUE, force=TRUE)
+          final_deleted <- unlink(x=organismdb_path, recursive=TRUE, force=TRUE)
         }
       }
     }
+<<<<<<< HEAD
     final_organdb_name <- basename(organdb_path)
     final_organdb_path <- move_final_package(organdb_path, type="organismdbi", build_dir=build_dir)
+=======
+    final_organismdb_name <- basename(organismdb_path)
+    final_organismdb_path <- move_final_package(organismdb_path, type="organismdbi", workdir=workdir)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
 
   retlist <- list(
     "orgdb_name" = orgdb_name,
     "txdb_name" = txdb_name,
-    "organdb_name" = final_organdb_name)
+    "organismdb_name" = final_organismdb_name)
   tt <- unloadNamespace(orgdb_name)
   tt <- unloadNamespace(txdb_name)
   return(retlist)

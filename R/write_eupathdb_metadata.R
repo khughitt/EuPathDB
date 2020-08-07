@@ -8,8 +8,9 @@
 #'  'eupathdb'.
 #' @param type Either valid or invalid, defines the final output filenames.
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
-#' @param eu_version Version of the EuPathDB used for this set of metadata.
+#' @param eupathdb_version Version of the EuPathDB used for this set of metadata.
 #' @return List containing the filenames written.
+<<<<<<< HEAD
 <<<<<<< HEAD:R/write_eupath_metadata.R
 write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
                                   bioc_version = NULL, eu_version = NULL,
@@ -22,24 +23,33 @@ write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
 =======
 write_eupathdb_metadata <- function(metadata, service="eupathdb", type="valid",
                                   bioc_version="3.12", eu_version="46") {
+=======
+write_eupathdb_metadata <- function(metadata, service = "eupathdb", 
+                                    bioc_version = "3.12", eupathdb_version = "46",
+                                    type = "valid",
+                                    build_dir = "EuPathDB") {
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 
-  db_version <- NULL
-  if (is.null(eu_version)) {
+  # determine version of eupathdb to query
+  if (is.null(eupathdb_version)) {
     ## One could just as easily choose any of the other eupathdb hosts.
     db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
-    eu_version <- gsub(x=db_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    eupathdb_version <- gsub("^(\\d)(.*)$", "v\\1\\2", db_version)
   } else {
-    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-    db_version <- gsub(x=eu_version, pattern="^v", replacement="")
-    ## eupathdb_version
+    eupathdb_version <- gsub("^(\\d)(.*)$", "v\\1\\2", eupathdb_version)
+    db_version <- gsub("^v", "", eupathdb_version)
   }
 
+  eupathdb_version <- gsub("^(\\d)(.*)$", "v\\1\\2", eupathdb_version)
+
+  # determine bioconductor version
   if (is.null(bioc_version)) {
     bioc_version <- as.character(BiocManager::version())
   } else {
     bioc_version <- as.character(bioc_version)
   }
 
+<<<<<<< HEAD
   eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/write_eupathdb_metadata.R
   file_lst <- list(
@@ -61,8 +71,31 @@ write_eupathdb_metadata <- function(metadata, service="eupathdb", type="valid",
   out_dir <- file.path(build_dir, "metadata")
   if (!dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE, mode = "0755")
+=======
+  # determine output filenames to use
+  output_paths <- list(
+    "granges" = glue::glue("GRanges_bioc{bioc_version}_{service}{eupathdb_version}_metadata.csv"),
+    "orgdb" = glue::glue("OrgDb_bioc{bioc_version}_{service}{eupathdb_version}_metadata.csv"),
+    "txdb" = glue::glue("TxDb_bioc{bioc_version}_{service}{eupathdb_version}_metadata.csv"),
+    "organismdb" = glue::glue("OrganismDbi_bioc{bioc_version}_{service}{eupathdb_version}_metadata.csv"),
+    "bsgenome" = glue::glue("BSgenome_bioc{bioc_version}_{service}{eupathdb_version}_metadata.csv")
+  )
+
+  # add invalid suffix, depending on metadata type
+  if (type == "invalid") {
+    output_paths <- sub('metadata.csv', 'invalid_metadata.csv', output_paths)
   }
 
+  # create output directory, if needed
+  out_dir <- file.path(build_dir, 'metadata')
+
+  if (!dir.exists(out_dir)) {
+    dir.create(out_dir, recursive = TRUE, mode = '0755')
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
+  }
+  output_paths[] <- file.path(out_dir, output_paths)
+
+<<<<<<< HEAD
   ## Set up the Granges data
   granges_metadata <- metadata %>%
     dplyr::mutate(
@@ -166,11 +199,118 @@ Combined information for {.data[['Taxon']]}"),
       readr::write_csv(path = file_lst[["organdb"]])
   } else {
     readr::write_csv(x = organismdbi_metadata, path = file_lst[["organdb"]],
+=======
+  #
+  # GRanges
+  #
+  granges_metadata <- metadata %>%
+    dplyr::mutate(
+      Title = glue::glue("Genomic coordinates information for {.data[['Taxon']]}"),
+      Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} genomic coordinate information for {.data[['Taxon']]}"),
+      RDataClass = "GRanges",
+      DispatchClass = "GRanges",
+      ResourceName = .data[["GrangesPkg"]],
+      RDataPath = .data[["GrangesFile"]]
+    )
+
+  if (file.exists(output_paths[["granges"]])) {
+    message("[Info] Appending to existing file: ", output_paths[["granges"]])
+
+    read_csv(output_paths$granges) %>%
+      bind_rows(granges_metadata) %>%
+      distinct() %>%
+      write_csv(path = output_paths$granges)
+
+  } else {
+    readr::write_csv(x = granges_metadata, path = output_paths[["granges"]],
                      append = FALSE, col_names = TRUE)
   }
 
+  #
+  # OrgDb
+  #
+  orgdb_metadata <- metadata %>%
+    dplyr::mutate(
+      Title = glue::glue("Genome wide annotations for {.data[['Taxon']]}"),
+      Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} annotations for {.data[['Taxon']]}"),
+      RDataClass = "OrgDb",
+      DispatchClass = "SQLiteFile",
+      ResourceName = .data[["OrgdbPkg"]],
+      RDataPath = .data[["OrgdbFile"]]
+    )
+
+  if (file.exists(output_paths[["orgdb"]])) {
+    message("[Info] Appending to existing file: ", output_paths[["orgdb"]])
+
+    read_csv(output_paths$orgdb) %>%
+      bind_rows(orgdb_metadata) %>%
+      distinct() %>%
+      write_csv(path = output_paths$orgdb)
+
+  } else {
+    readr::write_csv(x = orgdb_metadata, path = output_paths[["orgdb"]],
+                    append = FALSE, col_names = TRUE)
+  }
+
+  #
+  # TxDb
+  #
+  txdb_metadata <- metadata %>%
+    dplyr::mutate(
+      Title = glue::glue("Transcript information for {.data[['Taxon']]}"),
+      Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} Transcript information for {.data[['Taxon']]}"),
+      RDataClass = "TxDb",
+      DispatchClass = "SQLiteFile",
+      ResourceName = .data[["TxdbPkg"]],
+      RDataPath = .data[["TxdbFile"]]
+  )
+
+  if (file.exists(output_paths[["txdb"]])) {
+    message("[Info] Appending to existing file: ", output_paths[["txdb"]])
+
+    read_csv(output_paths$txdb) %>%
+      bind_rows(txdb_metadata) %>%
+      distinct() %>%
+      write_csv(path = output_paths$txdb)
+
+  } else {
+    readr::write_csv(x = txdb_metadata, path = output_paths[["txdb"]],
+                     append = FALSE, col_names = TRUE)
+  }
+
+  #
+  # OrganismDbi
+  #
+  organismdbi_metadata <- metadata %>%
+    dplyr::mutate(
+      Title = glue::glue("Combined information for {.data[['Taxon']]}"),
+      Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} Combined information for {.data[['Taxon']]}"),
+      RDataClass = "OrganismDBI",
+      DispatchClass = "SQLiteFile",
+      ResourceName = .data[["OrganismdbiPkg"]],
+      RDataPath = .data[["OrganismdbiFile"]]
+    )
+
+  if (file.exists(output_paths[["organismdb"]])) {
+    message("[Info] Appending to existing file: ", output_paths[["organismdb"]])
+
+    read_csv(output_paths$organismdb) %>%
+      bind_rows(organismdbi_metadata) %>%
+      distinct() %>%
+      write_csv(path = output_paths$organismdb)
+
+  } else {
+    readr::write_csv(x = organismdbi_metadata, path = output_paths[["organismdb"]],
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
+                     append = FALSE, col_names = TRUE)
+  }
+
+  #
+  # BSGenome
+  #
   bsgenome_metadata <- metadata %>%
     dplyr::mutate(
+<<<<<<< HEAD
              Title = glue::glue("Genome for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
 Genome for {.data[['Taxon']]}"),
@@ -186,7 +326,29 @@ Genome for {.data[['Taxon']]}"),
       readr::write_csv(path = file_lst[["bsgenome"]])
   } else {
     readr::write_csv(x = bsgenome_metadata, path = file_lst[["bsgenome"]],
+=======
+      Title = glue::glue("Biostrings genome data for {.data[['Taxon']]}"),
+      Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} Biostrings genome data for {.data[['Taxon']]}"),
+      RDataClass = "BSGenome",
+      DispatchClass = "2bit",
+      ResourceName = .data[["BsgenomePkg"]],
+      RDataPath = .data[["BsgenomeFile"]]
+  )
+
+  if (file.exists(output_paths[["bsgenome"]])) {
+    message("[Info] Appending to existing file: ", output_paths[["bsgenome"]])
+
+    read_csv(output_paths$bsgenome) %>%
+      bind_rows(bsgenome_metadata) %>%
+      distinct() %>%
+      write_csv(path = output_paths$Vsgenome)
+
+  } else {
+    readr::write_csv(x = bsgenome_metadata, path = output_paths[["bsgenome"]],
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
                      append = FALSE, col_names = TRUE)
   }
-  return(file_lst)
+
+  # return list of output files
+  return(output_paths)
 }

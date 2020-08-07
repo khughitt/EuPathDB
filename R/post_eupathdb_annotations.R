@@ -183,7 +183,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
             "includePseudogenes" = jsonlite::unbox("Yes"))
         question <- "GeneQuestions.GenesByGeneType"
         a_result <- try(post_eupathdb_raw(entry, question = question,
-                                        parameters = parameters, table_name = "annot"), silent = TRUE)
+                                          parameters = parameters, table_name = "annot"), silent = TRUE)
         if ("try-error" %in% class(a_result)) {
             next
         } else {

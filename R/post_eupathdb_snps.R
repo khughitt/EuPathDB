@@ -1,19 +1,23 @@
 #' Use the post interface to get SNP data.
 #'
 #' @param entry The full annotation entry.
-#' @param dir Location to which to save intermediate savefile.
+#' @param workdir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 <<<<<<< HEAD:R/post_eupath_snps.R
 #' @return A big honking table.
 post_eupath_snp_table <- function(entry = NULL, dir = "EuPathDB", overwrite = FALSE) {
 =======
 #' @return  A big honking table.
+<<<<<<< HEAD
 post_eupathdb_snp_table <- function(entry=NULL, dir="EuPathDB", overwrite=FALSE) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_snps.R
+=======
+post_eupathdb_snp_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
-  rdadir <- file.path(dir, "rda")
+  rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive = TRUE)
   }

@@ -5,7 +5,7 @@ BiocStyle::markdown()
 library(EuPathDB)
 
 ## Ask for the version 46 data from fungidb for species with 'cerevisiae' in the name.
-sc_entry <- get_eupathdb_entry(species = "cerevisiae", webservice = "fungidb", eu_version = "v46")
+sc_entry <- get_eupathdb_entry(species = "cerevisiae", webservice = "fungidb", eupathdb_version = "v46")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 
@@ -67,7 +67,7 @@ head(sc_path)
 
 ## ----06shortcuts---------------------------------------------------------
 ## The function load_eupathdb_annotations() provides a shortcut to the above.
-sc_annot <- load_eupathdb_annotations(species = "S288c", eu_version = "v46", webservice = "fungidb")
+sc_annot <- load_eupathdb_annotations(species = "S288c", eupathdb_version = "v46", webservice = "fungidb")
 dim(sc_annot)
 
 ## ----07orthologs---------------------------------------------------------

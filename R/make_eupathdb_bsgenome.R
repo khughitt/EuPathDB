@@ -6,8 +6,13 @@
 #' the organismdbi generator smarter.
 #'
 #' @param entry Single eupathdb metadata entry.
+<<<<<<< HEAD
 #' @param eu_version Which version of the eupathdb to use for creating the BSGenome?
 #' @param build_dir Working directory.
+=======
+#' @param eupathdb_version Which version of the eupathdb to use for creating the BSGenome?
+#' @param workdir Working directory.
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param installp Install the resulting package?
 #' @param reinstall Rewrite an existing package directory.
@@ -15,6 +20,7 @@
 #' @return List of package names generated (only 1).
 #' @author atb
 #' @export
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_bsgenome.R
 make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB", copy_s3 = FALSE,
                                  installp = TRUE, reinstall = FALSE, ...) {
@@ -22,6 +28,10 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB
 make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", copy_s3=FALSE,
                                  installp=TRUE, reinstall=FALSE, ...) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_bsgenome.R
+=======
+make_eupathdb_bsgenome <- function(entry, eupathdb_version = NULL, workdir = "EuPathDB", copy_s3 = FALSE,
+                                   installp = TRUE, reinstall = FALSE, ...) {
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
   if (!is.null(arglist[["author"]])) {
@@ -33,11 +43,15 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
   versions <- get_versions(eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   taxa <- make_taxon_names(entry)
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_bsgenome.R
   pkgnames <- get_eupath_pkgnames(entry, eu_version = eu_version)
 =======
   pkgnames <- get_eupathdb_pkgnames(entry, eu_version=eu_version)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_bsgenome.R
+=======
+  pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version = eupathdb_version)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   pkgname <- pkgnames[["bsgenome"]]
   if (pkgname %in% installed.packages() & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -48,9 +62,15 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
   }
 
   ## Check that a directory exists to leave the final package
+<<<<<<< HEAD
   build_dir <- file.path(build_dir)
   if (!file.exists(build_dir)) {
     tt <- dir.create(build_dir, recursive = TRUE)
+=======
+  workdir <- file.path(workdir)
+  if (!file.exists(workdir)) {
+    tt <- dir.create(workdir, recursive = TRUE)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
   ## Check for an incomplete installation directory and clear it out.
   if (file.exists(pkgname)) {
@@ -59,8 +79,13 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
 
   ## Figure out the version numbers and download urls.
   db_version <- entry[["SourceVersion"]]
+<<<<<<< HEAD
   if (!is.null(eu_version)) {
     db_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
+=======
+  if (!is.null(eupathdb_version)) {
+    db_version <- gsub(x = eupathdb_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
   fasta_start <- entry[["SourceUrl"]]
   fasta_starturl <- sub(pattern = "gff",
@@ -72,8 +97,13 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
   fasta_hostname <- sub(pattern = "https://(.*)\\.(org|net).*$",
                         replacement = "\\1",
                         x = fasta_start)
+<<<<<<< HEAD
   ## genome_filename <- file.path(build_dir, paste0(pkgname, ".fasta"))
   genome_filename <- file.path(build_dir, glue::glue("{pkgname}.fasta"))
+=======
+  ## genome_filename <- file.path(workdir, paste0(pkgname, ".fasta"))
+  genome_filename <- file.path(workdir, glue::glue("{pkgname}.fasta"))
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
 
   ## Find a spot to dump the fasta files
   bsgenome_dir <- file.path(build_dir, pkgname)
@@ -81,8 +111,13 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
     created <- dir.create(bsgenome_dir, recursive = TRUE)
   }
   ## Download them to this directory.
+<<<<<<< HEAD
   downloaded <- download.file(url=fasta_url, destfile=genome_filename, quiet=FALSE)
   ## Extract all the individual chromosomes into this directory.
+=======
+  downloaded <- download.file(url = fasta_url, destfile = genome_filename, quiet = FALSE)
+  ## And extract all the individual chromosomes into this directory.
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
   input <- Biostrings::readDNAStringSet(genome_filename)
   output_list <- list()
   sequence_names <- "c("
@@ -150,8 +185,8 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
   uniqueLetters <- Biostrings::uniqueLetters
-  tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
-  annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose=FALSE))
+  tt <- try(do.call("library", as.list("Biostrings")), silent = TRUE)
+  annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose = FALSE))
 
   inst <- NULL
   if (isTRUE(installp)) {
@@ -176,7 +211,11 @@ make_eupathdb_bsgenome <- function(entry, eu_version=NULL, workdir="EuPathDB", c
     deleted <- unlink(x = bsgenome_dir, recursive = TRUE, force = TRUE)
     built <- try(devtools::build(pkgname, quiet = TRUE))
     if (class(built) != "try-error") {
+<<<<<<< HEAD
       final_path <- move_final_package(pkgname, type = "bsgenome", build_dir = build_dir)
+=======
+      final_path <- move_final_package(pkgname, type = "bsgenome", workdir = workdir)
+>>>>>>> cc20d16 (Continuing clean-up / re-organization)
       final_deleted <- unlink(x = pkgname, recursive = TRUE, force = TRUE)
     }
   } else {
