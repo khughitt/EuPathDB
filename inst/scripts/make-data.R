@@ -6,14 +6,11 @@
 ###############################################################################
 source("config.R")
 
-# TESTING (Aug 8, 2020)
-LIMIT_N <- 3
-
 info("Downloading EuPathDB metadata...")
 meta <- download_eupathdb_metadata(bioc_version = bioc_version, build_dir = build_dir,
                                    overwrite = TRUE, webservice = "eupathdb", 
                                    eupathdb_version = eupathdb_version, write_csv = TRUE, 
-                                   limit_n = LIMIT_N, verbose = TRUE)
+                                   verbose = TRUE)
 info("Finished downloading metadata.")
 
 num_total <- nrow(meta$valid)
