@@ -12,6 +12,7 @@ meta <- download_eupathdb_metadata(bioc_version = bioc_version, build_dir = buil
                                    overwrite = TRUE, webservice = "eupathdb", 
                                    eupathdb_version = eupathdb_version, write_csv = TRUE, 
                                    verbose = TRUE)
+
 info("Finished downloading metadata.")
 
 num_total <- nrow(meta$valid)

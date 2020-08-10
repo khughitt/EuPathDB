@@ -50,6 +50,17 @@ remove_eupath_nas <- function(table, name = "annot") {
 #' @param overwrite Overwrite a partial installation?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param godb_source Which table to use for the putative union of the GO tables.
+<<<<<<< HEAD
+=======
+#' @param do_orthologs Create the gene ortholog table?
+#' @param do_interpro Create the interpro table?
+#' @param do_linkout Create a table of linkout data?
+#' @param do_pubmed Create a table of pubmed entries?
+#' @param do_pathway Create the pathway table?
+#' @param do_kegg Attempt to create the kegg table?
+#' @param do_uniprot Attempt to create a uniprot table?
+#' @param unlink If true, removes output directory if it already exists
+>>>>>>> c44e785 (improvements to orgdb generation func)
 #' @return Currently only the name of the installed package.  This should
 #'  probably change.
 #' @author Keith Hughitt with significant modifications by atb.
@@ -72,6 +83,7 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
                                 copy_s3 = FALSE, do_go = TRUE, do_goslim = TRUE, godb_source = NULL,
                                 do_orthologs = TRUE, do_interpro = TRUE,
                                 do_linkout = TRUE, do_pubmed = TRUE, do_pathway = TRUE,
+<<<<<<< HEAD
                                 do_kegg = TRUE, do_uniprot = FALSE) {
 <<<<<<< HEAD
   if (is.null(entry)) {
@@ -79,6 +91,9 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   }
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
 =======
+=======
+                                do_kegg = TRUE, do_uniprot = FALSE, unlink = TRUE) {
+>>>>>>> c44e785 (improvements to orgdb generation func)
 
   # TODO: instead of having a single arg with multiple types, create two alt. input
   # args and check that exactly one of them is set.
@@ -701,6 +716,7 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
     orgdb_args[["godb_xref"]] <- godb_table
   }
 
+<<<<<<< HEAD
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
 <<<<<<< HEAD:R/make_eupath_orgdb.R
   backup_path <- file.path(build_dir, glue::glue("{pkgname}.bak"))
@@ -731,6 +747,24 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   }
 
   ## Now lets finally make the package!
+=======
+  # if directory exists, add .bak prefix to allow makeOrgPackage to run
+  out_dir <- path.expand(file.path(workdir, pkgname))
+
+  # check for existing output directory 
+  if (dir.exists(out_dir)) {
+    # if it exists, and unlink = "TRUE"; remove it
+    if (unlink) {
+      info(sprintf("Removing existing package directory: %s...", out_dir))
+      unlink(out_dir, recursive = TRUE) 
+    } else {
+      # otherwise throw an error; makeOrgPackage will not work
+      info(sprintf("Specified output directory already exists: %s"))
+      error("Existing output directory must be removed before makeOrgPackage can be called.")
+    }
+  }
+
+>>>>>>> c44e785 (improvements to orgdb generation func)
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent = TRUE)
 
@@ -758,6 +792,7 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## Fix name in sqlite metadata table
   dbpath <- file.path(
     orgdb_path, "inst", "extdata", sub(".db", ".sqlite", basename(orgdb_path)))
+
   ## make sqlite database editable
   Sys.chmod(dbpath, mode = "0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = dbpath)
@@ -782,7 +817,9 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## FIXME: See if you can remove the following two lines!
   orgdb_path <- clean_pkg(orgdb_path, removal = "_", replace = "")
   orgdb_path <- clean_pkg(orgdb_path, removal = "_like", replace = "like")
-  testthat::expect_equal(first_path, orgdb_path)
+
+  # testthat::expect_equal(first_path, orgdb_path)
+  testthat::expect_equal(out_dir, orgdb_path)
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["OrgdbFile"]]
@@ -842,5 +879,10 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
 >>>>>>> a0cb0dd (Continuing refactoring)
   ## Probably should return something more useful/interesting than this, perhaps
   ## the dimensions of the various tables in the orgdb?
+<<<<<<< HEAD
   return(pkgname)
+=======
+  ## return the path to the sqlite database
+  return(list("orgdb_name" = pkgname))
+>>>>>>> c44e785 (improvements to orgdb generation func)
 }
