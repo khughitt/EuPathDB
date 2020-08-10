@@ -71,17 +71,16 @@ for (i in 1:nrow(all_metadata)) {
     # expected when building packages for organisms with insufficient data available on
     # EuPathDB.
     #
-    orgdb_result <- make_eupathdb_orgdb(entry, workdir = build_dir, copy_s3 = TRUE)
+    orgdb_pkgname <- make_eupathdb_orgdb(entry, workdir = build_dir, copy_s3 = TRUE)
 
-    if (is.null(orgdb_result)) {
+    if (is.null(orgdb_pkgname)) {
       warn("Unable to create the OrgDB package: ", entry$OrgdbFile)
     } else {
-      actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
       testthat::test_that("Does make_eupathdb_orgdb return something sensible?", {
-                            testthat::expect_equal(expected, actual)
+                          testthat::expect_equal(expected, orgdb_pkgname)
       })
-      results[["orgdb"]][[species]] <- orgdb_result
+      results[["orgdb"]][[species]] <- orgdb_pkgname
     }
   }
 
@@ -89,17 +88,16 @@ for (i in 1:nrow(all_metadata)) {
   # Create TxDb
   #
   if (txdb) {
-    txdb_result <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version = eupathdb_version, copy_s3 = TRUE)
+    txdb_pkgname <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version = eupathdb_version, copy_s3 = TRUE)
 
-    if (is.null(txdb_result)) {
+    if (is.null(txdb_pkgname)) {
       warn("Unable to create the txdb package: ", entry$TxdbFile)
     } else {
-      actual <- txdb_result[["txdb_name"]]
       expected <- pkgnames[["txdb"]]
       testthat::test_that("Does make_eupathdb_txdb return something sensible?", {
-                            testthat::expect_equal(expected, actual)
+                            testthat::expect_equal(expected, txdb_pkgname)
       })
-      results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
+      results[["txdb"]][[species]] <- txdb_pkgname
     }
   }
 

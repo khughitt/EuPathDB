@@ -221,7 +221,10 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
   version_string <- format(Sys.time(), "%Y.%m")
   data_source <- getMetaDataValue(txdb, "Data source")
 
+<<<<<<< HEAD
   ## Fill in the metadata
+=======
+>>>>>>> 1cbbf2b (Modified make_eupathdb_orgdb and _txdb to return only the package names; avoids issues with dead connections after package generation.)
   symvals <- list(
     "PKGTITLE" = glue::glue("Annotation package for {dbType} object(s)"),
     "PKGDESCRIPTION" = glue::glue("Exposes an annotation databases generated from \\
@@ -242,7 +245,10 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
     "ORGANISMBIOCVIEW" = gsub(" ", "_", getMetaDataValue(txdb, "Organism")),
     "TXDBOBJNAME" = pkgname)
 
+<<<<<<< HEAD
   ## Do a little final sanity checking
+=======
+>>>>>>> 1cbbf2b (Modified make_eupathdb_orgdb and _txdb to return only the package names; avoids issues with dead connections after package generation.)
   if (any(duplicated(names(symvals)))) {
     str(symvals)
     stop(" 'symvals' contains duplicated symbols")
@@ -332,12 +338,13 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
 
   info(sprintf("Finished creation of %s...", pkgname))
 
-  retlist <- list(
-    "object" = txdb,
-    "gff" = input_gff,
-    "txdb_name" = pkgname,
-    "granges_file" = granges_name,
-    "granges_variable" = granges_variable)
-
-  return(retlist)
+  # retlist <- list(
+  #   "object" = txdb,
+  #   "gff" = input_gff,
+  #   "txdb_name" = pkgname,
+  #   "granges_file" = granges_name,
+  #   "granges_variable" = granges_variable)
+  #
+  # return(retlist)
+  return(pkgname)
 }

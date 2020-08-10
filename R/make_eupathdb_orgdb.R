@@ -883,6 +883,11 @@ make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   return(pkgname)
 =======
   ## return the path to the sqlite database
+<<<<<<< HEAD
   return(list("orgdb_name" = pkgname))
 >>>>>>> c44e785 (improvements to orgdb generation func)
+=======
+  # return(list("orgdb_name" = pkgname))
+  return(pkgname)
+>>>>>>> 1cbbf2b (Modified make_eupathdb_orgdb and _txdb to return only the package names; avoids issues with dead connections after package generation.)
 }
