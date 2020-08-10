@@ -26,6 +26,7 @@
 #' @author Keith Hughitt, modified by atb.
 #' @export
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_organismdbi.R
 make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir = "EuPathDB",
                                     installp = TRUE, reinstall = FALSE, kegg_abbreviation = NULL,
@@ -43,15 +44,25 @@ make_eupathdb_organismdbi <- function(entry=NULL, eupathdb_version=NULL, workdir
   }
   versions <- get_versions()
   eu_version <- versions[["eu_version"]]
+=======
+make_eupathdb_organismdbi <- function(entry, eupathdb_version=NULL, workdir="EuPathDB", installp=TRUE,
+                                      reinstall=FALSE, kegg_abbreviation=NULL,
+                                      exclude_join="ENTREZID", copy_s3=FALSE) {
+>>>>>>> a0cb0dd (Continuing refactoring)
   taxa <- make_taxon_names(entry)
+
   pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version=eupathdb_version)
+
   pkgname <- pkgnames[["organismdbi"]]
+
   if (isTRUE(pkgnames[["organismdbi_installed"]]) & !isTRUE(reinstall)) {
-    info(pkgname, " is already installed.")
-    retlist <- list(
-      "organismdb_name" = pkgname)
-    return(retlist)
+    info(sprintf("Skipping %s: package is already installed...", pkgname))
+
+    return(list("organismdb_name" = pkgname))
   }
+
+  info(sprintf("Starting creation of %s...", pkgname))
+
   orgdb_name <- pkgnames[["orgdb"]]
   txdb_name <- pkgnames[["txdb"]]
 <<<<<<< HEAD:R/make_eupath_organismdbi.R
@@ -185,6 +196,8 @@ make_eupathdb_organismdbi <- function(entry=NULL, eupathdb_version=NULL, workdir
     final_organismdb_path <- move_final_package(organismdb_path, type="organismdbi", workdir=workdir)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   }
+
+  info(sprintf("Finished creation of %s...", pkgname))
 
   retlist <- list(
     "orgdb_name" = orgdb_name,

@@ -40,8 +40,12 @@ make_eupathdb_bsgenome <- function(entry, eupathdb_version = NULL, workdir = "Eu
   if (is.null(entry)) {
     stop("Need an entry.")
   }
+<<<<<<< HEAD
   versions <- get_versions(eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   taxa <- make_taxon_names(entry)
 <<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_bsgenome.R
@@ -53,12 +57,11 @@ make_eupathdb_bsgenome <- function(entry, eupathdb_version = NULL, workdir = "Eu
   pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version = eupathdb_version)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   pkgname <- pkgnames[["bsgenome"]]
+
   if (pkgname %in% installed.packages() & !isTRUE(reinstall)) {
-    info(pkgname, " is already installed.")
-    retlist <- list(
-      "bsgenome_name" = pkgname
-    )
-    return(retlist)
+    info(sprintf("Starting creation of %s...", pkgname))
+
+    return(list("bsgenome_name" = pkgname))
   }
 
   ## Check that a directory exists to leave the final package
@@ -221,6 +224,12 @@ make_eupathdb_bsgenome <- function(entry, eupathdb_version = NULL, workdir = "Eu
   } else {
     retlist <- inst
   }
+<<<<<<< HEAD
   message("Finished creation of ", pkgname, ".")
+=======
+
+  info(sprintf("Finished creation of %s...", pkgname))
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   return(retlist)
 }

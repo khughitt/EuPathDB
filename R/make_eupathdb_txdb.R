@@ -32,8 +32,12 @@ make_eupathdb_txdb <- function(entry=NULL, workdir="EuPathDB", eupathdb_version=
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_txdb.R
 =======
 make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_version = NULL, reinstall = FALSE,
+<<<<<<< HEAD
                              installp = TRUE, copy_s3 = FALSE) {
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
+=======
+                               installp = TRUE, copy_s3 = FALSE) {
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -59,14 +63,17 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
   input_gff <- file.path(workdir, glue::glue("{pkgname}.gff"))
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
   gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
-  if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
-    info(pkgname, " is already installed.")
-    retlist <- list(
+
+  if (pkgnames[["txdb_installed"]] & !reinstall) {
+    info(sprintf("Skipping %s: package is already installed...", pkgname))
+
+    return(list(
       "gff" = input_gff,
-      "txdb_name" = pkgname)
-    return(retlist)
+      "txdb_name" = pkgname
+    ))
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   ## check to see if gff file exists
   if (!RCurl::url.exists(gff_url)) {
@@ -88,7 +95,21 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
     error(msg)
     stop(msg)
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
+=======
+  # check to see if gff file exists
+  if (!RCurl::url.exists(gff_url)) {
+    warn(sprintf("Cannot create TxDb package for %s %s: GFF file unavailable.", entry$Species, entry$Strain))
+    return(NULL)
+>>>>>>> a0cb0dd (Continuing refactoring)
   }
+
+  info(sprintf("Starting creation of %s...", pkgname))
+
+  downloaded_gff <- tryCatch({
+    download.file(url = gff_url, destfile = input_gff, method = "curl", quiet = FALSE)
+  }, error = function(e) {
+    error(sprintf("Failed to download the gff file from: %s", gff_url))
+  })
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
@@ -101,6 +122,7 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_txdb.R
 =======
   granges_name <- try(make_eupathdb_granges(entry = entry, workdir = workdir, copy_s3 = copy_s3), silent = TRUE)
+<<<<<<< HEAD
 >>>>>>> e0e10d7 (Improvements to logging; few fixes related to previous refactoring)
   if ("try-error" %in% class(granges_name)) {
     warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
@@ -114,6 +136,14 @@ make_eupathdb_txdb <- function(entry = NULL, workdir = "EuPathDB", eupathdb_vers
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
 
 =======
+=======
+
+  if ("try-error" %in% class(granges_name)) {
+    warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.", entry$Species, entry$Strain))
+    return(NULL)
+  }
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   final_granges_path <- move_final_package(granges_name, type = "granges", workdir = workdir)
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
 

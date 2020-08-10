@@ -1,4 +1,3 @@
-# note: make-data.R script should be executed from the root directory of the EuPathDB package
 devtools::load_all(".")
 
 bsgenome <- FALSE

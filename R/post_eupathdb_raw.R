@@ -117,9 +117,12 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
 =======
     warn(sprintf("API request failed for %s (code = 422): ", entry$Taxon))
     warn(cont)
+<<<<<<< HEAD
 >>>>>>> fc81572 (Some more refactoring / fixes)
     warning(cont)
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+>>>>>>> a0cb0dd (Continuing refactoring)
     return(data.frame())
   } else if (result[["status_code"]] == "400") {
 <<<<<<< HEAD
@@ -256,9 +259,7 @@ post_eupathdb_raw <- function(entry, question = "GeneQuestions.GenesByMolecularW
     a_row[["V1"]] <- as.character(a_row[["V1"]])
     test_error <- grepl(pattern = "\\*\\*\\* ERROR \\*\\*\\*", x = a_row)
     if (isTRUE(test_error)) {
-      msg <- sprintf("Downloading the annotation data failed for: %s", entry$Taxon)
-      warn(msg)
-      warning(msg)
+      warn(sprintf("Downloading the annotation data failed for: %s %s", entry$Species, entry$Strain))
       next
     }
 <<<<<<< HEAD:R/post_eupath_raw.R

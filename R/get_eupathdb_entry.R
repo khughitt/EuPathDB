@@ -27,10 +27,16 @@ get_eupath_entry <- function(species = "Leishmania major", webservice = "eupathd
 #' @return  A single row from the eupathdb metadata.
 #' @author atb
 #' @export
+<<<<<<< HEAD
 get_eupathdb_entry <- function(species="Leishmania major", webservice="eupathdb",
                              column="TaxonUnmodified", ...) {
   metadata <- download_eupathdb_metadata(webservice=webservice, ...)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/get_eupathdb_entry.R
+=======
+get_eupathdb_entry <- function(species = "Leishmania major", webservice = "eupathdb",
+                             column = "TaxonUnmodified", ...) {
+  metadata <- download_eupathdb_metadata(webservice = webservice, ...)
+>>>>>>> a0cb0dd (Continuing refactoring)
   valid_metadata <- metadata[["valid"]]
   all_species <- valid_metadata[[column]]
   entry <- NULL

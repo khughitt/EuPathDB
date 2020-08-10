@@ -14,7 +14,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
 post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwrite = FALSE) {
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/post_eupathdb_annotations.R
     if (is.null(entry)) {
-        stop("[ERROR] Need an entry from the eupathdb.")
+        error("Need an entry from the eupathdb.")
     }
 
 <<<<<<< HEAD:R/post_eupath_annotations.R
@@ -31,7 +31,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     rdadir <- file.path(workdir, "rda")
 
     if (!file.exists(rdadir)) {
-        created <- dir.create(rdadir, recursive = TRUE)
+        dir.create(rdadir, recursive = TRUE)
     }
 
     # check for existing rda save file
@@ -42,10 +42,20 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         if (isTRUE(overwrite)) {
             removed <- file.remove(savefile)
         } else {
-            info(savefile, " already exists! Delete this file if you wish to regenerate it.")
-            result <- new.env()
-            load(savefile, envir = result)
-            result <- result[["result"]]
+            info("Loading existing rda: ", savefile)
+            env <- new.env()
+            load(savefile, envir = env)
+
+            if ("result" %in% names(env)) {
+              # backwards compatibility (aug 9, 2020: can remove in future versions)
+              result <- env[["result"]]
+            } else {
+              result <- env[["combined_result"]]
+            }
+
+            if (is.null(result)) {
+              error("Encountered empty rda file: ", savefile)
+            }
             return(result)
         }
     }
@@ -174,6 +184,7 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
     combined_result <- data.frame()
 
     # iterate over gene types and query api separately for each one
+    # TODO: Exclude gene types that appear to be unrecognized..
     for (i in 1:length(gene_types)) {
         gene_type <- gene_types[i]
 
@@ -183,12 +194,14 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
         parameters <- list(
             "organism" = jsonlite::unbox(species),
             "geneType" = jsonlite::unbox(gene_type),
-            "includePseudogenes" = jsonlite::unbox("Yes"))
+            "includePseudogenes" = jsonlite::unbox("Yes")
+        )
+
         question <- "GeneQuestions.GenesByGeneType"
 
         # send request
         result <- try(post_eupathdb_raw(entry, question = question,
-                                          parameters = parameters, table_name = "annot"), silent = TRUE)
+                                        parameters = parameters, table_name = "annot"), silent = TRUE)
 
         if ("try-error" %in% class(result)) {
           next
@@ -199,6 +212,11 @@ post_eupathdb_annotations <- function(entry = NULL, workdir = "EuPathDB", overwr
 
           info(sprintf("Added %d %s entries to the result.", nrow(result), gene_type))
         }
+    }
+
+    ## if no genes were matched, stop here
+    if (nrow(combined_result) == 0) {
+      return(combined_result)
     }
 
     ## Get rid of spurious text in the previous IDs column

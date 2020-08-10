@@ -14,6 +14,7 @@ info <- function(...) {
 #' @export
 warn <- function(...) {
   message("[" %+% crayon::magenta("WARN") %+% "] ", ...)
+  warning(...)
 }
 
 #' Error-level logging function.
@@ -22,4 +23,5 @@ warn <- function(...) {
 #' @export
 error <- function(...) {
   message("[" %+% crayon::yellow("ERROR") %+% "] ", ...)
+  stop(...)
 }

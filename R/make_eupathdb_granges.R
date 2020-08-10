@@ -25,6 +25,7 @@ make_eupathdb_granges <- function(entry=NULL, workdir="EuPathDB", eu_version=NUL
 #' @param eupathdb_version Optionally request a specific version of the gff file.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
+<<<<<<< HEAD
 make_eupathdb_granges <- function(entry=NULL, workdir="EuPathDB", eupathdb_version=NULL, copy_s3=FALSE) {
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
   if (is.null(entry)) {
@@ -43,6 +44,17 @@ make_eupathdb_granges <- function(entry=NULL, workdir="EuPathDB", eupathdb_versi
   message("Starting creation of ", pkgname, ".")
 
   input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))
+=======
+make_eupathdb_granges <- function(entry, workdir = "EuPathDB", eupathdb_version = NULL, copy_s3 = FALSE) {
+  taxa <- make_taxon_names(entry)
+  pkgnames <- get_eupathdb_pkgnames(entry, eupathdb_version = eupathdb_version)
+  pkgname <- pkgnames[["txdb"]]
+
+  info(sprintf("Starting creation of %s...", pkgname))
+
+  input_gff <- file.path(workdir, glue::glue("{pkgname}.gff"))
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
     tt <- download.file(url = gff_url, destfile = input_gff,
@@ -55,7 +67,11 @@ make_eupathdb_granges <- function(entry=NULL, workdir="EuPathDB", eupathdb_versi
   granges_env <- new.env()
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
   granges_env[[granges_variable]] <- granges_result
+<<<<<<< HEAD
   granges_file <- file.path(build_dir, granges_name)
+=======
+  granges_file <- file.path(workdir, granges_name)
+>>>>>>> a0cb0dd (Continuing refactoring)
   save_result <- save(list = ls(envir = granges_env),
                       file = granges_file,
                       envir = granges_env)
@@ -74,6 +90,11 @@ make_eupathdb_granges <- function(entry=NULL, workdir="EuPathDB", eupathdb_versi
     closed <- try(close(getConnection(con)), silent = TRUE)
   }
 
+<<<<<<< HEAD
   message("Finished creation of ", pkgname, ".")
+=======
+  info(sprintf("Finished creation of %s...", pkgname))
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   return(granges_name)
 }

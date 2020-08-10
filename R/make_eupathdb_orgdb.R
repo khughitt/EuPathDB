@@ -54,6 +54,7 @@ remove_eupath_nas <- function(table, name = "annot") {
 #'  probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_orgdb.R
 make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
 =======
@@ -64,15 +65,24 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
   ## Pull out the metadata for this species.
 =======
+=======
+make_eupathdb_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
+>>>>>>> a0cb0dd (Continuing refactoring)
                                 kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
                                 copy_s3 = FALSE, do_go = TRUE, do_goslim = TRUE, godb_source = NULL,
                                 do_orthologs = TRUE, do_interpro = TRUE,
                                 do_linkout = TRUE, do_pubmed = TRUE, do_pathway = TRUE,
                                 do_kegg = TRUE, do_uniprot = FALSE) {
+<<<<<<< HEAD
   if (is.null(entry)) {
     stop("Need an entry.")
   }
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+
+  # TODO: instead of having a single arg with multiple types, create two alt. input
+  # args and check that exactly one of them is set.
+>>>>>>> a0cb0dd (Continuing refactoring)
   if ("character" %in% class(entry)) {
     entry <- get_eupathdb_entry(entry)
   }
@@ -84,18 +94,19 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   pkgnames <- get_eupath_pkgnames(entry)
 =======
 
-  # determine package name to use
+  # determine package name to use (e.g. "org.Cbaileyi.TAMU.09Q1.v46.eg.db")
   pkgnames <- get_eupathdb_pkgnames(entry)
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
   pkgname <- pkgnames[["orgdb"]]
 
   # check to see if package is already installed and if so, skip if requested
-  if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
-    info(pkgname, " is already installed.")
+  if (pkgnames[["orgdb_installed"]] & !reinstall) {
+    info(sprintf("Skipping %s: package is already installed...", pkgname))
     retlist <- list("orgdb_name" = pkgname)
     return(retlist)
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD:R/make_eupath_orgdb.R
   message("Starting creation of ", pkgname, ".")
   ## Create working directory if necessary
@@ -106,6 +117,10 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
   ## If available, get the kegg abbreviation, otherwise do not try to collect kegg annotations.
   do_kegg <- TRUE
 =======
+=======
+  info(sprintf("Starting creation of %s...", pkgname))
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   # create package generation working directory
   if (!dir.exists(workdir)) {
     created <- dir.create(workdir, recursive = TRUE)
@@ -190,9 +205,10 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
 >>>>>>> fc81572 (Some more refactoring / fixes)
 
   # query eupathdb api for gene table
-  gene_table <- post_eupathdb_annotations(entry, workdir = workdir, overwrite = overwrite)
+  gene_table <- post_eupathdb_annotations(entry, workdir, overwrite)
 
   if (class(gene_table) == "try-error") {
+<<<<<<< HEAD
 >>>>>>> fd9c661 (Doing a bit of re-organizing):R/make_eupathdb_orgdb.R
     gene_table <- data.frame()
 
@@ -201,14 +217,13 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     warning(msg)
 
     return(NULL)
+=======
+    error(sprintf("Error encountered while attempting to construct gene table info for: %s %s", entry$Species, entry$Strain))
+>>>>>>> a0cb0dd (Continuing refactoring)
   }
+
   if (nrow(gene_table) == 0) {
-    gene_table <- data.frame()
-
-    msg <- sprintf(" Unable to create an orgdb package: %s (empty result)", entry[["OrgdbFile"]])
-
-    warn(msg)
-    warning(msg)
+    warn(sprintf("Unable to find gene table info for: %s %s", entry$Species, entry$Strain))
     return(NULL)
   }
 <<<<<<< HEAD
@@ -488,61 +503,75 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     "type" = type_table
   )
 
+<<<<<<< HEAD
   ## add any non-empty tables, this is sort of our last sanity check before
   ## making the package.
+=======
+  ## sanity checks
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(go_table)) {
-    message("[ERROR] This should not be possible, but the go table is still null.")
-    stop()
+    error("This should not be possible, but the go table is still null.")
   } else if (nrow(go_table) > 0) {
     orgdb_args[["go_table"]] <- go_table
   }
 
   if (is.null(goslim_table)) {
-    message("[ERROR] This should not be possible, but the goslim table is still null.")
-    stop()
+    error("This should not be possible, but the goslim table is still null.")
   } else if (nrow(goslim_table) > 0) {
     orgdb_args[["goslim_table"]] <- goslim_table
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(ortholog_table)) {
-    message("[ERROR] This should not be possible, but the ortholog table is still null.")
-    stop()
+    error("This should not be possible, but the ortholog table is still null.")
   } else if (nrow(ortholog_table) > 0) {
     orgdb_args[["ortholog_table"]] <- ortholog_table
   }
+<<<<<<< HEAD
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(interpro_table)) {
-    message("[ERROR] This should not be possible, but the interpro table is still null.")
-    stop()
+    error("This should not be possible, but the interpro table is still null.")
   } else if (nrow(interpro_table) > 0) {
     orgdb_args[["interpro_table"]] <- interpro_table
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(pathway_table)) {
-    message("[ERROR] This should not be possible, but the pathway table is still null.")
-    stop()
+    error("This should not be possible, but the pathway table is still null.")
   } else if (nrow(pathway_table) > 0) {
     orgdb_args[["pathway_table"]] <- pathway_table
   }
+<<<<<<< HEAD
 >>>>>>> cc20d16 (Continuing clean-up / re-organization)
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(kegg_table)) {
-    message("[ERROR] This should not be possible, but the kegg table is still null.")
-    stop()
+    error("This should not be possible, but the kegg table is still null.")
   } else if (nrow(kegg_table) > 0) {
     orgdb_args[["kegg_table"]] <- kegg_table
   }
 
   if (is.null(linkout_table)) {
-    message("[ERROR] This should not be possible, but the linkout table is still null.")
-    stop()
+    error("This should not be possible, but the linkout table is still null.")
   } else if (nrow(linkout_table) > 0) {
     orgdb_args[["linkout_table"]] <- linkout_table
   }
 
+<<<<<<< HEAD
   if (is.null(ortholog_table)) {
     message(" This should not be possible, but the ortholog table is still null.")
   } else if (nrow(ortholog_table) > 0) {
@@ -561,17 +590,21 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     orgdb_args[["pdb_table"]] <- pdb_table
   }
 
+=======
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(pubmed_table)) {
-    message("[ERROR] This should not be possible, but the pubmed table is still null.")
-    stop()
+    error("This should not be possible, but the pubmed table is still null.")
   } else if (nrow(pubmed_table) > 0) {
     orgdb_args[["pubmed_table"]] <- pubmed_table
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   if (is.null(uniprot_table)) {
-    message("[ERROR] This should not be possible, but the uniprot table is still null.")
-    stop()
+    error("This should not be possible, but the uniprot table is still null.")
   } else if (nrow(uniprot_table) > 0) {
     orgdb_args[["uniprot_table"]] <- uniprot_table
   }
@@ -801,7 +834,12 @@ make_eupathdb_orgdb <- function(entry = NULL, workdir = "EuPathDB", installp = T
     }
   }
 
+<<<<<<< HEAD
   message("Finished creation of ", pkgname, ".")
+=======
+  info(sprintf("Finished creation of %s...", pkgname))
+
+>>>>>>> a0cb0dd (Continuing refactoring)
   ## Probably should return something more useful/interesting than this, perhaps
   ## the dimensions of the various tables in the orgdb?
   return(pkgname)
