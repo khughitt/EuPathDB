@@ -12,17 +12,17 @@
 #' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation For when we cannot automagically find the kegg species id.
 #' @param exclude_join I had a harebrained idea to automatically set up the
-#'   joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
-#'   variable is intended to exclude columns with common IDs that might
-#'   multi-match spuriously -- I think in the end I killed the idea though,
-#'   perhaps this should be removed or resurrected.
+#'  joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This
+#'  variable is intended to exclude columns with common IDs that might
+#'  multi-match spuriously -- I think in the end I killed the idea though,
+#'  perhaps this should be removed or resurrected.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return The result of attempting to install the organismDbi package.
 #' @author Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry=NULL, eu_version=NULL, workdir="EuPathDB", installp=TRUE,
-                                    reinstall=FALSE, kegg_abbreviation=NULL,
-                                    exclude_join="ENTREZID", copy_s3=FALSE) {
+make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "EuPathDB",
+                                    installp = TRUE, reinstall = FALSE, kegg_abbreviation = NULL,
+                                    exclude_join = "ENTREZID", copy_s3 = FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }

@@ -5,7 +5,7 @@
 \title{Generate a GRanges rda savefile from a gff file.}
 \usage{
 make_eupath_granges(
-  entry = NULL,
+  entry,
   workdir = "EuPathDB",
   eu_version = NULL,
   copy_s3 = FALSE

@@ -7,22 +7,25 @@
 #' found, look for a reasonable approximation. stop() if nothing is found.
 #'
 #' @param species String containing some reasonably unique text in the desired
-#'   species name.
+#'  species name.
 #' @param webservice The EuPathDB webservice to query.
 #' @param column Which column to use for getting the species name?
 #' @param metadata Optional dataframe of already downloaded metadata.
 #' @param ... Parameters passed to download_eupath_metadata()
-#' @return  A single row from the eupathdb metadata.
+#' @return A single row from the eupathdb metadata.
 #' @author atb
 #' @export
-get_eupath_entry <- function(species="Leishmania major", webservice="eupathdb",
-                             column="TaxonUnmodified", metadata=NULL, ...) {
+get_eupath_entry <- function(species = "Leishmania major", webservice = "eupathdb",
+                             column = "TaxonUnmodified", metadata = NULL, ...) {
   if (is.null(metadata)) {
-    metadata <- download_eupath_metadata(webservice=webservice, ...)
+    metadata <- download_eupath_metadata(webservice = webservice, ...)
   }
   valid_metadata <- metadata[["valid"]]
   all_species <- valid_metadata[[column]]
   entry <- NULL
+
+  ## Go hunting for the metadatum of interest,
+  ## If the search was redundant, tell the user and give them the first entry.
   grep_hits <- grepl(species, all_species)
   grepped_hits <- all_species[grep_hits]
   found_species <- sum(grep_hits)

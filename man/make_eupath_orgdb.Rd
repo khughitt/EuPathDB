@@ -5,7 +5,7 @@
 \title{Create an orgdb SQLite database from the tables in eupathdb.}
 \usage{
 make_eupath_orgdb(
-  entry = NULL,
+  entry,
   workdir = "EuPathDB",
   installp = TRUE,
   kegg_abbreviation = NULL,
@@ -35,7 +35,7 @@ make_eupath_orgdb(
 }
 \value{
 Currently only the name of the installed package.  This should
-  probably change.
+ probably change.
 }
 \description{
 This function has passed through multiple iterations as the preferred

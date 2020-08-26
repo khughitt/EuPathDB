@@ -10,16 +10,16 @@
 #' @return Somewhat nicer data frame.
 #' @author atb
 #' @export
-extract_gene_locations <- function(annot_df, location_column="annot_gene_location_text") {
+extract_gene_locations <- function(annot_df, location_column = "annot_gene_location_text") {
   newdf <- annot_df %>%
     tidyr::separate(location_column,
                     c("chromosome", "location"), ":") %>%
     tidyr::separate("location", c("start", "end"), "\\.\\.") %>%
     tidyr::separate("end", c("end", "strand"), "\\(")
 
-  newdf[["start"]] <- as.numeric(gsub(pattern="\\,", replacement="", x=newdf[["start"]]))
-  newdf[["end"]] <- as.numeric(gsub(pattern="\\,", replacement="", x=newdf[["end"]]))
-  newdf[["strand"]] <- as.factor(gsub(pattern="\\)", replacement="", x=newdf[["strand"]]))
+  newdf[["start"]] <- as.numeric(gsub(pattern = "\\,", replacement = "", x = newdf[["start"]]))
+  newdf[["end"]] <- as.numeric(gsub(pattern = "\\,", replacement = "", x = newdf[["end"]]))
+  newdf[["strand"]] <- as.factor(gsub(pattern = "\\)", replacement = "", x = newdf[["strand"]]))
   newdf[["length"]] <- abs(newdf[["start"]] - newdf[["end"]])
   return(newdf)
 }

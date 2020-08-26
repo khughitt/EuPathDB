@@ -7,9 +7,10 @@
 write_eupath_metadata(
   metadata,
   service = "eupathdb",
-  type = "valid",
+  file_type = "valid",
   bioc_version = "3.9",
-  eu_version = "44"
+  eu_version = "44",
+  build_dir = "EuPathDB"
 )
 }
 \arguments{
@@ -18,11 +19,11 @@ write_eupath_metadata(
 \item{service}{EupathDB subproject, or the set of all projects named
 'eupathdb'.}
 
-\item{type}{Either valid or invalid, defines the final output filenames.}
-
 \item{bioc_version}{Version of Bioconductor used for this set of metadata.}
 
 \item{eu_version}{Version of the EuPathDB used for this set of metadata.}
+
+\item{type}{Either valid or invalid, defines the final output filenames.}
 }
 \value{
 List containing the filenames written.

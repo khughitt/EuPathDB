@@ -59,17 +59,14 @@ NULL
 #' @aliases availableEuPathDB
 #' @examples start_eupathdb()
 #' @export
-start_eupathdb <- function(type="GRanges") {
-  ## I renamed this function to handle an R check where it looks for man pages with mismatched case
-  ## with respect to the functions within it.  There is a roxygen clue for EuPathDb, so having
-  ## a function with the same name confuses R check.
-  utils::vignette("reference", package="EuPathDB")
-  metadata_files <- list.files(path=system.file("extdata", package="EuPathDB"))
+start_eupathdb <- function(type = "GRanges") {
+  utils::vignette("reference", package = "EuPathDB")
+  metadata_files <- list.files(path = system.file("extdata", package = "EuPathDB"))
   ## Arbitrarily provide the first metadata file of the type.
-  chosen_idx <- grep(pattern=type, x=metadata_files)[1]
+  chosen_idx <- grep(pattern = type, x = metadata_files)[1]
   chosen_metadata <- metadata_files[chosen_idx]
   message("Showing species in metadata file: ", chosen_metadata)
-  metadata_file <- system.file("extdata", chosen_metadata, package="EuPathDB")
+  metadata_file <- system.file("extdata", chosen_metadata, package = "EuPathDB")
   ret <- sort(read.csv(metadata_file,
                        stringsAsFactors = FALSE)[["Species"]])
   return(ret)

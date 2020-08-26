@@ -9,27 +9,32 @@
 #' @param verbose Talk while running?
 #' @param destination Place to put non-matched files.
 #' @export
-check_files <- function(file_type="OrgDb", bioc_version=NULL, eu_version=NULL,
-                        verbose=FALSE, destination=NULL) {
+check_files <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL,
+                        verbose = FALSE, destination = NULL) {
   if (is.null(destination)) {
     destination <- getwd()
   }
-  versions <- get_versions(bioc_version=bioc_version, eu_version=eu_version)
+  versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   bioc_version <- versions[["bioc_version"]]
-  eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
-  column <- as.character(stringr::str_to_title(file_type))
-  column <- as.character(glue::glue("{column}File"))
-  csv_file <- glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv")
-  table <- readr::read_csv(csv_file)
-  file_dir <- dirname(as.character(table[1, column]))
-  file_lst <- list.files(path=file_dir, all.files=TRUE)
-  csv_file_lst <- table[[column]]
+  eu_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
+
+  ## Get the column containing the filepaths of the data.
+  path_column <- as.character(stringr::str_to_title(file_type))
+  path_column <- as.character(glue::glue("{path_column}File"))
+  csv_file <- file.path(build_dir, "metadata",
+                        glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv"))
+
+  ## Get the metadata and start comparing it to the actual files.
+  mdata <- readr::read_csv(csv_file)
+  file_dir <- dirname(as.character(mdata[1, column]))
+  file_lst <- list.files(path = file_dir, all.files = TRUE)
+  csv_file_lst <- mdata[[column]]
   happy_count <- 0
   sad_count <- 0
   ## Skip . and ..
-  for (f in 3:length(file_lst)) {
-    filename <- file_lst[f]
+  for (path in 3:length(file_lst)) {
+    filename <- file_lst[path]
     file_path <- file.path(file_dir, filename)
     foundp <- file_path %in% csv_file_lst
     if (isTRUE(foundp)) {
@@ -39,7 +44,7 @@ check_files <- function(file_type="OrgDb", bioc_version=NULL, eu_version=NULL,
       happy_count <- happy_count + 1
     } else {
       new_path <- file.path(destination, filename)
-      file.rename(from=file_path, to=new_path)
+      file.rename(from = file_path, to = new_path)
       if (isTRUE(verbose)) {
         message("Did not find ", file_path, " in the metadata, moving it to ", destination, ".")
       }

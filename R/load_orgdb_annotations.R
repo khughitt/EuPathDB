@@ -3,7 +3,6 @@
 #' Creates a dataframe gene and transcript information for a given set of gene
 #' ids using the AnnotationDbi interface.
 #'
-#' Tested in test_45ann_organdb.R
 #' This defaults to a few fields which I have found most useful, but the brave
 #' or pathological can pass it 'all'.
 #'
@@ -26,17 +25,18 @@
 #' }
 #' @author atb
 #' @export
-load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
-                                   keytype="gid", location_column="annot_location_text",
-                                   type_column="annot_gene_type", name_column="annot_gene_product",
-                                   fields=NULL, sum_exon_widths=FALSE) {
+load_orgdb_annotations <- function(orgdb = NULL, gene_ids = NULL, include_go = FALSE,
+                                   keytype = "gid", location_column = "annot_location_text",
+                                   type_column = "annot_gene_type",
+                                   name_column = "annot_gene_product", fields = NULL,
+                                   sum_exon_widths = FALSE) {
   if (is.null(orgdb)) {
     message("No orgdb provided, assuming Homo.sapiens.")
     org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
-    eval(parse(text=org_pkgstring))
+    eval(parse(text = org_pkgstring))
   } else if ("character" %in% class(orgdb)) {
     org_pkgstring <- glue::glue("library({orgdb}); orgdb <- {orgdb}")
-    eval(parse(text=org_pkgstring))
+    eval(parse(text = org_pkgstring))
   }
   keytype <- toupper(keytype)
   location_column <- toupper(location_column)
@@ -45,12 +45,12 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
   ## Caveat: if fields was NULL, now it is character(0)
   fields <- toupper(fields)
   all_fields <- AnnotationDbi::columns(orgdb)
-  all_idx <- grepl(x=all_fields, pattern="^ANNOT_")
+  all_idx <- grepl(x = all_fields, pattern = "^ANNOT_")
   all_fields <- all_fields[all_idx]
   chosen_fields <- c()
 
   if (! name_column %in% all_fields) {
-    a_name <- grepl(pattern="NAME", x=all_fields)
+    a_name <- grepl(pattern = "NAME", x = all_fields)
     new_name_column <- all_fields[a_name][1]
     message("Unable to find ", name_column, ", setting it to ", new_name_column, ".")
     name_column <- new_name_column
@@ -83,11 +83,11 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
     message("The following are available: ", toString(all_fields))
   }
 
-  ## Gene IDs
+  ## Extract the gene IDs
   if (is.null(gene_ids)) {
-    gene_ids <- try(AnnotationDbi::keys(orgdb, keytype=keytype))
+    gene_ids <- try(AnnotationDbi::keys(orgdb, keytype = keytype))
     if (class(gene_ids) == "try-error") {
-      if (grepl(x=gene_ids[[1]], pattern="Invalid keytype")) {
+      if (grepl(x = gene_ids[[1]], pattern = "Invalid keytype")) {
         valid_keytypes <- AnnotationDbi::keytypes(orgdb)
         stop("Try using valid keytypes: ", toString(valid_keytypes))
       } else {
@@ -97,14 +97,15 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
       message("Extracted all gene ids.")
     }
   }
+
   ## Note querying by "GENEID" will exclude noncoding RNAs
   message("Attempting to select: ", toString(chosen_fields))
   gene_info <- try(AnnotationDbi::select(
-                                    x=orgdb,
-                                    keys=gene_ids,
-                                    keytype=keytype,
-                                    columns=chosen_fields))
-  if (class(gene_info) == "try-error") {
+                                      x = orgdb,
+                                      keys = gene_ids,
+                                      keytype = keytype,
+                                      columns = chosen_fields))
+  if ("try-error" %in% class(gene_info)) {
     message("Select statement failed, this is commonly because there is no join",
             " between the transcript table and others.")
     message("Thus it says some stupid crap about 'please add gtc to the interpolator'",
@@ -118,25 +119,25 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
   start_column <- NULL
   end_column <- NULL
   if (location_column %in% all_fields) {
-    gene_info <- extract_gene_locations(gene_info, location_column=location_column)
+    gene_info <- extract_gene_locations(gene_info, location_column = location_column)
   }
 
   ## Compute total transcript lengths (for all exons)
   ## https://www.biostars.org/p/83901/
-  gene_exons <- try(GenomicFeatures::exonsBy(orgdb, by="gene"), silent=TRUE)
-  if (class(gene_exons) == "try-error") {
+  gene_exons <- try(GenomicFeatures::exonsBy(orgdb, by = "gene"), silent = TRUE)
+  if ("try-error" %in% class(gene_exons)) {
     gene_exons <- NULL
   }
-  transcripts <- try(GenomicFeatures::transcripts(orgdb), silent=TRUE)
-  if (class(transcripts) == "try-error") {
+  transcripts <- try(GenomicFeatures::transcripts(orgdb), silent = TRUE)
+  if ("try-error" %in% class(transcripts)) {
     transcripts <- NULL
   }
-  fivep_utr <- try(GenomicFeatures::fiveUTRsByTranscript(orgdb, use.names=TRUE), silent=TRUE)
-  if (class(fivep_utr) == "try-error") {
+  fivep_utr <- try(GenomicFeatures::fiveUTRsByTranscript(orgdb, use.names = TRUE), silent = TRUE)
+  if ("try-error" %in% class(fivep_utr)) {
     fivep_utr <- NULL
   }
-  threep_utr <- try(GenomicFeatures::threeUTRsByTranscript(orgdb, use.names=TRUE), silent=TRUE)
-  if (class(threep_utr) == "try-error") {
+  threep_utr <- try(GenomicFeatures::threeUTRsByTranscript(orgdb, use.names = TRUE), silent = TRUE)
+  if ("try-error" %in% class(threep_utr)) {
     threep_utr <- NULL
   }
   colnames(gene_info) <- tolower(colnames(gene_info))
@@ -146,11 +147,11 @@ load_orgdb_annotations <- function(orgdb=NULL, gene_ids=NULL, include_go=FALSE,
       sum(BiocGenerics::width(GenomicRanges::reduce(x)))
     })
     message("Adding exon lengths to the gene_exons.")
-    lengths <- as.data.frame(unlist(lengths), stringsAsFactors=FALSE)
+    lengths <- as.data.frame(unlist(lengths), stringsAsFactors = FALSE)
     colnames(lengths) <- "transcript_length"
-    gene_info <- merge(gene_info, lengths, by.x=keytype, by.y="row.names")
+    gene_info <- merge(gene_info, lengths, by.x = keytype, by.y = "row.names")
   }
-  rownames(gene_info) <- make.names(gene_info[[1]], unique=TRUE)
+  rownames(gene_info) <- make.names(gene_info[[1]], unique = TRUE)
 
   retlist <- list(
     "genes" = gene_info,

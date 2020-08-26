@@ -43,7 +43,6 @@ Creates a dataframe gene and transcript information for a given set of gene
 ids using the AnnotationDbi interface.
 }
 \details{
-Tested in test_45ann_organdb.R
 This defaults to a few fields which I have found most useful, but the brave
 or pathological can pass it 'all'.
 }

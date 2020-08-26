@@ -6,18 +6,19 @@
 #' @param entry The full annotation entry.
 #' @param workdir Location to which to save an intermediate savefile.
 #' @param table This defaults to the 'OrthologsLite' table, but that does not
-#'   exist at all eupathdb subprojects.
+#'  exist at all eupathdb subprojects.
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(ortholog_table=NULL, entry=NULL, workdir="EuPathDB",
-                                       table="OrthologsLite", gene_ids=NULL, overwrite=FALSE) {
+post_eupath_ortholog_table <- function(ortholog_table = NULL, entry = NULL, workdir = "EuPathDB",
+                                       table = "OrthologsLite", gene_ids = NULL,
+                                       overwrite = FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
   rdadir <- file.path(workdir, "rda")
   if (!file.exists(rdadir)) {
-    created <- dir.create(rdadir, recursive=TRUE)
+    created <- dir.create(rdadir, recursive = TRUE)
   }
   savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
   if (file.exists(savefile)) {
@@ -26,7 +27,7 @@ post_eupath_ortholog_table <- function(ortholog_table=NULL, entry=NULL, workdir=
     } else {
       message("  Delete the file ", savefile, " to regenerate.")
       result <- new.env()
-      load(savefile, envir=result)
+      load(savefile, envir = result)
       result <- result[["result"]]
       return(result)
     }
@@ -54,27 +55,20 @@ post_eupath_ortholog_table <- function(ortholog_table=NULL, entry=NULL, workdir=
       "format" = jsonlite::unbox("tableTabular")
     ))
 
-  result <- post_eupath_table(query_body, entry, table_name="orthologs")
-  if (nrow(result) == 0) {
-    message("Failed to download the OrthologsLite table, attempting to download 1 gene at a time.")
-    result <- get_orthologs_all_genes(entry, workdir=workdir,
-                                      gene_ids=gene_ids, overwrite=overwrite)
-  } else {
-    colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
-                          "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
-    ## The GENE_ID column is redundant, drop it.
-    result[["GENE_ID"]] <- NULL
-  }
+  result <- post_eupath_table(query_body, entry, table_name = "orthologs")
+  colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
+                        "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
+  result[["GENE_ID"]] <- NULL
 
   ## I provided a 2 column table of GIDs and MCL names, merge that now.
   GID <- NULL ## Stop R CMD Check
-  result <- merge(ortholog_table, result, by="GID")
+  result <- merge(ortholog_table, result, by = "GID")
   counts <- result %>%
     group_by(GID) %>%
     summarise("ORTHOLOGS_COUNT" = n())
-  result <- merge(result, counts, by="GID")
+  result <- merge(result, counts, by = "GID")
 
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
-  save(result, file=savefile)
+  save(result, file = savefile)
   return(result)
 }

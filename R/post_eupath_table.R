@@ -7,7 +7,7 @@
 #' @param query_body String of additional query arguments
 #' @param entry The single metadatum containing the base url of the provider, species, etc.
 #' @param table_name The name of the table to extract, this is provided to make
-#'   for prettier labeling.
+#'  for prettier labeling.
 #' @param minutes A timeout when querying the eupathdb.
 #' @return list containing response from API request.
 #'
@@ -16,7 +16,7 @@
 #' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
+post_eupath_table <- function(query_body, entry, table_name = NULL, minutes = 30) {
   if (is.null(entry)) {
     stop("   This requires a eupathdb entry.")
   }
@@ -32,7 +32,7 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
   }
   api_uri <- glue::glue("https://{provider}.{tld}/{uri_prefix}/service/answer/report")
   body <- jsonlite::toJSON(query_body)
-  result <- httr::POST(url=api_uri, body=body,
+  result <- httr::POST(url = api_uri, body = body,
                        httr::content_type("application/json"),
                        httr::timeout(minutes * 60))
   if (result[["status_code"]] == "422") {
@@ -45,12 +45,11 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
     warning("   A minimal amount of content was returned.")
   }
 
-  result <- httr::content(result, encoding="UTF-8")
+  result <- httr::content(result, encoding = "UTF-8")
   connection <- textConnection(result)
   ## An attempt to work around EOFs in the data.
-  ##result <- read.delim(connection, sep="\t")
-  result <- read.delim(connection, sep="\t",
-                       quote="", stringsAsFactors=FALSE)
+  result <- read.delim(connection, sep = "\t",
+                       quote = "", stringsAsFactors = FALSE)
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {
     return(data.frame())
@@ -69,11 +68,11 @@ post_eupath_table <- function(query_body, entry, table_name=NULL, minutes=30) {
   ## [7] "X...Reactions.Matching.EC.Number."
   new_colnames <- toupper(colnames(result))
   ## Get rid of dumb X. prefix
-  new_colnames <- gsub("^X\\.+", replacement="", x=new_colnames)
+  new_colnames <- gsub(pattern = "^X\\.+", replacement = "", x = new_colnames)
   ## Get rid of spurious end .
-  new_colnames <- gsub("\\.$", replacement="", x=new_colnames)
+  new_colnames <- gsub(pattern = "\\.$", replacement = "", x = new_colnames)
   ## Get rid of internal .'s
-  new_colnames <- gsub("\\.", replacement="_", x=new_colnames)
+  new_colnames <- gsub(pattern = "\\.", replacement = "_", x = new_colnames)
   colnames(result) <- new_colnames
   colnames(result)[1] <- "GID"
   ## remove duplicated rows

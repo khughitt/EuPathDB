@@ -1,11 +1,12 @@
-load_eupath_pkg <- function(name, webservice="eupathdb") {
-  first_try <- try(do.call("library", as.list(name)), silent=TRUE)
+#' Loads a pkg into the current R environment.
+load_eupath_pkg <- function(name, webservice = "eupathdb") {
+  first_try <- try(do.call("library", as.list(name)), silent = TRUE)
   if (class(first_try) == "try-error") {
-    metadata <- download_eupath_metadata(webservice=webservice)
+    metadata <- download_eupath_metadata(webservice = webservice)
     entry <- get_eupath_entry(name)
     pkg_names <- get_eupath_pkgnames(entry)
     first_pkg <- pkg_names[["orgdb"]]
-    tt <- try(do.call("library", as.list(first_pkg)), silent=TRUE)
+    tt <- try(do.call("library", as.list(first_pkg)), silent = TRUE)
     if (class(tt) == "try-error") {
       message("Did not find the package: ",
               first_pkg,
@@ -21,9 +22,7 @@ load_eupath_pkg <- function(name, webservice="eupathdb") {
     pkg <- get(name)
     return(pkg)
   }
-}  ## End internal function 'load_pkg()'
-
-
+}
 
 #' Given 2 species names from the eupathdb, make orthology tables betwixt them.
 #'
@@ -47,8 +46,8 @@ load_eupath_pkg <- function(name, webservice="eupathdb") {
 #' @param db Species name (subset) from one eupath database.
 #' @param master Primary keytype to use for indexing the various tables.
 #' @param query_species A list of exact species names to search for.  If uncertain
-#'   about them, add print_speciesnames=TRUE and be ready for a big blob of
-#'   text.  If left null, then it will pull all species.
+#'  about them, add print_speciesnames=TRUE and be ready for a big blob of
+#'  text.  If left null, then it will pull all species.
 #' @param id_column What column in the database provides the set of ortholog IDs?
 #' @param org_column What column provides the species name?
 #' @param url_column What column provides the orthomcl group ID?
@@ -70,14 +69,14 @@ load_eupath_pkg <- function(name, webservice="eupathdb") {
 #'  }
 #' @author atb
 #' @export
-extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
-                                     id_column="ORTHOLOGS_GID",
-                                     org_column="ORTHOLOGS_ORGANISM",
-                                     group_column="ORTHOLOGS_GROUP_ID",
-                                     name_column="ORTHOLOGS_PRODUCT",
-                                     count_column="ORTHOLOGS_COUNT",
-                                     print_speciesnames=FALSE,
-                                     webservice="eupathdb") {
+extract_eupath_orthologs <- function(db, master = "GID", query_species = NULL,
+                                     id_column = "ORTHOLOGS_GID",
+                                     org_column = "ORTHOLOGS_ORGANISM",
+                                     group_column = "ORTHOLOGS_GROUP_ID",
+                                     name_column = "ORTHOLOGS_PRODUCT",
+                                     count_column = "ORTHOLOGS_COUNT",
+                                     print_speciesnames = FALSE,
+                                     webservice = "eupathdb") {
 
   pkg <- NULL
   if (class(db)[1] == "OrgDb") {
@@ -95,7 +94,7 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
   }
 
   columns <- c(id_column, group_column, org_column, name_column, count_column)
-  gene_set <- AnnotationDbi::keys(pkg, keytype=master)
+  gene_set <- AnnotationDbi::keys(pkg, keytype = master)
   column_set <- AnnotationDbi::columns(pkg)
   column_intersect <- columns %in% column_set
   if (sum(column_intersect) == length(columns)) {
@@ -107,8 +106,8 @@ extract_eupath_orthologs <- function(db, master="GID", query_species=NULL,
     message("Removing them, which may end badly.")
     columns <- columns[column_intersect]
   }
-  all_orthos <- AnnotationDbi::select(x=pkg, keytype=master,
-                                      keys=gene_set, columns=columns)
+  all_orthos <- AnnotationDbi::select(x = pkg, keytype = master,
+                                      keys = gene_set, columns = columns)
   all_orthos[[org_column]] <- as.factor(all_orthos[[org_column]])
   num_possible <- 1
   species_names <- levels(all_orthos[[org_column]])

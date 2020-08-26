@@ -7,7 +7,7 @@
 #' @param webservice Eupathdb, tritrypdb, fungidb, etc...
 #' @param excludes List of fields to ignore.
 #' @return List of parameters.
-get_eupath_fields <- function(webservice, excludes=NULL) {
+get_eupath_fields <- function(webservice, excludes = NULL) {
   if (is.null(excludes)) {
     excludes <- c("dbp_image", "random_int")
   }
@@ -20,14 +20,14 @@ get_eupath_fields <- function(webservice, excludes=NULL) {
   request <- curl::curl(request_url)
   result <- xml2::read_xml(request)
   ##close(request)
-  fields <- rvest::xml_nodes(result, xpath='//*[@name="o-fields"]')[[1]] %>%
+  fields <- rvest::xml_nodes(result, xpath = '//*[@name="o-fields"]')[[1]] %>%
     xml2::xml_children() %>%
     xml2::xml_attr("value")
   drop_idx <- is.na(fields)
   fields <- fields[!drop_idx]
   drop_idx <- fields == "none"
   fields <- fields[!drop_idx]
-  drop_idx <- grepl(pattern="^pan_", x=fields)
+  drop_idx <- grepl(pattern = "^pan_", x = fields)
   fields <- fields[!drop_idx]
   exclude_idx <- fields %in% excludes
   fields <- fields[!exclude_idx]
