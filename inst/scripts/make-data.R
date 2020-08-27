@@ -45,7 +45,8 @@ for (i in 1:nrow(all_metadata)) {
     info("Creating BSGenome for ", species)
 
     bsgenome_result <- make_eupathdb_bsgenome(entry, eupathdb_version = eupathdb_version, workdir = build_dir, copy_s3 = TRUE)
-=======
+
+
 library(testthat)
 webservice <- "eupathdb"
 meta <- download_eupath_metadata(overwrite=TRUE, webservice=webservice,
