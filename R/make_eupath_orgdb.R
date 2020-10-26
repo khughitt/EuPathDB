@@ -43,8 +43,8 @@ remove_eupath_nas <- function(table, name = "annot") {
 #' of the eupathdb.
 #'
 #' @param entry If not provided, then species will get this, it contains all the information.
-#' @param workdir Where to put all the various temporary files.
-#' @param installp Install the resulting package?
+#' @param build_dir Where to put all the various temporary files.
+#' @param install Install the resulting package?
 #' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
@@ -54,7 +54,7 @@ remove_eupath_nas <- function(table, name = "annot") {
 #'  probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
+make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
                               kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
   ## Pull out the metadata for this species.
@@ -74,8 +74,8 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
 
   message("Starting creation of ", pkgname, ".")
   ## Create working directory if necessary
-  if (!dir.exists(workdir)) {
-    created <- dir.create(workdir, recursive = TRUE)
+  if (!dir.exists(build_dir)) {
+    created <- dir.create(build_dir, recursive = TRUE)
   }
 
   ## If available, get the kegg abbreviation, otherwise do not try to collect kegg annotations.
@@ -88,7 +88,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   }
 
   ## I am almost certain that wrapping these in a try() is no longer necessary.
-  gene_table <- try(post_eupath_annotations(entry, workdir = workdir, overwrite = overwrite))
+  gene_table <- try(post_eupath_annotations(entry, build_dir = build_dir, overwrite = overwrite))
   if ("try-error" %in% class(gene_table)) {
     gene_table <- data.frame()
     warning(" Unable to create an orgdb for this species.")
@@ -105,12 +105,12 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
 
   ## Get the GO data from the GO and GOSlim tables
   go_table <- data.frame()
-  go_table <- try(post_eupath_go_table(entry, workdir = workdir, overwrite = overwrite))
+  go_table <- try(post_eupath_go_table(entry, build_dir = build_dir, overwrite = overwrite))
   if ("try-error" %in% class(go_table)) {
     go_table <- data.frame()
   }
   goslim_table <- data.frame()
-  goslim_table <- try(post_eupath_goslim_table(entry, workdir = workdir, overwrite = overwrite))
+  goslim_table <- try(post_eupath_goslim_table(entry, build_dir = build_dir, overwrite = overwrite))
   if ("try-error" %in% class(goslim_table)) {
     goslim_table <- data.frame()
   }
@@ -128,7 +128,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   }
   ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
                                                    ortholog_table = ortholog_table,
-                                                   workdir = workdir,
+                                                   build_dir = build_dir,
                                                    gene_ids = gene_ids,
                                                    overwrite = overwrite))
   if ("try-error" %in% class(ortholog_table)) {
@@ -138,7 +138,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## Get the PDB table
   pdb_table <- data.frame()
   pdb_table <- try(post_eupath_pdb_table(entry = entry,
-                                         workdir = workdir,
+                                         build_dir = build_dir,
                                          overwrite = overwrite))
   if ("try-error" %in% class(pdb_table)) {
     pdb_table <- data.frame()
@@ -147,7 +147,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## The linkout table for entrez cross references papers.
   linkout_table <- data.frame()
   linkout_table <- try(post_eupath_linkout_table(entry = entry,
-                                                 workdir = workdir,
+                                                 build_dir = build_dir,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(linkout_table)) {
     linkout_table <- data.frame()
@@ -156,7 +156,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## The pubmed table for publications.
   pubmed_table <- data.frame()
   pubmed_table <- try(post_eupath_pubmed_table(entry = entry,
-                                               workdir = workdir,
+                                               build_dir = build_dir,
                                                overwrite = overwrite))
   if ("try-error" %in% class(pubmed_table)) {
     pubmed_table <- data.frame()
@@ -165,7 +165,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## Interpro-specific annotations/cross references.
   interpro_table <- data.frame()
   interpro_table <- try(post_eupath_interpro_table(entry = entry,
-                                                   workdir = workdir,
+                                                   build_dir = build_dir,
                                                    overwrite = overwrite))
   if ("try-error" %in% class(interpro_table)) {
     interpro_table <- data.frame()
@@ -174,7 +174,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## The pathway data
   pathway_table <- data.frame()
   pathway_table <- try(post_eupath_pathway_table(entry = entry,
-                                                 workdir = workdir,
+                                                 build_dir = build_dir,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(pathway_table)) {
     pathway_table <- data.frame()
@@ -251,7 +251,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
     "version" = pkg_version_string,
     "maintainer" = entry[["Maintainer"]],
     "author" = entry[["Maintainer"]],
-    "outputDir" = workdir,
+    "outputDir" = build_dir,
     "tax_id" = as.character(entry[["TaxonomyId"]]),
     "genus" = taxa[["genus"]],
     "species" = glue::glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
@@ -404,8 +404,8 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   }
 
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
-  backup_path <- file.path(workdir, glue::glue("{pkgname}.bak"))
-  first_path <- file.path(workdir, pkgname)
+  backup_path <- file.path(build_dir, glue::glue("{pkgname}.bak"))
+  first_path <- file.path(build_dir, pkgname)
   if (file.exists(backup_path)) {
     message(backup_path, " already exists, deleting it.")
     ## Something which bit me in the ass for file operations in R, always
@@ -476,7 +476,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
   ## And install the resulting package.
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
-  if (isTRUE(installp)) {
+  if (isTRUE(install)) {
     install_path <- file.path(getwd(), orgdb_path)
     inst <- suppressWarnings(try(devtools::install_local(install_path)))
 
@@ -484,7 +484,7 @@ make_eupath_orgdb <- function(entry, workdir = "EuPathDB", installp = TRUE,
       ## I am tired of reading about unportable filenames here, so adding the suppress.
       built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
       if (! "try-error" %in% class(built)) {
-        final_path <- move_final_package(orgdb_path, type = "orgdb", workdir = workdir)
+        final_path <- move_final_package(orgdb_path, type = "orgdb", build_dir = build_dir)
         final_deleted <- unlink(x = orgdb_path, recursive = TRUE, force = TRUE)
       }
     }

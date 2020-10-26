@@ -18,7 +18,8 @@
 get_eupath_entry <- function(species = "Leishmania major", webservice = "eupathdb",
                              column = "TaxonUnmodified", metadata = NULL, ...) {
   if (is.null(metadata)) {
-    metadata <- download_eupath_metadata(webservice = webservice, ...)
+    metadata <- download_eupath_metadata(webservice = webservice,
+                                         ...)
   }
   valid_metadata <- metadata[["valid"]]
   all_species <- valid_metadata[[column]]

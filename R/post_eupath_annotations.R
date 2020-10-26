@@ -8,7 +8,7 @@
 #' @param entry Eupathdb annotation entry.
 #' @param workdir Location to dump the resulting data.
 #' @param overwrite Overwrite existing data if it exists?
-post_eupath_annotations <- function(entry = NULL, workdir = "EuPathDB", overwrite = FALSE) {
+post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir = "EuPathDB") {
     if (is.null(entry)) {
         stop("  Need an entry from the eupathdb.")
     }
@@ -40,79 +40,120 @@ post_eupath_annotations <- function(entry = NULL, workdir = "EuPathDB", overwrit
     ## useful column names.
     ## I later came through and wrote a function function to automagically populate this list.
     species <- entry[["TaxonUnmodified"]]
-    test_types <- get_eupath_gene_types()
-    types <- c("protein coding", "snRNA encoding", "SRP RNA encoding",
-               "tRNA encoding", "miRNA encoding", "snoRNA encoding",
-               "rRNA encoding", "misc RNA", "scRNA encoding")
+    types <- get_eupath_gene_types()
     result <- data.frame()
-    for (t in 1:length(types)) {
-        type <- types[t]
-        message(" Querying gene type: ", type, ".")
 
-        ## Set the parameters and gather the results.
-        parameters <- list(
-            "organism" = jsonlite::unbox(species),
-            "geneType" = jsonlite::unbox(type),
-            "includePseudogenes" = jsonlite::unbox("Yes"))
-        question <- "GeneQuestions.GenesByGeneType"
-        a_result <- try(post_eupath_raw(
-            entry, question = question,
-            parameters = parameters, table_name = "annot"), silent = TRUE)
-        if ("try-error" %in% class(a_result)) {
-            next
-        } else {
-            colnames(a_result) <- tolower(colnames(a_result))
-            colnames(a_result) <- gsub(x = colnames(a_result),
-                                       pattern = "annot_annotated",
-                                       replacement = "annot")
-            result <- rbind(result, a_result)
-            message("Added ", nrow(a_result), " rows on ",
-                    ncol(a_result), " columns to the data.")
+    ## Excepting schistodb, all the services are .orgs which is a .net.
+    tld <- "org"
+    if (webservice == "schistodb") {
+        tld <- "net"
+    }
+
+    ## Finalize the URL to query using the webservice, tld, etc.
+    service_directory <- prefix_map(webservice)
+    ## https://tritrypdb.org/tritrypdb/service/record-types/transcript/searches/GenesByTaxon/reports/standard?organism=%5B%22Leishmania%20major%20strain%20Friedlin%22%5D&reportConfig=%7B%22attributes%22%3A%5B%22primary_key%22%2C%22gene_exon_count%22%2C%22exon_count%22%2C%22gene_transcript_count%22%2C%22three_prime_utr_length%22%2C%22five_prime_utr_length%22%2C%22strand%22%2C%22gene_type%22%2C%22is_pseudo%22%2C%22transcript_length%22%2C%22has_missing_transcripts%22%2C%22gene_name%22%2C%22gene_source_id%22%2C%22gene_previous_ids%22%2C%22gene_product%22%2C%22transcript_product%22%2C%22gene_entrez_id%22%2C%22uniprot_id%22%2C%22chromosome%22%2C%22gene_location_text%22%2C%22location_text%22%2C%22sequence_id%22%2C%22organism%22%2C%22gene_ortholog_number%22%2C%22gene_orthomcl_name%22%2C%22gene_paralog_number%22%2C%22cds%22%2C%22transcript_sequence%22%2C%22protein_sequence%22%2C%22protein_length%22%2C%22cds_length%22%2C%22molecular_weight%22%2C%22isoelectric_point%22%2C%22interpro_id%22%2C%22interpro_description%22%2C%22pfam_id%22%2C%22pfam_description%22%2C%22pirsf_id%22%2C%22pirsf_description%22%2C%22prositeprofiles_id%22%2C%22prositeprofiles_description%22%2C%22smart_id%22%2C%22smart_description%22%2C%22superfamily_id%22%2C%22superfamily_description%22%2C%22tigrfam_id%22%2C%22tigrfam_description%22%2C%22new_product_name%22%2C%22tm_count%22%2C%22signalp_peptide%22%2C%22signalp_scores%22%2C%22predicted_go_id_component%22%2C%22predicted_go_component%22%2C%22predicted_go_id_function%22%2C%22predicted_go_function%22%2C%22predicted_go_id_process%22%2C%22predicted_go_process%22%2C%22annotated_go_id_component%22%2C%22annotated_go_component%22%2C%22annotated_go_id_function%22%2C%22annotated_go_function%22%2C%22annotated_go_id_process%22%2C%22annotated_go_process%22%2C%22ec_numbers%22%2C%22ec_numbers_derived%22%2C%22gene_hts_noncoding_snps%22%2C%22gene_hts_nonsyn_syn_ratio%22%2C%22gene_hts_nonsynonymous_snps%22%2C%22gene_hts_stop_codon_snps%22%2C%22gene_hts_synonymous_snps%22%2C%22gene_total_hts_snps%22%5D%2C%22tables%22%3A%5B%5D%7D
+
+    base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/transcript/searches/GenesByTaxon/reports/standard")
+    query_string <- glue::glue('?organism={species}&reportConfig={{"attributes":["primary_key","gene_exon_count","exon_count","gene_transcript_count","three_prime_utr_length","five_prime_utr_length","strand","gene_type","is_pseudo","transcript_length","has_missing_transcripts","gene_name","gene_source_id","gene_previous_ids","gene_product","transcript_product","gene_entrez_id","uniprot_id","chromosome","gene_location_text","location_text","sequence_id","organism","gene_ortholog_number","gene_orthomcl_name","gene_paralog_number","cds","transcript_sequence","protein_sequence","protein_length","cds_length","molecular_weight","isoelectric_point","interpro_id","interpro_description","pfam_id","pfam_description","pirsf_id","pirsf_description","prositeprofiles_id","prositeprofiles_description","smart_id","smart_description","superfamily_id","superfamily_description","tigrfam_id","tigrfam_description","new_product_name","tm_count","signalp_peptide","signalp_scores","predicted_go_id_component","predicted_go_component","predicted_go_id_function","predicted_go_function","predicted_go_id_process","predicted_go_process","annotated_go_id_component","annotated_go_component","annotated_go_id_function","annotated_go_function","annotated_go_id_process","annotated_go_process","ec_numbers","ec_numbers_derived","gene_hts_noncoding_snps","gene_hts_nonsyn_syn_ratio","gene_hts_nonsynonymous_snps","gene_hts_stop_codon_snps","gene_hts_synonymous_snps","gene_total_hts_snps"],"tables":[]}}')
+    request_url <- glue::glue("{base_url}{query_string}")
+    species_filename <- gsub(pattern=" ", replacement="_", x=species)
+    download_json <- glue::glue("{build_dir}/{species_filename}.json")
+    request_encoded <- utils::URLencode(request_url)
+    file <- try(download.file(url = request_encoded, destfile = download_json), silent = TRUE)
+
+    ## We should now have some json data to poke through.
+    result <- try(jsonlite::fromJSON(download_json, flatten = TRUE), silent = TRUE)
+    if (class(result)[1] == "try-error") {
+        stop("There was a parsing failure when reading the metadata.")
+    }
+    if (length(result[["records"]]) == 0) {
+        next
+    }
+    records <- result[["records"]]
+    colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "", x = colnames(records))
+
+    ## First expand list columns
+    ## This process is a bit ridiculous
+    ## 1.  Record the set of list columns (currently there are 2, but I expect that will change at some point).
+    ##     This is handled by appending to the list_columns scalar.
+    ## 2.  Check the length of the elements in the list columns, right now one of them is empty
+    ##     So I am just going to drop it.
+    ## 3.  Figure out the structure of the lists from the first one
+    ##     These are little dataframes where the first column is the names and second column values.
+    ## 4.  Figure out if the data from the internal lists already exists, if so, ignore it,
+    ##     if not, make an empty column to hold that information.
+    ## 5.  Fill in the empty columns on a row-by-row basis; which is slow but at least clear.
+    ## 6.  Drop the original columns so they do not screw us later.
+    list_columns <- c()
+    for (col_num in 1:length(colnames(records))) {
+        if (class(records[[col_num]])[1] == "list") {
+            ## 1. above, write down the lists
+            list_columns <- c(col_num, list_columns)
+            ## 2. above, drop the empty lists
+            if (length(records[1, col_num][[1]]) == 0) {
+                next
+            }
+            ## 3. Get the internal structure from the first element
+            internal <- records[1, col_num][[1]]
+            new_names <- internal[[1]]
+            for (n in 1:length(new_names)) {
+                new_name <- new_names[n]
+                ## 4. Is this data already in the table?
+                if (!new_name %in% colnames(records)) {
+                    records[[new_name]] <- ""
+                }
+            }
+            ## 5. Fill in the new columns with the relevant data
+            for (r in 1:nrow(records)) {
+                for (n in 1:length(new_names)) {
+                    new_name <- new_names[n]
+                    records[r, new_name] <- internal[n, 2]
+                }
+            }
+        }
+    }
+    ## 6.  Get rid of the stupid list columns.
+    records[, list_columns] <- NULL
+
+    ## Use a heuristic to figure out numeric columns and set them accordingly.
+    cnames <- colnames(records)
+    for (i in 1:length(cnames)) {
+        cname <- cnames[i]
+        column <- records[[cname]]
+        idx <- !is.na(column)
+        column <- column[idx]
+        res <- suppressWarnings(!is.na(as.numeric(as.character(column))))
+        if (sum(res) == length(column)) {
+            message("Setting ", cname, " to numeric.")
+            records[[cname]] <- as.numeric(records[[cname]])
         }
     }
 
-    ## Get rid of spurious text in the previous IDs column
-    if (!is.null(result[["annot_gene_previous_ids"]])) {
-        result[["annot_gene_previous_ids"]] <- gsub(pattern = "^Previous IDs: ", replacement = "",
-                                                    x = result[["annot_gene_previous_ids"]])
-    }
+    ## Change entries which say 'N/A' to the actual NA value
+    na_idx <- records == "N/A" | records == "NA"
+    false_idx <- is.na(records)
+    na_idx[false_idx] <- FALSE
+    records[na_idx] <- NA
 
-    all_columns <- colnames(result)
-    numeric_columns <- c(
-        "annot_gene_exon_count",
-        "annot_gene_transcript_count",
-        "annot_gene_ortholog_number",
-        "annot_gene_paralog_number",
-        "annot_gene_total_hts_snps",
-        "annot_gene_hts_nonsynonymous_snps",
-        "annot_gene_hts_synonymous_snps",
-        "annot_gene_hts_noncoding_snps",
-        "annot_gene_hts_stop_codon_snps",
-        "annot_gene_hts_nonsyn_syn_ratio",
-        "annot_transcript_length",
-        "annot_exon_count",
-        "annot_cds_length",
-        "annot_tm_count",
-        "annot_molecular_weight",
-        "annot_isoelectric_point",
-        "annot_five_prime_utr_length",
-        "annot_three_prime_utr_length")
-
-    for (col in all_columns) {
-        na_idx <- is.na(result[[col]])
-        if (col %in% numeric_columns) {
-            if (!is.null(result[[col]])) {
-                result[[col]] <- as.numeric(result[[col]])
-            }
-            if (sum(na_idx) > 0) {
-                result[na_idx, col] <- 0
-            }
+    ## Hopefully the data is consistent now, so let us change the column names
+    ## and send the NAs to a contextually sensible value that sqlite will not yell about
+    ## e.g. if a column is numeric, set it to 0; if a column is a character, set it to ""
+        colnames(records) <- paste0("annot_", colnames(records))
+        for (col_num in 1:length(colnames(records))) {
+        na_idx <- is.na(records[[col_num]])
+        if (is.character(records[[col_num]])) {
+            records[na_idx, col_num] <- ""
         } else {
-            if (sum(na_idx) > 0) {
-                result[na_idx, col] <- ""
-            }
+            records[na_idx, col_num] <- 0
+        }
+        ## Cast factor columns explicitly as factors
+        test_col <- as.factor(records[[col_num]])
+        test_levels <- length(levels(test_col))
+        if (test_levels < 50) {
+            records[[col_num]] <- as.factor(records[[col_num]])
         }
     }
+
 
     ## Cast factor columns explicitly as factors
     factor_columns <- c(
@@ -151,12 +192,11 @@ get_eupath_gene_types <- function(webservice = NULL) {
     if (webservice == "schistodb") {
         tld <- "net"
     }
-    request_url <- glue::glue("http://{webservice}.{tld}/webservices/GeneQuestions/GenesByGeneType.wadl")
+    request_url <- glue::glue("https://{webservice}.{tld}/a/service/record-types/transcript/searches/GenesByGeneType")
+    test <- "https://tritrypdb.org/a/service/record-types/transcript/searches/GenesByGeneType"
     request <- curl::curl(request_url)
-    result <- xml2::read_xml(request)
-    ##close(request)
-    fields <- rvest::xml_nodes(result, xpath = '//*[@name="geneType"]')[[1]] %>%
-        xml2::xml_children() %>%
-        xml2::xml_attr("value")
-    return(fields)
+    result <- jsonlite::fromJSON(request_url)
+    vocabulary <- result[["searchData"]][["parameters"]][["vocabulary"]]
+    types <- vocabulary[[2]][, 1]
+    return(types)
 }

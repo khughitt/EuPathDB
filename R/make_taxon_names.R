@@ -17,7 +17,10 @@ make_taxon_names <- function(entry, column = "TaxonUnmodified") {
   species <- species_parts[2]
   strain <- ""
   if (length(species_parts) >= 3) {
-    for (part in 3:length(species_parts)) {
+      for (part in 3:length(species_parts)) {
+          if (part == "strain") {
+              next
+          }
       strain <- glue::glue("{strain}.{species_parts[part]}")
     }
   }
