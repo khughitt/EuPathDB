@@ -11,7 +11,7 @@
 #' @param verbose Print some information about what is found?
 #' @return Likely smaller data frame of valid information and larger dataframe of invalid.
 xref_species <- function(valid, invalid, verbose=FALSE,
-                         taxon_column = "TaxonUnmodified", species_column = "SpeciesName") {
+                         taxon_column = "TaxonUnmodified", species_column = "GenusSpecies") {
   testing_metadata <- valid
   valid_metadata <- data.frame()
   invalid_metadata <- data.frame()
@@ -48,7 +48,8 @@ xref_species <- function(valid, invalid, verbose=FALSE,
   ## So let us query that now and see if we pick up more valid entries.
   valid_idx <- testing_metadata[[species_column]] %in% annotationhub_species
   if (isTRUE(verbose)) {
-    message("Adding ", sum(valid_idx), " species after using GenomeInfoDb.")
+    message("Adding ", sum(valid_idx), " species after using GenomeInfoDb against ",
+            species_column, ".")
   }
   if (sum(valid_idx) > 0) {
     ## Pull out the new valid entries

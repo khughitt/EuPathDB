@@ -99,6 +99,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
+    colnames(gene_table)[1] <- "GID"
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
   gene_table <- remove_eupath_nas(gene_table, "annot")
@@ -252,7 +253,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     "maintainer" = entry[["Maintainer"]],
     "author" = entry[["Maintainer"]],
     "outputDir" = build_dir,
-    "tax_id" = as.character(entry[["TaxonomyId"]]),
+    "tax_id" = as.character(entry[["TaxonomyID"]]),
     "genus" = taxa[["genus"]],
     "species" = glue::glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
     ##"goTable" = NULL,
@@ -373,7 +374,8 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   if (is.null(godb_source)) {
     message("Setting the godb source to the union of go and goslim.")
     if (nrow(goslim_table) > 0) {
-      godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID", "GOSLIM_EVIDENCE_CODE")]
+        godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
+        godb_table[["EVIDENCE"]] <- "GOSlim"
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
     if (nrow(go_table) > 0) {
@@ -383,7 +385,8 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     }
   } else if (godb_source == "goslim") {
     if (nrow(goslim_table) > 0) {
-      godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID", "GOSLIM_EVIDENCE_CODE")]
+        godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
+        godb_table[["EVIDENCE"]] <- "GOSlim"
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
   } else {

@@ -51,7 +51,7 @@ transcript information for {.data[['Taxon']]}"),
              RDataPath = .data[["GrangesFile"]])
 
   ## fix column types
-  numeric_cols <- c("NumGenes", "NumOrthologs", "SourceVersion", "TaxonomyId")
+  numeric_cols <- c("NumGene", "NumOrtholog", "SourceVersion", "TaxonomyID")
   for (x in numeric_cols) {
     granges_metadata[, x] <- as.numeric(granges_metadata[, x])
   }

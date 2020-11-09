@@ -4,13 +4,13 @@
 #' @param workdir Location to which to save intermediate savefile.
 #' @param overwrite If trying again, overwrite the savefile?
 #' @return A big honking table.
-post_eupath_pathway_table <- function(entry=NULL, workdir="EuPathDB", overwrite=FALSE) {
+post_eupath_pathway_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
   if (is.null(entry)) {
     stop("  Need a eupathdb entry.")
   }
-  rdadir <- file.path(workdir, "rda")
+  rdadir <- file.path(build_dir, "rda")
   if (!file.exists(rdadir)) {
-    created <- dir.create(rdadir, recursive=TRUE)
+    created <- dir.create(rdadir, recursive = TRUE)
   }
   savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_pathway_table.rda"))
   if (file.exists(savefile)) {
@@ -19,31 +19,13 @@ post_eupath_pathway_table <- function(entry=NULL, workdir="EuPathDB", overwrite=
     } else {
       message("  Delete the file ", savefile, " to regenerate.")
       result <- new.env()
-      load(savefile, envir=result)
+      load(savefile, envir = result)
       result <- result[["result"]]
       return(result)
     }
   }
 
-  species <- entry[["TaxonUnmodified"]]
-  query_body <- list(
-    ## 2 elements, answerSpec, formatting.
-    "answerSpec" = list(
-      "questionName" = jsonlite::unbox("GeneQuestions.GenesByTaxonGene"),
-      "parameters" = list("organism" = jsonlite::unbox(species)),
-      "viewFilters" = list(),
-      "filters" = list()
-    ),
-    "formatting" = list(
-      "formatConfig" = list(
-        "tables" = "MetabolicPathways",
-        "includeEmptyTables" = jsonlite::unbox("false"),
-        "attachmentType" = jsonlite::unbox("plain")
-      ),
-      "format" = jsonlite::unbox("tableTabular")
-    ))
-
-  result <- post_eupath_table(query_body, entry, table_name="pathway")
+  result <- post_eupath_table(entry, tables = "MetabolicPathways", table_name = "pathway")
   colnames(result) <- gsub(x=colnames(result), pattern="^PATHWAY_PATHWAY$",
                            replacement="PATHWAY_ID")
   colnames(result) <- gsub(x=colnames(result), pattern="PATHWAY_PATHWAY",

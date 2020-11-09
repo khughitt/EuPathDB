@@ -13,9 +13,11 @@
 #'
 #' @param metadata Information provided by downloading the metadata from a eupathdb sub project.
 #' @param verbose Print some information about what is found as this runs?
+#' @param species_column Because the species column name has changed.
+#' @param taxon_column Because the taxonomy column name has changed.
 #' @return List containing entries which pass and fail after xrefing against loadTaxonomyDb().
 xref_taxonomy <- function(metadata, verbose = FALSE,
-                          species_column = "SpeciesName", taxon_column = "TaxonomyId") {
+                          species_column = "SpeciesName", taxon_column = "TaxonomyID") {
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   matched_idx <- c()
   unmatched_idx <- c()
@@ -23,7 +25,7 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
     species_info <- make_taxon_names(metadatum, column = species_column)
-    if (is.na(metadata[it, "TaxonomyId"])) {
+    if (is.na(metadata[it, taxon_column])) {
       ## First identify genera in all_taxa_ids which are shared with this entry.
       found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% species_info[["genus"]])
       if (length(found_genus_taxa_idx) > 0) {
@@ -37,7 +39,7 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
           if (isTRUE(verbose)) {
             message("Setting the taxonomy id from GenomeInfoDb for ", metadata[it, species_column], ".")
           }
-          metadata[it, "TaxonomyId"] <- taxon_id
+          metadata[it, taxon_column] <- taxon_id
           matched_idx <- c(matched_idx, it)
         } else {
           if (isTRUE(verbose)) {

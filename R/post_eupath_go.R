@@ -4,12 +4,12 @@
 #' @param workdir Location to write savefiles.
 #' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return A big honking table.
-post_eupath_go_table <- function(entry = NULL, workdir = "EuPathDB", overwrite = FALSE) {
+post_eupath_go_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
   if (is.null(entry)) {
     stop("  Need an entry from the eupathdb.")
   }
 
-  rdadir <- file.path(workdir, "rda")
+  rdadir <- file.path(build_dir, "rda")
   if (!file.exists(rdadir)) {
     created <- dir.create(rdadir, recursive = TRUE)
   }
@@ -27,25 +27,7 @@ post_eupath_go_table <- function(entry = NULL, workdir = "EuPathDB", overwrite =
     }
   }
 
-  species <- entry[["TaxonUnmodified"]]
-  query_body <- list(
-    ## 3 elements, answerSpec, formatting, format.
-    "answerSpec" = list(
-      "questionName" = jsonlite::unbox("GeneQuestions.GenesByTaxonGene"),
-      "parameters" = list("organism" = jsonlite::unbox(species)),
-      "viewFilters" = list(),
-      "filters" = list()
-    ),
-    "formatting" = list(
-      "formatConfig" = list(
-        "tables" = "GOTerms",
-        "includeEmptyTables" = jsonlite::unbox("true"),
-        "attachmentType" = jsonlite::unbox("plain")
-      ),
-      "format" = jsonlite::unbox("tableTabular")
-    ))
-
-  result <- post_eupath_table(query_body, entry, table_name = "godb")
+  result <- post_eupath_table(entry, tables = "GOTerms", table_name = "godb")
   colnames(result) <- gsub(x = colnames(result), pattern = "GO_GO", replacement = "GO")
   colnames(result) <- gsub(x = colnames(result), pattern = "^GO$", replacement = "GO_GOID")
   message("  Saving ", savefile, " with ", nrow(result), " rows.")

@@ -100,20 +100,73 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   service_directory <- prefix_map(webservice)
   base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/organism/searches/GenomeDataTypes/reports/standard")
 
-  query_string <- '?reportConfig=%7B%22attributes%22%3A%5B%22primary_key%22%2C%22wdk_weight%22%2C%22data_source%22%2C%22genecount_number%22%2C%22database_version%22%2C%22URLgff%22%2C%22is_annotated_genome%22%2C%22project_id%22%2C%22URLproteinFasta%22%2C%22is_published%22%2C%22release_policy%22%2C%22is_reference_strain%22%2C%22ncbi_taxon_url%22%2C%22overview%22%2C%22species%22%2C%22strain%22%2C%22URLGenomeFasta%22%2C%22pseudogenecount%22%2C%22chipchipgenecount%22%2C%22ecnumbercount%22%2C%22estcount%22%2C%22gocount%22%2C%22arraygenecount%22%2C%22othergenecount%22%2C%22orthologcount%22%2C%22popsetcount%22%2C%22codinggenecount%22%2C%22proteomicscount%22%2C%22rnaseqcount%22%2C%22rtpcrcount%22%2C%22snpcount%22%2C%22tfbscount%22%2C%22hasHTSIsolate%22%5D%2C%22tables%22%3A%5B%5D%7D'
-  request_url <- glue::glue("{base_url}{query_string}")
-
-  ## retrieve organism metadata from EuPathDB
-  metadata_json <- glue::glue("{build_dir}/metadata.json")
-
-  ## It turns out that not all eupathdb hosts have moved to https.
-  ## Therefore I wrapped this download to a try() and will check it.
-  file <- try(download.file(url = request_url, destfile = metadata_json), silent = TRUE)
-
-  ## We should now have some json data to poke through.
-  result <- try(jsonlite::fromJSON(metadata_json, flatten = TRUE), silent = TRUE)
+  post_string <- '{
+  "searchConfig": {
+    "parameters": {},
+    "wdkWeight": 10
+  },
+  "reportConfig": {
+    "attributes": [
+      "primary_key",
+      "URLgff",
+      "isOrganellar_flag",
+      "project_id",
+      "URLproteinFasta",
+      "annotation_source",
+      "annotation_version",
+      "chromosomeCount",
+      "contigCount",
+      "genome_source",
+      "genome_version",
+      "megabps",
+      "is_reference_strain",
+      "ncbi_tax_id",
+      "URLGenomeFasta",
+      "genecount",
+      "pseudogenecount",
+      "chipchipgenecount",
+      "ecnumbercount",
+      "estcount",
+      "gocount",
+      "arraygenecount",
+      "othergenecount",
+      "orthologcount",
+      "popsetcount",
+      "codinggenecount",
+      "proteomicscount",
+      "rnaseqcount",
+      "rtpcrcount",
+      "snpcount",
+      "tfbscount",
+      "communitycount"
+    ],
+    "tables": []
+  }
+}
+'
+  result <- httr::POST(url = base_url, body = post_string,
+                       httr::content_type("application/json"),
+                       httr::timeout(120))
+  ## Test the result to see that we actually got data.
+  if (result[["status_code"]] == "422") {
+      warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))
+      return(data.frame())
+  } else if (result[["status_code"]] == "400") {
+      ## likely due to bad formatConfig
+      warn(sprintf("API Request failed for %s (code = 400): ", entry[["Taxon"]]))
+  } else if (result[["status_code"]] == "404") {
+      warn(sprintf("API Request failed for %s (code = 404): ", entry[["Taxon"]]))
+  } else if (result[["status_code"]] != "200") {
+      warn(sprintf("API Request failed for %s (code = %d): ",
+                   entry$Taxon, result[["status_code"]]))
+      return(data.frame())
+  } else if (length(result[["content"]]) < 100) {
+      warn("Very small amount of content returned for :", entry[["Taxon"]])
+  }
+  cont <- httr::content(result, encoding = "UTF-8", as = "text")
+  result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
   if (class(result)[1] == "try-error") {
-    stop("There was a parsing failure when reading the metadata.")
+      stop("There was a parsing failure when reading the metadata.")
   }
 
   ## Every record contains and id, some fields, and tables.
@@ -124,9 +177,9 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## It turns out the metadata returned still says schistodb.org even though it is .net.
   ## I am pretty sure I wrote Cristina about this and it may be fixed now.
   records <- mutate_if(
-    records,
-    is.character,
-    stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
+      records,
+      is.character,
+      stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
 
   ## The NULL is because NSE semantics are still a bit nonsensical to me.
   ## The goal here though is to create a final table of the expected metadata from the
@@ -134,73 +187,187 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## eupathdb version, bioconductor version, etc.
   SourceUrl <- NULL
 
-  ## The new id column is a nested dataframe, which is super annnoying.
-  ## In theory this should be pretty easy to deal with using dplyr/tidyr, but
-  ## the way the internal dataframe is structured is a bit more than weird.
-  records[["provider_id"]] <- ""
-  records[["source_id"]] <- ""
-  for (r in 1:nrow(records)) {
-    internal <- records[r, "id"][[1]]
-    records[r, "source_id"] <- internal[1, "value"]
-    records[r, "provider_id"] <- internal[2, "value"]
-  }
+  records <- expand_list_columns(records)
 
-  ## The full set of columns are:
-  ## displayName recordClassName id tableErrors is_annotated_genome is_published arraygenecount
-  ## orthologcount URLgff URLGenomeFasta release_policy chipchipgenecount popsetcount gocount
-  ## project_id estcount ecnumbercount proteomicscount codinggenecount is_reference_strain strain
-  ## rtpcrcount snpcount overview pseudogenecount wdk_weight URLproteinFasta hasHTSIsolate
-  ## genecount_number primary_key tfbscount data_source species database_version othergenecount
-  ## rnaseqcount ncbi_taxon_url.displayText ncbi_taxon_url.url provider_id source_id
-  ## I left off a fair number of columns out of lazyness and/or disinterest.
+  ## The full set of columns changed again and are now (rearranged to alphabetic order):
+  ## "annotation_version"
+  ## "annotation_source"
+  ## "arraygenecount"
+  ## "chipchipgenecount"
+  ## "chromosomeCount"
+  ## "codinggenecount"
+  ## "communitycount"
+  ## "contigCount"
+  ## "displayName"
+  ## "ecnumbercount"
+  ## "estcount"
+  ## "genecount"
+  ## "genome_source"
+  ## "genome_version"
+  ## "gocount"
+  ## "id"
+  ## "isOrganellar_flag"
+  ## "is_reference_strain"
+  ## "megabps"
+  ## "ncbi_tax_id"
+  ## "orthologcount"
+  ## "othergenecount"
+  ## "popsetcount"
+  ## "primary_key"
+  ## "proteomicscount"
+  ## "project_id"
+  ## "provider_id"
+  ## "pseudogenecount"
+  ## "recordClassName"
+  ## "rnaseqcount"
+  ## "rtpcrcount"
+  ## "snpcount"
+  ## "source_id"
+  ## "tableErrors"
+  ## "tfbscount"
+  ## "URLGenomeFasta"
+  ## "URLgff"
+  ## "URLproteinFasta"
+
+  ## This transmute is being performed in an attempt to standardize the column names.
+  ## In creating it, I took the original column names, alphabetized them, rewrote them as
+  ## CamelCase, changed once which are explicitly numeric/URLs, and added a few which are
+  ## used by AnnotationHub.  I think we can assume they will change more as time passes, given
+  ## that they have changed at least once in the recent past.
+
+    ## Here are columns which do not yet have a home, but were included in the older versions
+  ## of this before they changed it circa 202011
+  ## "TaxonomyId" = .data[["ncbi_taxon_url.displayText"]],
+  ## "SpeciesName" = .data[["species"]],
+  ## "StrainName" = .data[["strain"]],
+  ## "DataProvider" = .data[["provider_id"]],
+  ## "Annotated" = .data[["is_annotated_genome"]],
+  ## "Published" = .data[["is_published"]],
+  ## "NumOrthologs" = .data[["orthologcount"]],
+  ## "SourceUrl" = .data[["URLgff"]],
+  ## "SourceType" = "GFF",
+  ## "GenomeUrl" = .data[["URLGenomeFasta"]],
+  ## "NumGO" = .data[["gocount"]],
+  ## "ProjectID" = .data[["project_id"]],
+  ## "NumEST" = .data[["estcount"]],
+  ## "NumEC" = .data[["ecnumbercount"]],
+  ## "NumCoding" = .data[["codinggenecount"]],
+  ## "ReferenceStrain" = .data[["is_reference_strain"]],
+  ## "NumSNPs" = .data[["snpcount"]],
+  ## "NumPseudoGenes" = .data[["pseudogenecount"]],
+  ## "ProteinUrl" = .data[["URLproteinFasta"]],
+  ## "DataSource" = .data[["data_source"]],
+  ## "DataVersion" = .data[["database_version"]],
+  ## "Coordinate_1_based" = TRUE,
+  ## "Maintainer" = "Keith Hughitt <khughitt@umd.edu>") %>%
+
+  ## Thus I am not going to chain the following operations, because until everything stabilizes
+  ## I am just going to have to come back in here and fix weird stuff.
   metadata <- records %>%
     dplyr::transmute(
-             "BiocVersion" = as.character(bioc_version),
-             "Genome" = sub(pattern = ".gff", replacement = "", x = basename(.data[["URLgff"]])),
-             "NumGenes"= .data[["genecount_number"]],
-             "SourceVersion" = db_version,
-             "TaxonomyName" = gsub(pattern = "<[^>]*>", replacement = "", x = .data[["displayName"]]),
-             "TaxonomyId" = .data[["ncbi_taxon_url.displayText"]],
-             "SpeciesName" = .data[["species"]],
-             "StrainName" = .data[["strain"]],
-             "DataProvider" = .data[["provider_id"]],
-             "Annotated" = .data[["is_annotated_genome"]],
-             "Published" = .data[["is_published"]],
-             "NumOrthologs" = .data[["orthologcount"]],
-             "SourceUrl" = .data[["URLgff"]],
-             "SourceType" = "GFF",
-             "GenomeUrl" = .data[["URLGenomeFasta"]],
-             "NumGO" = .data[["gocount"]],
-             "ProjectID" = .data[["project_id"]],
-             "NumEST" = .data[["estcount"]],
-             "NumEC" = .data[["ecnumbercount"]],
-             "NumCoding" = .data[["codinggenecount"]],
-             "ReferenceStrain" = .data[["is_reference_strain"]],
-             "NumSNPs" = .data[["snpcount"]],
-             "NumPseudoGenes" = .data[["pseudogenecount"]],
-             "ProteinUrl" = .data[["URLproteinFasta"]],
-             "DataSource" = .data[["data_source"]],
-             "DataVersion" = .data[["database_version"]],
-             "Coordinate_1_based" = TRUE,
-             "Maintainer" = "Keith Hughitt <khughitt@umd.edu>") %>%
-    dplyr::mutate_if(is.character,  ## This was added because there is no 'Current_Release' directory.
-                     stringr::str_replace_all,
-                     pattern = "Current_Release",
-                     replacement = glue::glue("release-{db_version}")) %>%
-    dplyr::mutate("SourceUrl" = gsub(pattern = "DB-(\\d\\d)_",  ## This is because during the weeks
-                                     ## when they are getting ready for a new release, this field
-                                     ## does not match the actual data (E.g. they increment this url
-                                     ## before the data is actually released).
-                                     replacement = glue::glue("DB-{db_version}_"),
-                                     x = SourceUrl)) %>%
-    dplyr::mutate("GenomeUrl" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
-                                     replacement = glue::glue("DB-{db_version}_"),
-                                     x = GenomeUrl)) %>%
-    dplyr::mutate("ProteinUrl" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
-                                      replacement = glue::glue("DB-{db_version}_"),
-                                      x = ProteinUrl))
-
-  ## Add project-specific tags for each entry
+               ## "annotation_version"
+               "AnnotationVersion" = .data[["annotation_version"]],
+               ## "annotation_source"
+               "AnnotationSource" = .data[["annotation_source"]],
+               ## Not a column from the POST
+               "BiocVersion" = as.character(bioc_version),
+               ## "project_id"
+               "DataProvider" = .data[["project_id"]],
+               "Genome" = sub(pattern = ".gff", replacement = "", x = basename(.data[["URLgff"]])),
+               ## "genome_source"
+               "GenomeSource" = .data[["genome_source"]],
+               ## "genome_version"
+               "GenomeVersion" = .data[["genome_version"]],
+               ## "arraygenecount"
+               "NumArrayGene" = .data[["arraygenecount"]],
+               ## "chipchipgenecount"
+               "NumChipChipGene" = .data[["chipchipgenecount"]],
+               ## "chromosomeCount"
+               "NumChromosome" = .data[["chromosomeCount"]],
+               ## "codinggenecount"
+               "NumCodingGene" = .data[["codinggenecount"]],
+               ## "communitycount"
+               "NumCommunity" = .data[["communitycount"]],
+               ## "contigCount"
+               "NumContig" = .data[["contigCount"]],
+               ## "ecnumbercount"
+               "NumEC" = .data[["ecnumbercount"]],
+               ## "estcount"
+               "NumEST" = .data[["estcount"]],
+               ## "genecount"
+               "NumGene" = .data[["genecount"]],
+               ## "gocount"
+               "NumGO" = .data[["gocount"]],
+               ## "orthologcount"
+               "NumOrtholog" = .data[["orthologcount"]],
+               ## "othergenecount"
+               "NumOtherGene" = .data[["othergenecount"]],
+               ## "popsetcount"
+               "NumPopSet" = .data[["popsetcount"]],
+               ## "proteomicscount"
+               "NumProteomics" = .data[["proteomicscount"]],
+               ## "pseudogenecount"
+               "NumPseudogene" = .data[["pseudogenecount"]],
+               ## "rnaseqcount"
+               "NumRNASeq" = .data[["rnaseqcount"]],
+               ## "rtpcrcount"
+               "NumRTPCR" = .data[["rtpcrcount"]],
+               ## "snpcount"
+               "NumSNP" = .data[["snpcount"]],
+               ## "tfbscount"
+               "NumTFBS" = .data[["tfbscount"]],
+               ## "isOrganellar_flag"
+               "Organellar" = .data[["isOrganellar_flag"]],
+               ## "is_reference_strain"
+               "ReferenceStrain" = .data[["is_reference_strain"]],
+               ## "megabps"
+               "MegaBP" = .data[["megabps"]],
+               ## "primary_key"
+               "PrimaryKey" =  gsub(pattern = "<[^>]*>", replacement = "", x = .data[["primary_key"]]),
+               ## "project_id"
+               "ProjectID" = .data[["project_id"]],
+               ## "recordClassName"
+               "RecordClassName" = .data[["recordClassName"]],
+               ## "source_id"
+               "SourceID" = .data[["source_id"]],
+               "SourceVersion" = db_version,
+               ## "ncbi_tax_id"
+               "TaxonomyID" = .data[["ncbi_tax_id"]],
+               ## "displayName"
+               "TaxonomyName" = gsub(pattern = "<[^>]*>", replacement = "", x = .data[["displayName"]]),
+               ## "URLGenomeFasta"
+               "URLGenome" = .data[["URLGenomeFasta"]],
+               ## "URLgff"
+               "URLGFF" = .data[["URLgff"]],
+               ## "URLproteinFasta"
+               "URLProtein" = .data[["URLproteinFasta"]],
+               "Coordinate_1_based" = TRUE,
+               "Maintainer" = "Keith Hughitt <khughitt@umd.edu>")
+  ##
+  ## There remain a series of cleanups which will need to happen before this data is usable:
+  ##
+  ## 1. When downloading data directly, there is no 'Current_Release' directory (or at least there
+  ##    was none when last I checked.
+  metadata <- metadata %>% dplyr::mutate_if(is.character,
+                   stringr::str_replace_all,
+                   pattern = "Current_Release",
+                   replacement = glue::glue("release-{db_version}"))
+  ## 2. In the weeks leading up to a new release, the EuPathDB folks change the SourceURL column
+  ##    to reflect the coming database version before it actually exists.  Thus during that time
+  ##    downloads will fail unless the database version is substituted back in.
+  metadata <- metadata %>% dplyr::mutate("SourceUrl" = gsub(pattern = "DB-(\\d\\d)_",
+                                                            replacement = glue::glue("DB-{db_version}_"),
+                                                            x = URLGFF)) %>%
+      dplyr::mutate("URLGFF" = gsub(pattern = "DB-(\\d\\d)_",
+                                    replacement = glue::glue("DB-{db_version}_"),
+                                    x = URLGFF)) %>%
+      dplyr::mutate("URLGenome" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
+                                       replacement = glue::glue("DB-{db_version}_"),
+                                       x = URLGenome)) %>%
+      dplyr::mutate("URLProtein" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
+                                        replacement = glue::glue("DB-{db_version}_"),
+                                        x = URLProtein))
+  ## 3.  Add taxonomic tags
   metadata[["Tags"]] <- sapply(metadata[["DataProvider"]], function(x) {
     tag_strings[[x]]
   })
@@ -217,9 +384,9 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## for which the taxonomy information is invalid.  I think I did not use it because
   ## I later added some heuristics to hunt down the missing entries, and actually doing
   ## the subset based on this results in the loss of too many species.
-  na_idx <- is.na(metadata[["TaxonomyId"]])
+  na_idx <- is.na(metadata[["TaxonomyID"]])
   ## I think I will try to hack around this problem.
-  metadata[["TaxonomyId"]] <- as.numeric(metadata[["TaxonomyId"]])
+  metadata[["TaxonomyID"]] <- as.numeric(metadata[["TaxonomyID"]])
 
   ## generate separate metadata table for OrgDB and GRanges targets
   version_string <- format(Sys.time(), "%Y.%m")
@@ -233,10 +400,11 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   metadata[["TxdbPkg"]] <- ""
   metadata[["Taxon"]] <- ""
   metadata[["Genus"]] <- ""
-  metadata[["Sp"]] <- ""
-  metadata[["Str"]] <- ""
+  metadata[["Species"]] <- ""
+  metadata[["Strain"]] <- ""
 
-  ## A couple changes to try to make the metadata I generate pass
+  ## Include the package names for the various data types along with the most likely
+  ## useful separations of the taxon name (e.g. The Genus, Species, Strain, etc.)
   for (i in 1:nrow(metadata)) {
     metadatum <- metadata[i, ]
     ## In most invocations of make_taxon_names and get_eupath_pkgnames,
@@ -265,11 +433,11 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
     metadata[i, "TxdbFile"] <- file.path(
       build_dir, "TxDb", metadata[i, "BiocVersion"],
       glue::glue("{metadata[i, 'TxdbPkg']}.sqlite"))
-    metadata[i, "Sp"] <- gsub(x = species_info[["genus_species"]],
+    metadata[i, "GenusSpecies"] <- gsub(x = species_info[["genus_species"]],
                                     pattern = "\\.", replacement = " ")
-    metadata[i, "Str"] <- species_info[["strain"]]
+    metadata[i, "Strain"] <- species_info[["strain"]]
     metadata[i, "Genus"] <- species_info[["genus"]]
-    metadata[i, "Sp"] <- species_info[["species"]]
+    metadata[i, "Species"] <- species_info[["species"]]
     metadata[i, "Taxon"] <- gsub(x = species_info[["taxon"]],
                                   pattern = "\\.", replacement = " ")
     metadata[i, "TaxonUnmodified"] <- species_info[["unmodified"]]
@@ -280,12 +448,16 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## There are two things we need to successfully cross reference:
   ##  1.  The taxonomy IDs from GenomeInfoDB
   ##  2.  The species names provided by AnnotationHubData's getSpeciesList().
-  taxa_xref <- xref_taxonomy(metadata, verbose = verbose, species_column = "TaxonomyName")
+  taxa_xref <- xref_taxonomy(metadata, verbose = verbose,
+                             species_column = "TaxonomyName",
+                             taxon_column = "TaxonomyID")
   species_xref <- xref_species(valid = taxa_xref[["matched_metadata"]],
                                invalid = taxa_xref[["unmatched_metadata"]],
+                               taxon_column = "TaxonUnmodified",
+                               species_column = "GenusSpecies",
                                verbose = verbose)
   ## Hopefully now, the TaxonXref column contains only things which match getSpeciesList()
-  ## and the TaxonomyId column contains only things in the GenomeInfoDb.
+  ## and the TaxonomyID column contains only things in the GenomeInfoDb.
 
   ## if enabled, limit metadata table to N entries;
   if (limit_n < Inf & limit_n < nrow(species_xref[["valid"]])) {
@@ -294,6 +466,10 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
     ind <- sample(nrow(species_xref[["valid"]]), limit_n)
     species_xref[["valid"]] <- species_xref[["valid"]][ind, ]
   }
+
+  ## To satisfy readr which detects the BiocVersion as a double sometimes and character others
+  species_xref[["valid"]][["BiocVersion"]] <- as.numeric(species_xref[["valid"]][["BiocVersion"]])
+  species_xref[["invalid"]][["BiocVersion"]] <- as.numeric(species_xref[["invalid"]][["BiocVersion"]])
 
   ## Write out the metadata and finish up.
   if (isTRUE(write_csv)) {
