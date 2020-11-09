@@ -2,16 +2,15 @@ Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
 Version: 1.6.0
 Author: Keith Hughitt, Ashton Trey Belew
-Authors@R: c(person("Keith", "Hughitt", email="keith.hughitt@nih.gov", role=c("aut","cre")),
+Authors@R: c(person("Keith", "Hughitt", email="khughitt@umd.edu", role=c("aut","cre")),
              person("Ashton", "Belew", email="abelew@gmail.com", role=c("aut")))
-Maintainer: Keith Hughitt <keith.hughitt@nih.gov>
+Maintainer: Keith Hughitt <khughitt@umd.edu>
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
     available in R using the AnnotationHub framework.
 Depends:
     R (>= 3.5),
     GenomeInfoDbData,
-Encoding: UTF-8
 Imports: AnnotationHub, AnnotationHubData,
          Biobase, Biostrings, BiocGenerics,
          data.table, dplyr,
@@ -45,7 +44,7 @@ Collate:
  'check_s3.R'
  'clean_pkg.R'
  'copy_s3_file.R'
- 'download_eupathdb_metadata.R'
+ 'download_eupath_metadata.R'
  'download_uniprot_annotations.R'
  'eupathdb.R'
  'expand_list_columns.R'
@@ -63,12 +62,11 @@ Collate:
  'load_kegg_annotations.R'
  'load_orgdb_annotations.R'
  'load_orgdb_go.R'
- 'logging.R'
- 'make_eupathdb_bsgenome.R'
- 'make_eupathdb_granges.R'
- 'make_eupathdb_organismdbi.R'
- 'make_eupathdb_orgdb.R'
- 'make_eupathdb_txdb.R'
+ 'make_eupath_bsgenome.R'
+ 'make_eupath_granges.R'
+ 'make_eupath_organismdbi.R'
+ 'make_eupath_orgdb.R'
+ 'make_eupath_txdb.R'
  'make_taxon_names.R'
  'move_final_package.R'
  'orgdb_from_ah.R'
@@ -87,6 +85,6 @@ Collate:
  'prefix_map.R'
  'query_s3_file.R'
  'query_s3_ah.R'
- 'write_eupathdb_metadata.R'
+ 'write_eupath_metadata.R'
  'xref_species.R'
  'xref_taxonomy.R'

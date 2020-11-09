@@ -724,9 +724,9 @@ document.addEventListener("DOMContentLoaded", function() {
 <h2>Getting a less popular TriTrypDB data set</h2>
 <p>In some of my work, it is interesting to compare genes from species like Leishmania to Crithidia fasculata. In order to get the newest version of that data, we need to query the TriTrypDB web resource rather than EupathDB.</p>
 <div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb92-1" title="1"><span class="co">## Note that some but not all web services have moved to https...</span></a>
-<a class="sourceLine" id="cb92-2" title="2"><span class="co">## tri_meta &lt;- download_eupathdb_metadata(webservice=&quot;tritrypdb&quot;)</span></a>
+<a class="sourceLine" id="cb92-2" title="2"><span class="co">## tri_meta &lt;- download_eupath_metadata(webservice=&quot;tritrypdb&quot;)</span></a>
 <a class="sourceLine" id="cb92-3" title="3"></a>
-<a class="sourceLine" id="cb92-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb92-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
 <pre><code>## Warning: 'BiocInstaller' and 'biocLite()' are deprecated, use the 'BiocManager'
 ##   CRAN package instead.</code></pre>
 <pre><code>## Added 21 species after using only the genus species.</code></pre>
@@ -762,15 +762,15 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="creating-the-package" class="section level3">
 <h3>Creating the package</h3>
 <p>Now that we have the canonical name from the TriTrypDB for Crithidia, we can create a fresh orgdb package for it. I will not actually run this because it takes a long time and prints a lot to screen.</p>
-<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb100-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_orgdb</span>(sc_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb100-2" title="2">txdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_txdb</span>(sc_entry)</a>
-<a class="sourceLine" id="cb100-3" title="3">bsgenome_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_bsgenome</span>(sc_entry)</a>
-<a class="sourceLine" id="cb100-4" title="4">organ_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_organismdbi</span>(sc_entry)</a></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb100-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_orgdb</span>(sc_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb100-2" title="2">txdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_txdb</span>(sc_entry)</a>
+<a class="sourceLine" id="cb100-3" title="3">bsgenome_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_bsgenome</span>(sc_entry)</a>
+<a class="sourceLine" id="cb100-4" title="4">organ_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_organismdbi</span>(sc_entry)</a></code></pre></div>
 </div>
 <div id="another-example-from-the-tritrypdb" class="section level3">
 <h3>Another example from the tritrypdb</h3>
-<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb101-1" title="1">lm_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;Friedlin&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
-<a class="sourceLine" id="cb101-2" title="2">lm_orgdb &lt;-<span class="st"> </span><span class="kw">make_eupathdb_orgdb</span>(lm_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb101-1" title="1">lm_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;Friedlin&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
+<a class="sourceLine" id="cb101-2" title="2">lm_orgdb &lt;-<span class="st"> </span><span class="kw">make_eupath_orgdb</span>(lm_entry, <span class="dt">reinstall=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 </div>
 </div>
 <div id="extracting-annotation-data" class="section level2">
@@ -778,8 +778,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>The following demonstrates ways to extract data from the generated orgdb package.</p>
 <div id="choosing-and-loading-a-generated-package" class="section level3">
 <h3>Choosing and loading a generated package</h3>
-<p>Because the eupathdb is constantly evolving, the get_eupathdb_pkgnames() function will use the metadata generated in download_eupathdb_metadata() in order to provide a differently names package for each eupathdb revision.</p>
-<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb102-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">get_eupathdb_pkgnames</span>(sc_entry)</a>
+<p>Because the eupathdb is constantly evolving, the get_eupath_pkgnames() function will use the metadata generated in download_eupath_metadata() in order to provide a differently names package for each eupathdb revision.</p>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb102-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">get_eupath_pkgnames</span>(sc_entry)</a>
 <a class="sourceLine" id="cb102-2" title="2">sc_orgdb &lt;-<span class="st"> </span>orgdb_pkg<span class="op">$</span>orgdb</a>
 <a class="sourceLine" id="cb102-3" title="3"><span class="co">## Here is the name of the current yeast package.</span></a>
 <a class="sourceLine" id="cb102-4" title="4">sc_orgdb</a></code></pre></div>
@@ -1225,8 +1225,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="shortcut-methods" class="section level3">
 <h3>Shortcut methods</h3>
 <p>Remembering the keytype and package names and everything can be annoying. The following attempts to make that easier. In this instance, the only thing we need to provide is a unique substring for the species of interest. If the substring is not unique, this should show the matches and choose the first.</p>
-<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb139-1" title="1"><span class="co">## The function load_eupathdb_annotations() provides a shortcut to the above.</span></a>
-<a class="sourceLine" id="cb139-2" title="2">major_annot &lt;-<span class="st"> </span><span class="kw">load_eupathdb_annotations</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb139-1" title="1"><span class="co">## The function load_eupath_annotations() provides a shortcut to the above.</span></a>
+<a class="sourceLine" id="cb139-2" title="2">major_annot &lt;-<span class="st"> </span><span class="kw">load_eupath_annotations</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>)</a></code></pre></div>
 <pre><code>## Added 34 species after using only the genus species.</code></pre>
 <pre><code>## Found the following hits: Leishmania major strain Friedlin, Leishmania major strain LV39c5, Leishmania major strain SD 75.1, choosing the first.</code></pre>
 <pre><code>## </code></pre>
@@ -1251,10 +1251,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <a class="sourceLine" id="cb155-3" title="3"><span class="co">## limited in the information it returns, and only exists for a subset of the eupathdb</span></a>
 <a class="sourceLine" id="cb155-4" title="4"><span class="co">## projects.  As a result, I might just drop its usage and force the much slower queries</span></a>
 <a class="sourceLine" id="cb155-5" title="5"><span class="co">## to the more complete table...</span></a>
-<a class="sourceLine" id="cb155-6" title="6">major_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
-<a class="sourceLine" id="cb155-7" title="7">major_pkg &lt;-<span class="st"> </span><span class="kw">get_eupathdb_pkgnames</span>(major_entry)</a>
+<a class="sourceLine" id="cb155-6" title="6">major_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;major&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;tritrypdb&quot;</span>)</a>
+<a class="sourceLine" id="cb155-7" title="7">major_pkg &lt;-<span class="st"> </span><span class="kw">get_eupath_pkgnames</span>(major_entry)</a>
 <a class="sourceLine" id="cb155-8" title="8">major_orgdb &lt;-<span class="st"> </span>major_pkg<span class="op">$</span>orgdb</a>
-<a class="sourceLine" id="cb155-9" title="9">lm_ortho &lt;-<span class="st"> </span><span class="kw">extract_eupathdb_orthologs</span>(major_orgdb)</a>
+<a class="sourceLine" id="cb155-9" title="9">lm_ortho &lt;-<span class="st"> </span><span class="kw">extract_eupath_orthologs</span>(major_orgdb)</a>
 <a class="sourceLine" id="cb155-10" title="10"><span class="kw">dim</span>(lm_ortho)</a>
 <a class="sourceLine" id="cb155-11" title="11"><span class="kw">head</span>(lm_ortho)</a>
 <a class="sourceLine" id="cb155-12" title="12"><span class="kw">summary</span>(lm_ortho)</a></code></pre></div>

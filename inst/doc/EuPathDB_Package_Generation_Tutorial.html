@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(EuPathDB)</a>
 <a class="sourceLine" id="cb2-2" title="2"></a>
 <a class="sourceLine" id="cb2-3" title="3"><span class="co">## Ask for the version 42 data from fungidb for species with 'cerevisiae' in the name.</span></a>
-<a class="sourceLine" id="cb2-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupathdb_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>, <span class="dt">eupathdb_version=</span><span class="st">&quot;v42&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb2-4" title="4">sc_entry &lt;-<span class="st"> </span><span class="kw">get_eupath_entry</span>(<span class="dt">species=</span><span class="st">&quot;cerevisiae&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>, <span class="dt">eu_version=</span><span class="st">&quot;v42&quot;</span>)</a></code></pre></div>
 <pre><code>## Found: Saccharomyces cerevisiae S288c</code></pre>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">sc_name &lt;-<span class="st"> </span>sc_entry[[<span class="st">&quot;Species&quot;</span>]]</a>
 <a class="sourceLine" id="cb4-2" title="2">sc_entry</a></code></pre></div>
@@ -394,13 +394,13 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="creating-the-package" class="section level3">
 <h3>Creating the package</h3>
 <p>Now that we have the canonical name for yeast from fungidb, we can create a fresh orgdb package. I will not actually run this for the vignette because it takes a long time and prints a lot to screen.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_orgdb</span>(sc_entry)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_orgdb</span>(sc_entry)</a></code></pre></div>
 <pre><code>##  org.Scerevisiae.S288c.v42.eg.db is already installed.</code></pre>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">txdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_txdb</span>(sc_entry)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">txdb_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_txdb</span>(sc_entry)</a></code></pre></div>
 <pre><code>##  TxDb.Saccharomyces.cerevisiae.S288c.FungiDB.v42 is already installed.</code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">bsgenome_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_bsgenome</span>(sc_entry)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">bsgenome_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_bsgenome</span>(sc_entry)</a></code></pre></div>
 <pre><code>##  BSGenome.Saccharomyces.cerevisiae.S288c.v42 is already installed.</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">organ_pkg &lt;-<span class="st"> </span><span class="kw">make_eupathdb_organismdbi</span>(sc_entry)</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">organ_pkg &lt;-<span class="st"> </span><span class="kw">make_eupath_organismdbi</span>(sc_entry)</a></code></pre></div>
 <pre><code>##  fungidb.Saccharomyces.cerevisiae.S288c.v42 is already installed.</code></pre>
 <p>You will have to trust that the above worked in my R session and installed for me packages named:</p>
 <ol style="list-style-type: decimal">
@@ -418,8 +418,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>The following demonstrates ways to extract data from the generated orgdb package.</p>
 <div id="choosing-and-loading-a-generated-package" class="section level3">
 <h3>Choosing and loading a generated package</h3>
-<p>Because the eupathdb is constantly evolving, the get_eupathdb_pkgnames() function will use the metadata generated in download_eupathdb_metadata() in order to provide a differently names package for each eupathdb revision.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">get_eupathdb_pkgnames</span>(sc_entry)</a>
+<p>Because the eupathdb is constantly evolving, the get_eupath_pkgnames() function will use the metadata generated in download_eupath_metadata() in order to provide a differently names package for each eupathdb revision.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">orgdb_pkg &lt;-<span class="st"> </span><span class="kw">get_eupath_pkgnames</span>(sc_entry)</a>
 <a class="sourceLine" id="cb14-2" title="2">sc_orgdb &lt;-<span class="st"> </span>orgdb_pkg<span class="op">$</span>orgdb</a>
 <a class="sourceLine" id="cb14-3" title="3"><span class="co">## Here is the name of the current yeast package.</span></a>
 <a class="sourceLine" id="cb14-4" title="4">sc_orgdb</a></code></pre></div>
@@ -990,8 +990,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="shortcut-methods" class="section level3">
 <h3>Shortcut methods</h3>
 <p>Remembering the keytype and package names and everything can be annoying. The following attempts to make that easier. In this instance, the only thing we need to provide is a unique substring for the species of interest. If the substring is not unique, this should show the matches and choose the first.</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" title="1"><span class="co">## The function load_eupathdb_annotations() provides a shortcut to the above.</span></a>
-<a class="sourceLine" id="cb51-2" title="2">sc_annot &lt;-<span class="st"> </span><span class="kw">load_eupathdb_annotations</span>(<span class="dt">species=</span><span class="st">&quot;S288c&quot;</span>, <span class="dt">eupathdb_version=</span><span class="st">&quot;v42&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" title="1"><span class="co">## The function load_eupath_annotations() provides a shortcut to the above.</span></a>
+<a class="sourceLine" id="cb51-2" title="2">sc_annot &lt;-<span class="st"> </span><span class="kw">load_eupath_annotations</span>(<span class="dt">species=</span><span class="st">&quot;S288c&quot;</span>, <span class="dt">eu_version=</span><span class="st">&quot;v42&quot;</span>, <span class="dt">webservice=</span><span class="st">&quot;fungidb&quot;</span>)</a></code></pre></div>
 <pre><code>## Found: Saccharomyces cerevisiae S288c</code></pre>
 <pre><code>## Returning fields which start with 'annot'</code></pre>
 <pre><code>## Unable to find ANNOT_CDSNAME, setting it to ANNOT_GENE_NAME.</code></pre>
@@ -1010,7 +1010,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="shortcut-orthologs" class="section level3">
 <h3>Shortcut orthologs</h3>
 <p>A task I find myself needing to do fairly often is to get the set of genes orthologous to a given gene. There are lots of methods to handle this question; one of them includes the nice table provided by the eupathdb. Let us query that.</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" title="1">sc_ortho &lt;-<span class="st"> </span><span class="kw">extract_eupathdb_orthologs</span>(sc_orgdb)</a></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" title="1">sc_ortho &lt;-<span class="st"> </span><span class="kw">extract_eupath_orthologs</span>(sc_orgdb)</a></code></pre></div>
 <pre><code>## Some columns were missing: ORTHOLOGS_ORTHOLOG, ORTHOLOGS_COUNT</code></pre>
 <pre><code>## Removing them, which may end badly.</code></pre>
 <pre><code>## 'select()' returned 1:many mapping between keys and columns</code></pre>

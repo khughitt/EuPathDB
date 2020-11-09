@@ -3,8 +3,7 @@ library(testthat)
 library(EuPathDB)
 library(RSQLite)
 
-setwd("~/scratch/eupathdb/EuPathDB/GRanges/3.12")
-
+setwd("~/scratch/eupathdb/EuPathDB/GRanges/3.9")
 file_list <- list.files()
 file_end <- length(file_list)
 start <- 1
