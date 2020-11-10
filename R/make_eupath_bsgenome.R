@@ -7,7 +7,7 @@
 #'
 #' @param entry Single eupathdb metadata entry.
 #' @param eu_version Which version of the eupathdb to use for creating the BSGenome?
-#' @param workdir Working directory.
+#' @param build_dir Working directory.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @param installp Install the resulting package?
 #' @param reinstall Rewrite an existing package directory.
@@ -15,7 +15,7 @@
 #' @return List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, eu_version = NULL, workdir = "EuPathDB", copy_s3 = FALSE,
+make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB", copy_s3 = FALSE,
                                  installp = TRUE, reinstall = FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
@@ -39,9 +39,9 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, workdir = "EuPathDB",
   }
 
   ## Check that a directory exists to leave the final package
-  workdir <- file.path(workdir)
-  if (!file.exists(workdir)) {
-    tt <- dir.create(workdir, recursive = TRUE)
+  build_dir <- file.path(build_dir)
+  if (!file.exists(build_dir)) {
+    tt <- dir.create(build_dir, recursive = TRUE)
   }
   ## Check for an incomplete installation directory and clear it out.
   if (file.exists(pkgname)) {
@@ -63,11 +63,11 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, workdir = "EuPathDB",
   fasta_hostname <- sub(pattern = "https://(.*)\\.(org|net).*$",
                         replacement = "\\1",
                         x = fasta_start)
-  ## genome_filename <- file.path(workdir, paste0(pkgname, ".fasta"))
-  genome_filename <- file.path(workdir, glue::glue("{pkgname}.fasta"))
+  ## genome_filename <- file.path(build_dir, paste0(pkgname, ".fasta"))
+  genome_filename <- file.path(build_dir, glue::glue("{pkgname}.fasta"))
 
   ## Find a spot to dump the fasta files
-  bsgenome_dir <- file.path(workdir, pkgname)
+  bsgenome_dir <- file.path(build_dir, pkgname)
   if (!file.exists(bsgenome_dir)) {
     created <- dir.create(bsgenome_dir, recursive = TRUE)
   }
@@ -167,7 +167,7 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, workdir = "EuPathDB",
     deleted <- unlink(x = bsgenome_dir, recursive = TRUE, force = TRUE)
     built <- try(devtools::build(pkgname, quiet = TRUE))
     if (class(built) != "try-error") {
-      final_path <- move_final_package(pkgname, type = "bsgenome", workdir = workdir)
+      final_path <- move_final_package(pkgname, type = "bsgenome", build_dir = build_dir)
       final_deleted <- unlink(x = pkgname, recursive = TRUE, force = TRUE)
     }
   } else {

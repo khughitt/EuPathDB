@@ -4,7 +4,7 @@
 #' which makes it possible for me to use this function without trouble.
 #'
 #' @param entry The full annotation entry.
-#' @param workdir Location to which to save an intermediate savefile.
+#' @param build_dir Location to which to save an intermediate savefile.
 #' @param table This defaults to the 'OrthologsLite' table, but that does not
 #'  exist at all eupathdb subprojects.
 #' @param gene_ids When provided, ask only for the orthologs for these genes.

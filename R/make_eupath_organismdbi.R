@@ -7,7 +7,7 @@
 #'
 #' @param entry A row from the eupathdb metadataframe.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
-#' @param workdir Directory in which to build the packages.
+#' @param build_dir Directory in which to build the packages.
 #' @param installp Install the resulting package?
 #' @param reinstall Overwrite existing data files?
 #' @param kegg_abbreviation For when we cannot automagically find the kegg species id.
@@ -20,7 +20,7 @@
 #' @return The result of attempting to install the organismDbi package.
 #' @author Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "EuPathDB",
+make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir = "EuPathDB",
                                     installp = TRUE, reinstall = FALSE, kegg_abbreviation = NULL,
                                     exclude_join = "ENTREZID", copy_s3 = FALSE) {
   if (is.null(entry)) {
@@ -39,13 +39,13 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "
   }
   orgdb_name <- pkgnames[["orgdb"]]
   txdb_name <- pkgnames[["txdb"]]
-  orgdb_ret <- make_eupath_orgdb(entry, workdir=workdir,
+  orgdb_ret <- make_eupath_orgdb(entry, build_dir=build_dir,
                                  kegg_abbreviation=kegg_abbreviation,
                                  reinstall=reinstall)
   if (is.null(orgdb_ret)) {
     return(NULL)
   }
-  txdb_ret <- make_eupath_txdb(entry, eu_version=eu_version, workdir=workdir, reinstall=reinstall)
+  txdb_ret <- make_eupath_txdb(entry, eu_version=eu_version, build_dir=build_dir, reinstall=reinstall)
   if (is.null(txdb_ret)) {
     return(NULL)
   }
@@ -95,7 +95,7 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "
 
   author <- as.character(entry[["Maintainer"]])
   maintainer <- as.character(entry[["Maintainer"]])
-  final_dir <- file.path(workdir, "organismdbi", pkgname)
+  final_dir <- file.path(build_dir, "organismdbi", pkgname)
   if (file.exists(final_dir)) {
     if (isTRUE(reinstall)) {
       unlinkret <- unlink(x=final_dir, recursive=TRUE)
@@ -108,7 +108,7 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "
   }
 
   ## The way makeOrganismPackage handles directories is very confusing.
-  tmp_pkg_dir <- file.path(workdir)
+  tmp_pkg_dir <- file.path(build_dir)
   if (!file.exists(tmp_pkg_dir)) {
     dir.create(tmp_pkg_dir, recursive=TRUE)
   }
@@ -151,7 +151,7 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, workdir = "
       }
     }
     final_organdb_name <- basename(organdb_path)
-    final_organdb_path <- move_final_package(organdb_path, type="organismdbi", workdir=workdir)
+    final_organdb_path <- move_final_package(organdb_path, type="organismdbi", build_dir=build_dir)
   }
 
   retlist <- list(

@@ -6,11 +6,11 @@
 #' this front.
 #'
 #' @param entry Metadatum entry.
-#' @param workdir Place to put the resulting file(s).
+#' @param build_dir Place to put the resulting file(s).
 #' @param eu_version Optionally request a specific version of the gff file.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
-make_eupath_granges <- function(entry, workdir = "EuPathDB",
+make_eupath_granges <- function(entry, build_dir = "EuPathDB",
                                 eu_version = NULL, copy_s3 = FALSE) {
   versions <- get_versions(eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
@@ -20,7 +20,7 @@ make_eupath_granges <- function(entry, workdir = "EuPathDB",
 
   message("Starting creation of ", pkgname, ".")
 
-  input_gff <- file.path(workdir, glue::glue("{pkgname}.gff"))
+  input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
     tt <- download.file(url = gff_url, destfile = input_gff,
@@ -33,7 +33,7 @@ make_eupath_granges <- function(entry, workdir = "EuPathDB",
   granges_env <- new.env()
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
   granges_env[[granges_variable]] <- granges_result
-  granges_file <- file.path(workdir, granges_name)
+  granges_file <- file.path(build_dir, granges_name)
   save_result <- save(list = ls(envir = granges_env),
                       file = granges_file,
                       envir = granges_env)

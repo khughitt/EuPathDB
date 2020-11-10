@@ -1,7 +1,7 @@
 #' Use the post interface to get linkout data.
 #'
 #' @param entry The full annotation entry.
-#' @param workdir Location to which to save intermediate savefile.
+#' @param build_dir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
 post_eupath_pdb_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {

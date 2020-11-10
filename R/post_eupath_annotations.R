@@ -6,7 +6,7 @@
 #' I have noticed at the eupathdb and does that for each type.
 #'
 #' @param entry Eupathdb annotation entry.
-#' @param workdir Location to dump the resulting data.
+#' @param build_dir Location to dump the resulting data.
 #' @param overwrite Overwrite existing data if it exists?
 post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir = "EuPathDB") {
     if (is.null(entry)) {

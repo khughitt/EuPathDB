@@ -5,7 +5,7 @@
 #' download of a gff file from the eupathdb.
 #'
 #' @param entry One row from the organism metadata.
-#' @param workdir Base directory for building the package.
+#' @param build_dir Base directory for building the package.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param reinstall Overwrite an existing installed package?
 #' @param installp Install the resulting package?
@@ -13,7 +13,7 @@
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NULL, reinstall = FALSE,
+make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = NULL, reinstall = FALSE,
                              installp = TRUE, copy_s3 = FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
@@ -23,7 +23,7 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
   pkgnames <- get_eupath_pkgnames(entry, eu_version = eu_version)
   pkgname <- pkgnames[["txdb"]]
 
-  input_gff <- file.path(workdir, glue::glue("{pkgname}.gff"))
+  input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))
   gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -49,7 +49,7 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_name <- try(make_eupath_granges(entry = entry, workdir = workdir,
+  granges_name <- try(make_eupath_granges(entry = entry, build_dir = build_dir,
                                           copy_s3 = copy_s3), silent = TRUE)
   if ("try-error" %in% class(granges_name)) {
     warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
@@ -58,7 +58,7 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
   }
   ## Happily, making a granges from txdb is quite quick and easy in most cases.
 
-  final_granges_path <- move_final_package(granges_name, type = "granges", workdir = workdir)
+  final_granges_path <- move_final_package(granges_name, type = "granges", build_dir = build_dir)
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
 
   chr_entries <- read.delim(file = input_gff, header = FALSE, sep = "")
@@ -141,13 +141,13 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
   }
 
   ## Assuming we got this far, we should be able to create the txdb package.
-  if (!file.exists(workdir)) {
-    tt <- dir.create(workdir, recursive=TRUE)
+  if (!file.exists(build_dir)) {
+    tt <- dir.create(build_dir, recursive=TRUE)
   }
-  pkg_list <- Biobase::createPackage(pkgname = pkgname, destinationDir = workdir,
+  pkg_list <- Biobase::createPackage(pkgname = pkgname, destinationDir = build_dir,
                                      originDir = template_path, symbolValues = symvals,
                                      unlink = TRUE)
-  db_dir <- file.path(workdir, pkgname, "inst", "extdata")
+  db_dir <- file.path(build_dir, pkgname, "inst", "extdata")
   if (!file.exists(db_dir)) {
     tt <- dir.create(db_dir, recursive = TRUE)
   }
@@ -159,7 +159,7 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
   }
   closed <- try(RSQLite::dbDisconnect(BiocGenerics::dbconn(obj)), silent = TRUE)
 
-  install_dir <- file.path(workdir, pkgname)
+  install_dir <- file.path(build_dir, pkgname)
   install_dir <- clean_pkg(install_dir)
   install_dir <- clean_pkg(install_dir, removal = "_", replace = "")
   install_dir <- clean_pkg(install_dir, removal = "_like", replace = "like")
@@ -177,7 +177,7 @@ make_eupath_txdb <- function(entry = NULL, workdir = "EuPathDB", eu_version = NU
     if (! "try-error" %in% class(inst)) {
       built <- try(devtools::build(install_dir, quiet = TRUE))
       if (! "try-error" %in% class(built)) {
-        final_path <- move_final_package(pkgname, type = "txdb", workdir = workdir)
+        final_path <- move_final_package(pkgname, type = "txdb", build_dir = build_dir)
         final_deleted <- unlink(x = install_dir, recursive = TRUE, force = TRUE)
       }
     }
