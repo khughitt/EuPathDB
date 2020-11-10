@@ -47,6 +47,7 @@ Collate:
  'download_eupath_metadata.R'
  'download_uniprot_annotations.R'
  'eupathdb.R'
+ 'expand_list_columns.R'
  'extract_eupath_orthologs.R'
  'extract_gene_locations.R'
  'get_eupath_entry.R'
