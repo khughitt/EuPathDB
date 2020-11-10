@@ -40,18 +40,16 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## useful column names.
     ## I later came through and wrote a function function to automagically populate this list.
     species <- entry[["TaxonUnmodified"]]
-
+    webservice <- entry[["DataProvider"]]
     ## Use a query to find what annotation types are available: protein coding vs. rRNA vs. etc...
-    types <- get_eupath_gene_types()
+    types <- get_eupath_gene_types(webservice = webservice)
     result <- data.frame()
 
     ## Excepting schistodb, all the services are .orgs which is a .net.
-    webservice <- entry[["DataProvider"]]
     tld <- "org"
     if (webservice == "schistodb") {
         tld <- "net"
     }
-
     ## Finalize the URL to query using the webservice, tld, etc.
     service_directory <- prefix_map(webservice)
     ## download_json <- glue::glue("{build_dir}/{species_filename}.json")
