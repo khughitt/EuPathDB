@@ -24,7 +24,6 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
   ## determine appropriate prefix to use
   provider <- tolower(entry[["DataProvider"]])
   uri_prefix <- prefix_map(provider)
-
   ## construct API query
   tld <- "org"
   if (provider == "schistodb") {

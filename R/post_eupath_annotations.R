@@ -46,6 +46,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     result <- data.frame()
 
     ## Excepting schistodb, all the services are .orgs which is a .net.
+    webservice <- entry[["DataProvider"]]
     tld <- "org"
     if (webservice == "schistodb") {
         tld <- "net"
