@@ -54,6 +54,7 @@ Collate:
  'get_eupath_annotation_columns.R'
  'get_eupath_entry.R'
  'get_eupath_fields.R'
+ 'get_eupath_gene_types.R'
  'get_eupath_pkgnames.R'
  'get_kegg_orgn.R'
  'kegg_vector_to_df.R'
