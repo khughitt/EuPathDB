@@ -1,4 +1,4 @@
-get_eupath_annotation_columns <- function(service = "fungidb") {
+get_eupath_annotation_columns <- function(webservice = "fungidb") {
 
   shared_columns <- c(
     "primary_key", "has_missing_transcripts", "gene_name", "gene_source_id",

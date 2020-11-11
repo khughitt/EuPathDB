@@ -13,11 +13,11 @@ get_all_metadata <- function(webservice="all") {
                   "trichdb", "tritrypdb")
     metadata <- data.frame()
     for (p in projects) {
-      project_metadata <- download_eupathdb_metadata(webservice=p)
+      project_metadata <- download_eupath_metadata(webservice=p)
       metadata <- rbind(metadata, project_metadata)
     }
   } else {
-    metadata <- download_eupathdb_metadata(webservice=webservice)
+    metadata <- download_eupath_metadata(webservice=webservice)
   }
   return(metadata)
 }
