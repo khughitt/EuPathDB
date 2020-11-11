@@ -14,6 +14,8 @@ load_eupath_go(
 )
 }
 \arguments{
+\item{query}{String containing a unique portion of the desired species.}
+
 \item{webservice}{Which eupath webservice is desired?}
 
 \item{eu_version}{Gather data from a specific eupathdb version?}
@@ -21,7 +23,9 @@ load_eupath_go(
 \item{wanted_fields}{If not provided, this will gather all columns starting
 with 'annot'.}
 
-\item{species}{String containing a unique portion of the desired species.}
+\item{gene_ids}{Set of gene IDs to download GO data.}
+
+\item{columns}{Wanted GO columns.}
 }
 \value{
 Big huge data frame of annotation data.

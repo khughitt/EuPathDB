@@ -3,7 +3,7 @@
 #' @param overwrite Overwrite existing data?
 #' @param webservice Optional alternative webservice for hard-to-find species.
 #' @param bioc_version Manually set the bioconductor release if desired.
-#' @param dir Where to put the json.
+#' @param build_dir Where to put the json.
 #' @param eu_version Choose a specific eupathdb version?
 #' @param write_csv Write a csv file in the format expected by AnnotationHubData?
 #' @param limit_n Maximum number of valid entries to return.
@@ -111,19 +111,18 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
                        httr::timeout(120))
   ## Test the result to see that we actually got data.
   if (result[["status_code"]] == "422") {
-      warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))
+      warn("API request failed for %s (code = 422).")
       return(data.frame())
   } else if (result[["status_code"]] == "400") {
       ## likely due to bad formatConfig
-      warn(sprintf("API Request failed for %s (code = 400): ", entry[["Taxon"]]))
+      warn("API Request failed for %s (code = 400).")
   } else if (result[["status_code"]] == "404") {
-      warn(sprintf("API Request failed for %s (code = 404): ", entry[["Taxon"]]))
+      warn("API Request failed for %s (code = 404).")
   } else if (result[["status_code"]] != "200") {
-      warn(sprintf("API Request failed for %s (code = %d): ",
-                   entry$Taxon, result[["status_code"]]))
+      warn("API Request failed for (code = %d).", result[["status_code"]])
       return(data.frame())
   } else if (length(result[["content"]]) < 100) {
-      warn("Very small amount of content returned for :", entry[["Taxon"]])
+      warn("Very small amount of content returned.")
   }
   cont <- httr::content(result, encoding = "UTF-8", as = "text")
   result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
@@ -317,6 +316,8 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## 2. In the weeks leading up to a new release, the EuPathDB folks change the SourceURL column
   ##    to reflect the coming database version before it actually exists.  Thus during that time
   ##    downloads will fail unless the database version is substituted back in.
+  ## Shush, R CMD check
+  URLGFF <- URLGenome <- URLProtein <- NULL
   metadata <- metadata %>% dplyr::mutate("SourceUrl" = gsub(pattern = "DB-(\\d\\d)_",
                                                             replacement = glue::glue("DB-{db_version}_"),
                                                             x = URLGFF)) %>%

@@ -27,7 +27,7 @@ check_s3 <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL
   valid_files<- c()
   invalid_files <- c()
   dat[["md5sum"]] <- ""
-  for (f in 1:length(files)) {
+  for (f in 1:length(output_files)) {
     path <- output_files[f]
     queried <- try(query_s3_file(dat[f, ], file_column = mdata_column, file_type = file_type))
     if (file.exists(file) & class(queried)[1] == "character") {
@@ -40,7 +40,7 @@ check_s3 <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL
       }
     }
   }
-  message(length(valid_files), " / ", length(files), " expected ", file_type,
+  message(length(valid_files), " / ", length(output_files), " expected ", file_type,
           " files were found.")
 
   ## Choose the valid/invalid entries to write to the csv file.

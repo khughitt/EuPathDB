@@ -16,14 +16,16 @@ write_eupath_metadata(
 \arguments{
 \item{metadata}{Set of metadata.}
 
+\item{webservice}{EupathDB subproject, or the set of all projects named
+'eupathdb'.}
+
+\item{file_type}{Either valid or invalid, defines the final output filenames.}
+
 \item{bioc_version}{Version of Bioconductor used for this set of metadata.}
 
 \item{eu_version}{Version of the EuPathDB used for this set of metadata.}
 
-\item{service}{EupathDB subproject, or the set of all projects named
-'eupathdb'.}
-
-\item{type}{Either valid or invalid, defines the final output filenames.}
+\item{build_dir}{Directory to which to dump stuff.}
 }
 \value{
 List containing the filenames written.

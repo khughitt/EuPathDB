@@ -15,14 +15,13 @@ post_eupath_ortholog_table(
 \arguments{
 \item{entry}{The full annotation entry.}
 
+\item{ortholog_table}{This should no longer be needed, it is only OrthologsLite now.}
+
 \item{build_dir}{Location to which to save an intermediate savefile.}
 
 \item{gene_ids}{When provided, ask only for the orthologs for these genes.}
 
 \item{overwrite}{Overwrite incomplete savefiles?}
-
-\item{table}{This defaults to the 'OrthologsLite' table, but that does not
-exist at all eupathdb subprojects.}
 }
 \value{
 A big honking table.

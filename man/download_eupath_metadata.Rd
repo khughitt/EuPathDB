@@ -22,6 +22,8 @@ download_eupath_metadata(
 
 \item{bioc_version}{Manually set the bioconductor release if desired.}
 
+\item{build_dir}{Where to put the json.}
+
 \item{eu_version}{Choose a specific eupathdb version?}
 
 \item{write_csv}{Write a csv file in the format expected by AnnotationHubData?}
@@ -29,8 +31,6 @@ download_eupath_metadata(
 \item{limit_n}{Maximum number of valid entries to return.}
 
 \item{verbose}{Print helper message about species matching?}
-
-\item{dir}{Where to put the json.}
 }
 \value{
 Dataframe with lots of rows for the various species in eupathdb.

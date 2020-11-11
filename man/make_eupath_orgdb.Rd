@@ -29,6 +29,8 @@ make_eupath_orgdb(
 
 \item{overwrite}{Overwrite a partial installation?}
 
+\item{verbose}{talky talky}
+
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 
 \item{godb_source}{Which table to use for the putative union of the GO tables.}

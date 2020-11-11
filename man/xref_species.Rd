@@ -18,6 +18,10 @@ xref_species(
 \item{invalid}{Dataframe of entries which failed.}
 
 \item{verbose}{Print some information about what is found?}
+
+\item{taxon_column}{metadata column with the taxonomy information.}
+
+\item{species_column}{metadata column with my generated species name.}
 }
 \value{
 Likely smaller data frame of valid information and larger dataframe of invalid.

@@ -30,13 +30,15 @@ text.  If left null, then it will pull all species.}
 
 \item{org_column}{What column provides the species name?}
 
+\item{group_column}{Ortholog group column name.}
+
+\item{name_column}{Name of the gene for this group.}
+
 \item{count_column}{Name of the column with the count of species represented.}
 
 \item{print_speciesnames}{Dump the species names for diagnostics?}
 
 \item{webservice}{Which eupathdb project to query?}
-
-\item{url_column}{What column provides the orthomcl group ID?}
 }
 \value{
 A big table of orthoMCL families, the columns are:

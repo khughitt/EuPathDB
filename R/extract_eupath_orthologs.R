@@ -1,29 +1,3 @@
-#' Loads a pkg into the current R environment.
-load_eupath_pkg <- function(name, webservice = "eupathdb") {
-  first_try <- try(do.call("library", as.list(name)), silent = TRUE)
-  if (class(first_try) == "try-error") {
-    metadata <- download_eupath_metadata(webservice = webservice)
-    entry <- get_eupath_entry(name)
-    pkg_names <- get_eupath_pkgnames(entry)
-    first_pkg <- pkg_names[["orgdb"]]
-    tt <- try(do.call("library", as.list(first_pkg)), silent = TRUE)
-    if (class(tt) == "try-error") {
-      message("Did not find the package: ",
-              first_pkg,
-              ". Will not be able to do reciprocal hits.")
-      message("Perhaps try invoking make_eupath_organismdbi().")
-      pkg <- NULL
-    } else {
-      message("Loaded: ", first_pkg)
-      pkg <- get(first_pkg)
-    }
-    return(pkg)
-  } else {
-    pkg <- get(name)
-    return(pkg)
-  }
-}
-
 #' Given 2 species names from the eupathdb, make orthology tables betwixt them.
 #'
 #' The eupathdb provides such a tremendous wealth of information.  For me
@@ -50,7 +24,8 @@ load_eupath_pkg <- function(name, webservice = "eupathdb") {
 #'  text.  If left null, then it will pull all species.
 #' @param id_column What column in the database provides the set of ortholog IDs?
 #' @param org_column What column provides the species name?
-#' @param url_column What column provides the orthomcl group ID?
+#' @param group_column Ortholog group column name.
+#' @param name_column Name of the gene for this group.
 #' @param count_column Name of the column with the count of species represented.
 #' @param print_speciesnames Dump the species names for diagnostics?
 #' @param webservice Which eupathdb project to query?

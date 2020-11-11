@@ -48,30 +48,6 @@
 #' @author Keith Hughitt and Ashton Belew
 NULL
 
-#' Get started with EuPathDB
-#'
-#' This function has always been here.  To be honest, I am not completely sure of its purpose.
-#'
-#' @param type Choose this type of metadatum to open.
-#' @return Used for its side-effect of opening the package vignette. A
-#'         vector of experiment identifiers.
-#' @author Keith Hughitt
-#' @aliases availableEuPathDB
-#' @examples start_eupathdb()
-#' @export
-start_eupathdb <- function(type = "GRanges") {
-  utils::vignette("reference", package = "EuPathDB")
-  metadata_files <- list.files(path = system.file("extdata", package = "EuPathDB"))
-  ## Arbitrarily provide the first metadata file of the type.
-  chosen_idx <- grep(pattern = type, x = metadata_files)[1]
-  chosen_metadata <- metadata_files[chosen_idx]
-  message("Showing species in metadata file: ", chosen_metadata)
-  metadata_file <- system.file("extdata", chosen_metadata, package = "EuPathDB")
-  ret <- sort(read.csv(metadata_file,
-                       stringsAsFactors = FALSE)[["Species"]])
-  return(ret)
-}
-
 #' Pipe operator
 #'
 #' Shamelessly scabbed from Hadley: https://github.com/sckott/analogsea/issues/32

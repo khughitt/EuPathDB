@@ -5,7 +5,7 @@
 #' wrote this to shortcut that process.  Ideally, one should only need to pass
 #' it a species name and get out a nice big table of annotation data.
 #'
-#' @param species  String containing a unique portion of the desired species.
+#' @param query String containing a unique portion of the desired species.
 #' @param webservice Which eupath webservice is desired?
 #' @param eu_version Gather data from a specific eupathdb version?
 #' @param wanted_fields If not provided, this will gather all columns starting

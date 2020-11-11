@@ -32,14 +32,14 @@ check_csv <- function(build_dir = "EuPathDB", file_type = "OrgDb",
 
   ## Load the metadata and hunt down the expected output files
   dat <- readr::read_csv(csv_file, col_types = readr::cols())
-  files <- dat[[mdata_column]]
+  output_files <- dat[[mdata_column]]
   valid_files <- c()
   invalid_files <- c()
   dat[["md5sum"]] <- ""
 
   ## Iterate over the output files and make sure everything is ok.
-  for (i in 1:length(files)) {
-    output_file <- output_files[i]
+  for (f in 1:length(files)) {
+    output_file <- output_files[f]
     entry <- dat[f, ]
     message("Checking CSV entry: ", f, " file: ", file, ".")
 
@@ -51,7 +51,7 @@ check_csv <- function(build_dir = "EuPathDB", file_type = "OrgDb",
       removed_zero <- file.remove(file)
     }
     if (isTRUE(valid)) {
-      valid_files <- c(valid_files, i)
+      valid_files <- c(valid_files, f)
       dat[f, "md5sum"] <- queried
     } else {
       invalid_files <- c(invalid_files, f)

@@ -9,9 +9,6 @@
 #' may use a lot of different ID types and still score some useful ontology data.
 #'
 #' @param orgdb OrganismDb instance.
-#' @param gene_ids Identifiers of the genes to retrieve annotations.
-#' @param keytype Which column is the master key? (GID)
-#' @param columns The set of columns to request.
 #' @return Data frame of gene IDs, go terms, and names.
 #' @seealso \pkg{AnnotationDbi} \pkg{GO.db} \pkg{magrittr}
 #'  \code{\link[AnnotationDbi]{select}} \code{\link[dplyr]{tbl_df}}
@@ -32,8 +29,8 @@ load_orgdb_go <- function(orgdb = NULL) {
     eval(parse(text = org_pkgstring))
   }
 
-  gids <- DBI::dbGetQuery(dbconn(orgdb), "SELECT * FROM genes;")
-  go <- DBI::dbGetQuery(dbconn(orgdb), "SELECT * FROM go;")
+  gids <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), "SELECT * FROM genes;")
+  go <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), "SELECT * FROM go;")
 
   godf <- merge(gids, go, by = "_id", all.y = TRUE)
   godf[["_id"]] <- NULL

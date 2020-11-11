@@ -6,11 +6,12 @@
 #' @param file_type Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
+#' @param build_dir Location to dump files.
 #' @param verbose Talk while running?
 #' @param destination Place to put non-matched files.
 #' @export
 check_files <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL,
-                        verbose = FALSE, destination = NULL) {
+                        build_dir = "EuPathDB", verbose = FALSE, destination = NULL) {
   if (is.null(destination)) {
     destination <- getwd()
   }
@@ -27,9 +28,9 @@ check_files <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = N
 
   ## Get the metadata and start comparing it to the actual files.
   mdata <- readr::read_csv(csv_file)
-  file_dir <- dirname(as.character(mdata[1, column]))
+  file_dir <- dirname(as.character(mdata[1, path_column]))
   file_lst <- list.files(path = file_dir, all.files = TRUE)
-  csv_file_lst <- mdata[[column]]
+  csv_file_lst <- mdata[[path_column]]
   happy_count <- 0
   sad_count <- 0
   ## Skip . and ..

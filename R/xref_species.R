@@ -9,6 +9,8 @@
 #' @param valid Dataframe of entries which have thus far been deemed 'valid' by my tests.
 #' @param invalid Dataframe of entries which failed.
 #' @param verbose Print some information about what is found?
+#' @param taxon_column metadata column with the taxonomy information.
+#' @param species_column metadata column with my generated species name.
 #' @return Likely smaller data frame of valid information and larger dataframe of invalid.
 xref_species <- function(valid, invalid, verbose=FALSE,
                          taxon_column = "TaxonUnmodified", species_column = "GenusSpecies") {

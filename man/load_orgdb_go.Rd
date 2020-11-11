@@ -8,12 +8,6 @@ load_orgdb_go(orgdb = NULL)
 }
 \arguments{
 \item{orgdb}{OrganismDb instance.}
-
-\item{gene_ids}{Identifiers of the genes to retrieve annotations.}
-
-\item{keytype}{Which column is the master key? (GID)}
-
-\item{columns}{The set of columns to request.}
 }
 \value{
 Data frame of gene IDs, go terms, and names.

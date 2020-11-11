@@ -4,9 +4,8 @@
 #' which makes it possible for me to use this function without trouble.
 #'
 #' @param entry The full annotation entry.
+#' @param ortholog_table This should no longer be needed, it is only OrthologsLite now.
 #' @param build_dir Location to which to save an intermediate savefile.
-#' @param table This defaults to the 'OrthologsLite' table, but that does not
-#'  exist at all eupathdb subprojects.
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.

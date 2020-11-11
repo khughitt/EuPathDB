@@ -4,16 +4,13 @@
 #' It should also simplify the column names into something a bit more
 #' consistent.
 #'
-#' @param query_body String of additional query arguments
 #' @param entry The single metadatum containing the base url of the provider, species, etc.
-#' @param table_name The name of the table to extract, this is provided to make
+#' @param tables Name of the table at the eupathdb webservice.
+#' @param table_name The name of the table in the local SQLite instance. This is provided to make
 #'  for prettier labeling.
 #' @param minutes A timeout when querying the eupathdb.
 #' @return list containing response from API request.
 #'
-#' More information
-#' ----------------
-#' 1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 #' @author Keith Hughitt
 #' @export
 post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minutes = 30) {
