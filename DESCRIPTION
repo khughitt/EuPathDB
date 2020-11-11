@@ -2,9 +2,9 @@ Package: EuPathDB
 Title: Provides access to pathogen annotation resources available on EuPathDB databases
 Version: 1.6.0
 Author: Keith Hughitt, Ashton Trey Belew
-Authors@R: c(person("Keith", "Hughitt", email="khughitt@umd.edu", role=c("aut","cre")),
+Authors@R: c(person("Keith", "Hughitt", email="keith.hughitt@nih.gov", role=c("aut","cre")),
              person("Ashton", "Belew", email="abelew@gmail.com", role=c("aut")))
-Maintainer: Keith Hughitt <khughitt@umd.edu>
+Maintainer: Keith Hughitt <keith.hughitt@nih.gov>
 Description: Brings together annotation resources from the various EuPathDB
     databases (PlasmoDB, ToxoDB, TriTrypDB, etc.) and makes them
     available in R using the AnnotationHub framework.

@@ -41,9 +41,9 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
         build_dir = build_dir, eu_version = eu_version, write_csv = FALSE)
     }
 
-    for (r in results) {
-        valid_metadata <- rbind(valid_metadata, r[["valid"]])
-        invalid_metadata <- rbind(invalid_metadata, r[["invalid"]])
+    for (entry in results) {
+        valid_metadata <- rbind(valid_metadata, entry[["valid"]])
+        invalid_metadata <- rbind(invalid_metadata, entry[["invalid"]])
     }
 
     ## if enabled, limit metadata table to N entries;
@@ -87,11 +87,12 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
     "TrichDB" = c(shared_tags, "Trichomonas"),
     "TriTrypDB" = c(shared_tags, "Trypanosome", "Kinetoplastid", "Leishmania"))
   tag_strings <- lapply(tags, function(x) {
-    paste(x, collapse=":")
+    paste(x, collapse = ":")
   })
 
   ## Excepting schistodb, all the services are .orgs which is a .net.
   tld <- "org"
+
   if (webservice == "schistodb") {
       tld <- "net"
   }
@@ -390,6 +391,7 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
 
   ## generate separate metadata table for OrgDB and GRanges targets
   version_string <- format(Sys.time(), "%Y.%m")
+
   ## I am going to try to simplify the above and make sure that all filenames actually work.
   ## If my queries to Lori turn out acceptable, then I will delete a bunch of the stuff above.
   ## But for the moment, it will be a bit redundant.
