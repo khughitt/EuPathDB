@@ -45,7 +45,6 @@ Collate:
  'clean_pkg.R'
  'copy_s3_file.R'
  'download_eupath_metadata.R'
- 'download_uniprot_annotations.R'
  'eupathdb.R'
  'expand_list_columns.R'
  'extract_eupath_orthologs.R'
