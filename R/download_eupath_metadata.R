@@ -12,7 +12,6 @@
 #' @author Keith Hughitt
 #' @export
 download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
-<<<<<<< HEAD
                                      bioc_version = NULL, build_dir = "EuPathDB",
                                      eu_version = NULL, write_csv = FALSE,
                                      limit_n = Inf, verbose = FALSE) {
@@ -20,105 +19,19 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
   bioc_version <- versions[["bioc_version"]]
-=======
-                                     bioc_version = NULL, dir = "EuPathDB",
-                                     eu_version = NULL, write_csv = FALSE,
-                                     verbose = FALSE) {
-  db_version <- NULL
-  if (is.null(eu_version)) {
-    ## One could just as easily choose any of the other eupathdb hosts.
-    db_version <- readLines("http://tritrypdb.org/common/downloads/Current_Release/Build_number")
-    eu_version <- gsub(x = db_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
-  } else {
-    eu_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
-    db_version <- gsub(x = eu_version, pattern = "^v", replacement = "")
-    ## eupath_version
-  }
-
-  ## For when releasing a new bioconductor release which I don't yet have.
-  if (is.null(bioc_version)) {
-    bioc_version <- as.character(BiocManager::version())
-  }
->>>>>>> 13b1ccc (updated email; coding style tweaks)
 
   ## Choose which service(s) to query, if it is 'eupathdb' do them all.
   webservice <- tolower(webservice)
+  valid_metadata <- data.frame()
+  invalid_metadata <- data.frame()
   if (webservice == "eupathdb") {
-    ##projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
-    ##              "microsporidiadb", "piroplasmadb", "plasmodb",
-    ##              "schistodb", "toxodb", "trichdb", "tritrypdb")
-    ## Schistodb does not appear to have started using the new database schema yet.
-    projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
-                  "microsporidiadb", "piroplasmadb", "plasmodb",
-<<<<<<< HEAD
-                  "toxodb", "trichdb", "tritrypdb")
-=======
-                  "schistodb", "toxodb", "trichdb", "tritrypdb")
+    meta_lst <- get_all_metadata()
+    return(meta_lst)
+  }
 
->>>>>>> 13b1ccc (updated email; coding style tweaks)
-    results <- list()
-    valid_metadata <- data.frame()
-    invalid_metadata <- data.frame()
-
-<<<<<<< HEAD
-    for (i in 1:length(projects)) {
-    webservice <- projects[i]
-    results[[webservice]] <- download_eupath_metadata(
-        webservice = webservice, overwrite = overwrite, bioc_version = bioc_version,
-        build_dir = build_dir, eu_version = eu_version, write_csv = FALSE)
-=======
-    for (c in 1:length(projects)) {
-      webservice <- projects[c]
-
-      results[[webservice]] <- download_eupath_metadata(webservice = webservice,
-                                                        overwrite = overwrite,
-                                                        bioc_version = bioc_version,
-                                                        dir = dir, eu_version = eu_version,
-                                                        write_csv = FALSE)
->>>>>>> 13b1ccc (updated email; coding style tweaks)
-    }
-
-    for (entry in results) {
-        valid_metadata <- rbind(valid_metadata, entry[["valid"]])
-        invalid_metadata <- rbind(invalid_metadata, entry[["invalid"]])
-    }
-
-    ## if enabled, limit metadata table to N entries;
-    ## this can be helpful during development and testing
-    if (limit_n < Inf && limit_n < nrow(valid_metadata)) {
-      set.seed(1)
-      info(sprintf("Limiting metadata results to %d entries", limit_n))
-
-      ind <- sample(nrow(valid_metadata), limit_n)
-      valid_metadata <- valid_metadata[ind, ]
-    }
-
-    if (isTRUE(write_csv)) {
-<<<<<<< HEAD
-      message("Writing metadata csv files.")
-      written <- write_eupath_metadata(
-          valid_metadata, service = "eupathdb", file_type = "valid",
-          bioc_version = bioc_version, eu_version = eu_version, build_dir = build_dir)
-=======
-      message("Writing csv files.")
-      written <- write_eupath_metadata(valid_metadata, service = "eupathdb",
-                                       type = "valid", bioc_version = bioc_version,
-                                       eu_version = eu_version)
->>>>>>> 13b1ccc (updated email; coding style tweaks)
-    }
-    return(list(
-      "valid" = valid_metadata,
-      "invalid" = invalid_metadata))
-  }  ## End if we are asking for all services, it may be worth splitting this off.
-
-<<<<<<< HEAD
   ## Create the build directory if it is not already there.
   if (!dir.exists(build_dir)) {
     dir.create(build_dir, recursive = TRUE)
-=======
-  if (!dir.exists(dir)) {
-    dir.create(dir, recursive = TRUE)
->>>>>>> 13b1ccc (updated email; coding style tweaks)
   }
 
   .data <- NULL  ## To satisfy R CMD CHECK
@@ -136,19 +49,17 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
     "TrichDB" = c(shared_tags, "Trichomonas"),
     "TriTrypDB" = c(shared_tags, "Trypanosome", "Kinetoplastid", "Leishmania"))
   tag_strings <- lapply(tags, function(x) {
-    paste(x, collapse = ":")
+    paste(x, collapse=":")
   })
 
   ## Excepting schistodb, all the services are .orgs which is a .net.
   tld <- "org"
-
   if (webservice == "schistodb") {
       tld <- "net"
   }
 
   ## Finalize the URL to query using the webservice, tld, etc.
   service_directory <- prefix_map(webservice)
-<<<<<<< HEAD
   base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/organism/searches/GenomeDataTypes/reports/standard")
 
   post_string <- '{
@@ -216,40 +127,9 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   }
   cont <- httr::content(result, encoding = "UTF-8", as = "text")
   result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
-=======
-
-  ## construct API request URL
-  base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/webservices/")
-  query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
-  request_url <- glue::glue("{base_url}{query_string}")
-
-  ## retrieve organism metadata from EuPathDB
-  metadata_json <- glue::glue("{dir}/metadata.json")
-
-  ## It turns out that not all eupathdb hosts have moved to https...
-  file <- try(download.file(url = request_url, destfile = metadata_json), silent = TRUE)
-  if (class(file) == "try-error") {
-    ## Try again without https?
-    if (isTRUE(verbose)) {
-      message("Downloading the https file failed, not all eupathdb services have 
-               migrated to https, trying http next.")
-    }
-
-    base_url <- glue::glue("http://{webservice}.{tld}/{service_directory}/webservices/")
-    query_string <- "OrganismQuestions/GenomeDataTypes.json?o-fields=all"
-    request_url <- glue::glue("{base_url}{query_string}")
-
-    ## retrieve organism metadata from EuPathDB
-    metadata_json <- glue::glue("{dir}/metadata.json")
-    file <- download.file(url = request_url, destfile = metadata_json)
-  }
-
-  result <- try(jsonlite::fromJSON(metadata_json), silent = TRUE)
->>>>>>> 13b1ccc (updated email; coding style tweaks)
   if (class(result)[1] == "try-error") {
       stop("There was a parsing failure when reading the metadata.")
   }
-<<<<<<< HEAD
 
   ## Every record contains and id, some fields, and tables.
   records <- result[["records"]]
@@ -262,23 +142,6 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
       records,
       is.character,
       stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
-=======
-
-  records <- result[["response"]][["recordset"]][["records"]]
-  ##message("Downloaded: ", request_url)
-
-  ## convert to a dataframe
-  dat <- data.frame(t(sapply(records[["fields"]], function(x) {
-    x[, "value"] })),
-    stringsAsFactors = FALSE)
-  colnames(dat) <- records[["fields"]][[1]][["name"]]
-
-  ## Once again, this is filling in schisto.org, which is weird.
-  dat <- mutate_if(
-    dat,
-    is.character,
-    stringr::str_replace_all, pattern = "SchistoDB.org", replacement = "SchistoDB.net")
->>>>>>> 13b1ccc (updated email; coding style tweaks)
 
   ## The NULL is because NSE semantics are still a bit nonsensical to me.
   ## The goal here though is to create a final table of the expected metadata from the
@@ -364,7 +227,6 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## I am just going to have to come back in here and fix weird stuff.
   metadata <- records %>%
     dplyr::transmute(
-<<<<<<< HEAD
                ## "annotation_version"
                "AnnotationVersion" = .data[["annotation_version"]],
                ## "annotation_source"
@@ -471,35 +333,6 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   metadata[["Tags"]] <- sapply(metadata[["DataProvider"]], function(x) {
     tag_strings[[x]]
   })
-=======
-             "BiocVersion" = as.character(bioc_version),
-             "Genome" = sub(".gff", "", basename(.data[["URLgff"]])),
-             "NumGenes" = .data[["genecount"]],
-             "NumOrthologs" = .data[["orthologcount"]],
-             "SourceType" = "GFF",
-             "SourceUrl" = .data[["URLgff"]],
-             "SourceVersion" = db_version,
-             "Species" = .data[["organism"]],
-             "TaxonomyId" = .data[["ncbi_tax_id"]],
-             "Coordinate_1_based" = TRUE,
-             "DataProvider" = .data[["project_id"]],
-             "Maintainer" = "Keith Hughitt <keith.hughitt@nih.gov>") %>%
-    dplyr::mutate_if(is.character,
-                     stringr::str_replace_all,
-                     pattern = "Current_Release",
-                     replacement = glue::glue("release-{db_version}")) %>%
-    dplyr::mutate("SourceUrl" = gsub(pattern = "DB-(\\d\\d)_",
-                                     replacement = glue::glue("DB-{db_version}_"),
-                                     x = SourceUrl))
-
-  ## Add project-specific tags for each entry
-  metadata[["Tags"]] <- sapply(metadata[["DataProvider"]],
-                               function(x) {
-                                 tag_strings[[x]] })
-
-  ## replace missing taxonomy ids with NAs
-  metadata[["TaxonomyId"]][metadata[["TaxonomyId"]] == ""] <- NA
->>>>>>> 13b1ccc (updated email; coding style tweaks)
 
   ## overide missing taxonomy ids for strains where it can be assigned; ideally
   ## OrgDb and GRanges objects should not depend on taxonomy id information since
@@ -508,23 +341,17 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## In addition, exclude remaining species which are missing taxonomy information from
   ## the metadata; cannot construct GRanges/OrgDb instances for them since they are
   ## have no known taxonomy id, and are not in available.species()
-<<<<<<< HEAD
 
   ## This line is not currently used, it probably should be used to subset out the entries
   ## for which the taxonomy information is invalid.  I think I did not use it because
   ## I later added some heuristics to hunt down the missing entries, and actually doing
   ## the subset based on this results in the loss of too many species.
   na_idx <- is.na(metadata[["TaxonomyID"]])
-=======
-  na_ind <- is.na(metadata[["TaxonomyId"]])
-
->>>>>>> 13b1ccc (updated email; coding style tweaks)
   ## I think I will try to hack around this problem.
   metadata[["TaxonomyID"]] <- as.numeric(metadata[["TaxonomyID"]])
 
   ## generate separate metadata table for OrgDB and GRanges targets
   version_string <- format(Sys.time(), "%Y.%m")
-
   ## I am going to try to simplify the above and make sure that all filenames actually work.
   ## If my queries to Lori turn out acceptable, then I will delete a bunch of the stuff above.
   ## But for the moment, it will be a bit redundant.
@@ -538,25 +365,15 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   metadata[["Species"]] <- ""
   metadata[["Strain"]] <- ""
 
-<<<<<<< HEAD
   ## Include the package names for the various data types along with the most likely
   ## useful separations of the taxon name (e.g. The Genus, Species, Strain, etc.)
   for (i in 1:nrow(metadata)) {
     metadatum <- metadata[i, ]
-=======
-  ## Also double-check the taxon IDs
-  db_version <- metadata[1, "SourceVersion"]
-
-  ## A couple changes to try to make the metadata I generate pass
-  for (it in 1:nrow(metadata)) {
-    metadatum <- metadata[it, ]
->>>>>>> 13b1ccc (updated email; coding style tweaks)
     ## In most invocations of make_taxon_names and get_eupath_pkgnames,
     ## we use the column 'TaxonUnmodified', because we are modifying Species to
     ## match what is acquired from GenomeInfoDb::loadTaxonomyDb().
     ## But, right now we are in the process of making that match, so use the
     ## Species column here.
-<<<<<<< HEAD
     pkg_names <- get_eupath_pkgnames(metadatum, column = "TaxonomyName")
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
     metadata[i, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
@@ -617,59 +434,14 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   species_xref[["invalid"]][["BiocVersion"]] <- as.numeric(species_xref[["invalid"]][["BiocVersion"]])
 
   ## Write out the metadata and finish up.
-=======
-    pkg_names <- get_eupath_pkgnames(metadatum, column = "Species")
-    species_info <- make_taxon_names(metadatum, column = "Species")
-
-    metadata[it, "BsgenomePkg"] <- pkg_names[["bsgenome"]]
-    metadata[it, "BsgenomeFile"] <- file.path(
-      dir, "BSgenome", metadata[it, "BiocVersion"],
-      metadata[it, "BsgenomePkg"], "single_sequences.2bit")
-    metadata[it, "GrangesPkg"] <- pkg_names[["granges"]]
-    metadata[it, "GrangesFile"] <- file.path(
-      dir, "GRanges", metadata[it, "BiocVersion"], metadata[it, "GrangesPkg"])
-    metadata[it, "OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
-    metadata[it, "OrganismdbiFile"] <- file.path(
-      dir, "OrganismDbi", metadata[it, "BiocVersion"],
-      metadata[it, "OrganismdbiPkg"], "graphInfo.rda")
-    metadata[it, "OrgdbPkg"] <- pkg_names[["orgdb"]]
-    metadata[it, "OrgdbFile"] <- file.path(
-      dir, "OrgDb", metadata[it, "BiocVersion"],
-      gsub(x = metadata[it, "OrgdbPkg"], pattern = "db$", replacement = "sqlite"))
-    metadata[it, "TxdbPkg"] <- pkg_names[["txdb"]]
-    metadata[it, "TxdbFile"] <- file.path(
-      dir, "TxDb", metadata[it, "BiocVersion"],
-      glue::glue("{metadata[it, 'TxdbPkg']}.sqlite"))
-    metadata[it, "Species"] <- gsub(x = species_info[["genus_species"]],
-                                    pattern = "\\.", replacement = " ")
-    metadata[it, "Strain"] <- species_info[["strain"]]
-    metadata[it, "Genus"] <- species_info[["genus"]]
-    metadata[it, "Sp"] <- species_info[["species"]]
-    metadata[it, "Taxon"] <- gsub(x = species_info[["taxon"]],
-                                  pattern = "\\.", replacement = " ")
-    metadata[it, "TaxonUnmodified"] <- species_info[["unmodified"]]
-  }
-
-  taxa_xref <- xref_taxonomy(metadata, verbose = verbose)
-
-  species_xref <- xref_species(valid = taxa_xref[["matched_metadata"]],
-                               invalid = taxa_xref[["unmatched_metadata"]],
-                               verbose = verbose)
->>>>>>> 13b1ccc (updated email; coding style tweaks)
   if (isTRUE(write_csv)) {
     message("Writing EuPathDB metadata csv files.")
     written <- write_eupath_metadata(species_xref[["valid"]], webservice,
-<<<<<<< HEAD
                                      file_type = "valid",
                                      build_dir = build_dir)
     invalid_written <- write_eupath_metadata(species_xref[["invalid"]], webservice,
                                              file_type="invalid",
                                              build_dir = build_dir)
-=======
-                                     bioc_version, db_version, type = "valid")
-    invalid_written <- write_eupath_metadata(species_xref[["invalid"]], webservice,
-                                             bioc_version, db_version, type = "invalid")
->>>>>>> 13b1ccc (updated email; coding style tweaks)
   }
   retlist <- list(
     "valid" = species_xref[["valid"]],
