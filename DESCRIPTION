@@ -87,6 +87,7 @@ Collate:
  'prefix_map.R'
  'query_s3_file.R'
  'query_s3_ah.R'
+ 'remove_eupath_nas.R'
  'write_eupath_metadata.R'
  'xref_species.R'
  'xref_taxonomy.R'
