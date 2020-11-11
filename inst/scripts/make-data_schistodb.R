@@ -25,7 +25,7 @@ for (it in start:end) {
     results[["orgdb"]][[species]] <- orgdb_result
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupathdb_txdb(entry, eupathdb_version=eupathdb_version, copy_s3=TRUE)
+    txdb_result <- make_eupath_txdb(entry, copy_s3=TRUE)
     if (is.null(txdb_result)) {
       next
     }
