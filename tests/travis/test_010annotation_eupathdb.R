@@ -26,26 +26,6 @@ test_that("Do we get an lmajor entry?", {
   expect_equal(expected, actual)
 })
 
-stuff <- httr::GET("https://tritrypdb.org/tritrypdb/service/record-types?format=expanded")
-cont <- httr::content(stuff, encoding="UTF-8", as="text")
-result <- jsonlite::fromJSON(cont, flatten=TRUE)
-all_attributes <- result[["attributes"]]
-first_attributes <- all_attributes[[1]]
-all_data_column_names <- first_attributes[["name"]]
-wanted_column_names <- all_data_column_names
-remove_regexes <- c("_model$", "_cds$", "_image$", "_int$", "^uri$",
-                    "Abbrev$", "^gff_", "Temp$", "_\\d+$", "_graph$",
-                    "^JBrowse$")
-for (r in 1:length(remove_regexes)) {
-  removal <- remove_regexes[r]
-  idx <- grepl(x=wanted_column_names, pattern=removal)
-  print(sum(idx))
-  wanted_column_names <- wanted_column_names[!idx]
-  print(length(wanted_column_names))
-}
-
-all_metadata_columns <- all_attributes[[3]][["name"]]
-
 end <- as.POSIXlt(Sys.time())
 elapsed <- round(x=as.numeric(end) - as.numeric(start))
 message(paste0("\nFinished 010annotation_eupathdb.R in ", elapsed,  " seconds."))
