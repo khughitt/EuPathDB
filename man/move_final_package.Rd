@@ -4,14 +4,14 @@
 \alias{move_final_package}
 \title{Move a package file to its final location for collation by AnnotationHubData.}
 \usage{
-move_final_package(pkgname, type = "orgdb", workdir = "EuPathDB")
+move_final_package(pkgname, type = "orgdb", build_dir = "EuPathDB")
 }
 \arguments{
 \item{pkgname}{Name of package to move to its final home.}
 
 \item{type}{Which type of package is this?}
 
-\item{workdir}{base working directory.}
+\item{build_dir}{base working directory.}
 }
 \description{
 Move a package file to its final location for collation by AnnotationHubData.

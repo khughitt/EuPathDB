@@ -4,12 +4,21 @@
 \alias{xref_taxonomy}
 \title{Cross reference the taxonomy data from GenomeInfoDb with EuPathDB metadata.}
 \usage{
-xref_taxonomy(metadata, verbose = FALSE)
+xref_taxonomy(
+  metadata,
+  verbose = FALSE,
+  species_column = "SpeciesName",
+  taxon_column = "TaxonomyID"
+)
 }
 \arguments{
 \item{metadata}{Information provided by downloading the metadata from a eupathdb sub project.}
 
 \item{verbose}{Print some information about what is found as this runs?}
+
+\item{species_column}{Because the species column name has changed.}
+
+\item{taxon_column}{Because the taxonomy column name has changed.}
 }
 \value{
 List containing entries which pass and fail after xrefing against loadTaxonomyDb().

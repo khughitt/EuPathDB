@@ -4,14 +4,18 @@
 \alias{post_eupath_annotations}
 \title{Create a series of POST requests which download all the annotation data for a species.}
 \usage{
-post_eupath_annotations(entry = NULL, workdir = "EuPathDB", overwrite = FALSE)
+post_eupath_annotations(
+  entry = NULL,
+  overwrite = FALSE,
+  build_dir = "EuPathDB"
+)
 }
 \arguments{
 \item{entry}{Eupathdb annotation entry.}
 
-\item{workdir}{Location to dump the resulting data.}
-
 \item{overwrite}{Overwrite existing data if it exists?}
+
+\item{build_dir}{Location to dump the resulting data.}
 }
 \description{
 The only way I have figured out how to download mass data from the eupathdb

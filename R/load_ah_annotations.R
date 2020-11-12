@@ -5,11 +5,11 @@
 #' @param type Data type to load.
 #' @param eu_version Gather data from a specific eupathdb version?
 #' @param wanted_fields If not provided, this will gather all columns starting
-#'   with 'annot'.
+#'  with 'annot'.
 #' @return Big huge data frame of annotation data.
 #' @export
-load_ah_annotations <- function(species="Leishmania major strain Friedlin", service="TriTrypDB",
-                                type="OrgDb", eu_version=NULL, wanted_fields=NULL) {
+load_ah_annotations <- function(species = "Leishmania major strain Friedlin", service = "TriTrypDB",
+                                type = "OrgDb", eu_version = NULL, wanted_fields = NULL) {
     ah <- AnnotationHub::AnnotationHub()
     queries <- c()
     if (!is.null(species)) {
@@ -44,8 +44,8 @@ load_ah_annotations <- function(species="Leishmania major strain Friedlin", serv
         message("Arbitarily choosing the first.")
         q <- q[[1]]
     }
-  org <- load_orgdb_annotations(q, keytype="gid", fields=wanted_fields)[["genes"]]
-  colnames(org) <- gsub(pattern="^annot_", replacement="", x=colnames(org))
+  org <- load_orgdb_annotations(q, keytype = "gid", fields = wanted_fields)[["genes"]]
+  colnames(org) <- gsub(pattern = "^annot_", replacement = "", x = colnames(org))
   kept_columns <- !duplicated(colnames(org))
   org <- org[, kept_columns]
   return(org)

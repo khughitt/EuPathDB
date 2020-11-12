@@ -6,8 +6,9 @@
 \usage{
 check_files(
   file_type = "OrgDb",
-  bioc_version = "3.9",
-  eu_version = "44",
+  bioc_version = NULL,
+  eu_version = NULL,
+  build_dir = "EuPathDB",
   verbose = FALSE,
   destination = NULL
 )
@@ -18,6 +19,8 @@ check_files(
 \item{bioc_version}{Which bioconductor version is this for?}
 
 \item{eu_version}{Which eupathdb version is this for?}
+
+\item{build_dir}{Location to dump files.}
 
 \item{verbose}{Talk while running?}
 

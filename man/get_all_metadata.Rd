@@ -2,12 +2,12 @@
 % Please edit documentation in R/get_all_metadata.R
 \name{get_all_metadata}
 \alias{get_all_metadata}
-\title{Invoke download_eupath_metadata() using all the sub-projects of the EuPathDB.}
+\title{Invoke download_eupathdb_metadata() using all the sub-projects of the EuPathDB.}
 \usage{
-get_all_metadata(webservice = "all")
+get_all_metadata(...)
 }
 \arguments{
-\item{webservice}{Assume all services are desired.}
+\item{...}{Arguments passed from above.}
 }
 \value{
 Dataframe of the various species metadata.

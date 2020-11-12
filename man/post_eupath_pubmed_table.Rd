@@ -4,12 +4,16 @@
 \alias{post_eupath_pubmed_table}
 \title{Use the post interface to get linkout data.}
 \usage{
-post_eupath_pubmed_table(entry = NULL, workdir = "EuPathDB", overwrite = FALSE)
+post_eupath_pubmed_table(
+  entry = NULL,
+  build_dir = "EuPathDB",
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{workdir}{Location to which to save intermediate savefile.}
+\item{build_dir}{Location to which to save intermediate savefile.}
 
 \item{overwrite}{Overwrite the savefile when attempting a redo?}
 }

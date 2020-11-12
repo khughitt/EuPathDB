@@ -4,12 +4,16 @@
 \alias{post_eupath_goslim_table}
 \title{Use the POST interface to get GO data from the EuPathDB.}
 \usage{
-post_eupath_goslim_table(entry = NULL, workdir = "EuPathDB", overwrite = FALSE)
+post_eupath_goslim_table(
+  entry = NULL,
+  build_dir = "EuPathDB",
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{workdir}{Location to write savefiles.}
+\item{build_dir}{Location to write savefiles.}
 
 \item{overwrite}{Overwrite intermediate savefiles in case of incomplete install?}
 }

@@ -98,7 +98,7 @@ library(testthat)
 source("config.R")
 webservice <- "eupathdb"
 
-eu_version
+eupathdb_version
 bioc_version
 ```
 
@@ -107,11 +107,11 @@ bioc_version
 In this block I copy/paste the metadata downloader.
 
 ```{r download_metadata}
-meta <- download_eupath_metadata(
-  bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
-  verbose=TRUE, eu_version=eu_version, write_csv=TRUE)
+meta <- download_eupathdb_metadata(
+  bioc_version=bioc_version, build_dir=build_dir, overwrite=TRUE, webservice=webservice,
+  verbose=TRUE, eupathdb_version=eupathdb_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
-write_eupath_metadata(all_metadata, bioc_version=bioc_version, eu_version=eu_version)
+write_eupathdb_metadata(all_metadata, bioc_version=bioc_version, eupathdb_version=eupathdb_version)
 end <- nrow(all_metadata)
 
 summary(all_metadata)
@@ -131,48 +131,49 @@ start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
-  message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
-  pkgnames <- get_eupath_pkgnames(entry)
+  info("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
+  pkgnames <- get_eupathdb_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version, copy_s3=TRUE)
+    bsgenome_result <- make_eupathdb_bsgenome(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     expected <- "bsgenome_name"
     actual <- names(bsgenome_result)
-    testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
+    testthat::test_that("Does make_eupathdb_bsgenome return something sensible?", {
       expect_equal(expected, actual)
     })
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    orgdb_result <- make_eupathdb_orgdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the OrgDB.")
+      warn("There is insufficient data for ", species, " to make the OrgDB.")
     } else {
       actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
-      test_that("Does make_eupath_orgdb return something sensible?", {
+      test_that("Does make_eupathdb_orgdb return something sensible?", {
         expect_equal(expected, actual)
       })
       results[["orgdb"]][[species]] <- orgdb_result
     }
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    txdb_result <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
+
     if (is.null(txdb_result)) {
-      message("Unable to create the txdb package.")
+      warn("Unable to create the txdb package: ", entry$TxdbFile)
     } else {
       actual <- txdb_result[["txdb_name"]]
       expected <- pkgnames[["txdb"]]
-      test_that("Does make_eupath_txdb return something sensible?", {
+      test_that("Does make_eupathdb_txdb return something sensible?", {
         expect_equal(expected, actual)
       })
       results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
     }
   }
-  if (isTRUE(organdb)) {
-    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
-    actual <- organ_result[["organdb_name"]]
+  if (isTRUE(organismdb)) {
+    organ_result <- make_eupathdb_organismdbi(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
+    actual <- organ_result[["organismdb_name"]]
     expected <- pkgnames[["organismdbi"]]
-    test_that("Does make_eupath_organismdbi return something sensible?", {
+    test_that("Does make_eupathdb_organismdbi return something sensible?", {
       expect_equal(expected, actual)
     })
     results[["organismdbi"]] <- organ_result
@@ -185,7 +186,7 @@ for (it in start:end) {
 Once the data has been generated (or not), the final task is to check the
 metadata and the generated files.  The following block accomplishes this:
 
-the variables bsgenome and organdb are of course, FALSE in this invocation.
+the variables bsgenome and organismdb are of course, FALSE in this invocation.
 
 ### Check the orgdb metadata
 
@@ -196,13 +197,13 @@ scratch disk of sufficient size for these files.
 
 ```{r final_orgdb}
 if (isTRUE(orgdb)) {
-  org_csv <- check_csv(file_type="OrgDb", bioc_version=bioc_version, eu_version=eu_version)
-  org_files <- check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  org_csv <- check_csv(build_dir, file_type="OrgDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  org_files <- check_files("OrgDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", org_csv)
   copied <- file.copy(org_csv, csv_copy_path, overwrite=TRUE)
   expect_true(copied)
   org_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), org_csv)
-  save(list=c("org_checked"), file="orgdb_metadata.rda")
+  save(list=c("org_checked"), file=file.path(build_dir, "orgdb_metadata.rda"))
   class(org_checked)
   summary(org_checked)
 }
@@ -212,13 +213,13 @@ if (isTRUE(orgdb)) {
 
 ```{r final_txdb}
 if (isTRUE(txdb)) {
-  txdb_csv <- check_csv(file_type="TxDb", bioc_version=bioc_version, eu_version=eu_version)
-  tx_files <- check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  txdb_csv <- check_csv(build_dir, file_type="TxDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  tx_files <- check_files("TxDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", txdb_csv)
   copied <- file.copy(txdb_csv, csv_copy_path, overwrite=TRUE)
   expect_true(copied)
   tx_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), txdb_csv)
-  save(list=c("tx_checked"), file="txdb_metadata.rda")
+  save(list=c("tx_checked"), file=file.path(build_dir, "txdb_metadata.rda"))
   class(tx_checked)
   summary(tx_checked)
 }
@@ -228,13 +229,13 @@ if (isTRUE(txdb)) {
 
 ```{r final_granges}
 if (isTRUE(granges)) {
-  grange_csv <- check_csv(file_type="GRanges", bioc_version=bioc_version, eu_version=eu_version)
-  grange_files <- check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  grange_csv <- check_csv(build_dir, file_type="GRanges", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  grange_files <- check_files("GRanges", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", grange_csv)
   copied <- file.copy(grange_csv, csv_copy_path, overwrite=TRUE)
   expect_true(copied)
   grange_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), grange_csv)
-  save(list=c("grange_checked"), file="granges_metadata.rda")
+  save(list=c("grange_checked"), file=file.path(build_dir, "granges_metadata.rda"))
   class(grange_checked)
   summary(grange_checked)
 }
@@ -250,59 +251,59 @@ I am just invoking the relevant portions for this discussion.
 library(testthat)
 source("config.R")
 webservice <- "eupathdb"
-meta <- download_eupath_metadata(
+meta <- download_eupathdb_metadata(
   bioc_version=bioc_version, overwrite=TRUE, webservice=webservice,
-  verbose=TRUE, eu_version=eu_version, write_csv=TRUE)
+  verbose=TRUE, eupathdb_version=eupathdb_version, write_csv=TRUE)
 all_metadata <- meta[["valid"]]
-write_eupath_metadata(all_metadata, bioc_version=bioc_version, eu_version=eu_version)
+write_eupathdb_metadata(all_metadata, bioc_version=bioc_version, eupathdb_version=eupathdb_version)
 end <- nrow(all_metadata)
 
 start <- 1
 for (it in start:end) {
   entry <- all_metadata[it, ]
   species <- entry[["Species"]]
-  message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
-  pkgnames <- get_eupath_pkgnames(entry)
+  info("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
+  pkgnames <- get_eupathdb_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version, copy_s3=TRUE)
+    bsgenome_result <- make_eupathdb_bsgenome(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     expected <- "bsgenome_name"
     actual <- names(bsgenome_result)
-    testthat::test_that("Does make_eupath_bsgenome return something sensible?", {
+    testthat::test_that("Does make_eupathdb_bsgenome return something sensible?", {
       expect_equal(expected, actual)
     })
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    orgdb_result <- make_eupathdb_orgdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(orgdb_result)) {
-      message("There is insufficient data for ", species, " to make the OrgDB.")
+      warn("There is insufficient data for ", species, " to make the OrgDB.")
     } else {
       actual <- orgdb_result[["orgdb_name"]]
       expected <- pkgnames[["orgdb"]]
-      test_that("Does make_eupath_orgdb return something sensible?", {
+      test_that("Does make_eupathdb_orgdb return something sensible?", {
         expect_equal(expected, actual)
       })
       results[["orgdb"]][[species]] <- orgdb_result
     }
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version, copy_s3=TRUE)
+    txdb_result <- make_eupathdb_txdb(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
     if (is.null(txdb_result)) {
-      message("Unable to create the txdb package.")
+      warn("Unable to create the txdb package: ", entry$TxdbFile)
     } else {
       actual <- txdb_result[["txdb_name"]]
       expected <- pkgnames[["txdb"]]
-      test_that("Does make_eupath_txdb return something sensible?", {
+      test_that("Does make_eupathdb_txdb return something sensible?", {
         expect_equal(expected, actual)
       })
       results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
     }
   }
-  if (isTRUE(organdb)) {
-    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE)
-    actual <- organ_result[["organdb_name"]]
+  if (isTRUE(organismdb)) {
+    organ_result <- make_eupathdb_organismdbi(entry, workdir = build_dir, eupathdb_version=eupathdb_version, copy_s3=TRUE)
+    actual <- organ_result[["organismdb_name"]]
     expected <- pkgnames[["organismdbi"]]
-    test_that("Does make_eupath_organismdbi return something sensible?", {
+    test_that("Does make_eupathdb_organismdbi return something sensible?", {
       expect_equal(expected, actual)
     })
     results[["organismdbi"]] <- organ_result
@@ -310,59 +311,67 @@ for (it in start:end) {
 } ## End iterating over every entry in the eupathdb metadata.
 
 if (isTRUE(bsgenome)) {
-  bs_csv <- check_csv(file_type="BSgenome", bioc_version=bioc_version, eu_version=eu_version)
-  bs_files <- check_files("BSgenome", bioc_version=bioc_version, eu_version=eu_version)
+  bs_csv <- check_csv(build_dir, file_type="BSgenome", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  bs_files <- check_files("BSgenome", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", bs_csv)
   file.copy(bs_csv, csv_copy_path)
   bs_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), bs_csv)
-  save(list=c("bs_checked"), file="bsgenome_metadata.rda")
+  save(list=c("bs_checked"), file=file.path(build_dir, "bsgenome_metadata.rda"))
   bs_checked[[1]]
 }
 if (isTRUE(orgdb)) {
-  org_csv <- check_csv(file_type="OrgDb", bioc_version=bioc_version, eu_version=eu_version)
-  org_files <- check_files("OrgDb", bioc_version=bioc_version, eu_version=eu_version)
+  org_csv <- check_csv(build_dir, file_type="OrgDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  org_files <- check_files("OrgDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", org_csv)
   file.copy(org_csv, csv_copy_path)
   org_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), orgdb_csv)
-  save(list=c("org_checked"), file="orgdb_metadata.rda")
+  save(list=c("org_checked"), file=file.path(build_dir, "orgdb_metadata.rda"))
   org_checked[[1]]
 }
 if (isTRUE(txdb)) {
-  txdb_csv <- check_csv(file_type="TxDb", bioc_version=bioc_version, eu_version=eu_version)
-  tx_files <- check_files("TxDb", bioc_version=bioc_version, eu_version=eu_version)
+  txdb_csv <- check_csv(build_dir, file_type="TxDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  tx_files <- check_files("TxDb", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", txdb_csv)
   file.copy(txdb_csv, csv_copy_path)
   tx_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), txdb_csv)
-  save(list=c("tx_checked"), file="txdb_metadata.rda")
+  save(list=c("tx_checked"), file=file.path(build_dir, "txdb_metadata.rda"))
   tx_checked[[1]]
 }
-if (isTRUE(organdb)) {
-  organ_csv <- check_csv(file_type="OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
-  organ_files <- check_files("OrganismDbi", bioc_version=bioc_version, eu_version=eu_version)
+if (isTRUE(organismdb)) {
+  organ_csv <- check_csv(build_dir, file_type="OrganismDbi", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  organ_files <- check_files("OrganismDbi", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", organ_csv)
   file.copy(organ_csv, csv_copy_path)
   organ_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), organ_csv)
-  save(list=c("organ_checked"), file="organismdbi_metadata.rda")
+  save(list=c("organ_checked"), file=file.path(build_dir, "organismdbi_metadata.rda"))
   organ_checked[[1]]
 }
 if (isTRUE(granges)) {
-  grange_csv <- check_csv(file_type="GRanges", bioc_version=bioc_version, eu_version=eu_version)
-  grange_files <- check_files("GRanges", bioc_version=bioc_version, eu_version=eu_version)
+  grange_csv <- check_csv(build_dir, file_type="GRanges", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
+  grange_files <- check_files("GRanges", bioc_version=bioc_version, eupathdb_version=eupathdb_version)
   csv_copy_path <- file.path(path.package("EuPathDB"), "inst", "extdata", grange_csv)
   file.copy(grange_csv, csv_copy_path)
   grange_checked <- AnnotationHubData::makeAnnotationHubMetadata(path.package("EuPathDB"), grange_csv)
-  save(list=c("grange_checked"), file="granges_metadata.rda")
+  save(list=c("grange_checked"), file=file.path(build_dir, "granges_metadata.rda"))
   grange_checked[[1]]
 }
 ```
 
+## Test that the ah objects exist and are loadable in R.
+
+```{r test_ah}
+if (isTRUE(granges)) {
+  grange_ah <- query_s3_ah(file_type="GRanges")
+}
+
+```
 
 
 
 ```{r saveme}
 pander::pander(sessionInfo())
-message(paste0("This is hpgltools commit: ", get_git_commit()))
-this_save <- paste0(gsub(pattern="\\.Rmd", replace="", x=rmd_file), "-v", ver, ".rda.xz")
-message(paste0("Saving to ", this_save))
+info("This is hpgltools commit: ", get_git_commit())
+this_save <- paste0(gsub("\\.Rmd", "", rmd_file), "-v", ver, ".rda.xz")
+info("Saving to ", this_save)
 tmp <- sm(saveme(filename=this_save))
 ```

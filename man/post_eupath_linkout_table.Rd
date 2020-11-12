@@ -6,14 +6,14 @@
 \usage{
 post_eupath_linkout_table(
   entry = NULL,
-  workdir = "EuPathDB",
+  build_dir = "EuPathDB",
   overwrite = FALSE
 )
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{workdir}{Location to which to save intermediate savefile.}
+\item{build_dir}{Location to which to save intermediate savefile.}
 
 \item{overwrite}{Overwrite the savefile when attempting a redo?}
 }

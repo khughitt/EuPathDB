@@ -4,7 +4,13 @@
 \alias{xref_species}
 \title{Cross reference the taxonomy data from AnnotationHubData::getSpeciesList()}
 \usage{
-xref_species(valid, invalid, verbose = FALSE)
+xref_species(
+  valid,
+  invalid,
+  verbose = FALSE,
+  taxon_column = "TaxonUnmodified",
+  species_column = "GenusSpecies"
+)
 }
 \arguments{
 \item{valid}{Dataframe of entries which have thus far been deemed 'valid' by my tests.}
@@ -12,6 +18,10 @@ xref_species(valid, invalid, verbose = FALSE)
 \item{invalid}{Dataframe of entries which failed.}
 
 \item{verbose}{Print some information about what is found?}
+
+\item{taxon_column}{metadata column with the taxonomy information.}
+
+\item{species_column}{metadata column with my generated species name.}
 }
 \value{
 Likely smaller data frame of valid information and larger dataframe of invalid.

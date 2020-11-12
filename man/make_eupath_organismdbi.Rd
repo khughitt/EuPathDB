@@ -7,7 +7,7 @@
 make_eupath_organismdbi(
   entry = NULL,
   eu_version = NULL,
-  workdir = "EuPathDB",
+  build_dir = "EuPathDB",
   installp = TRUE,
   reinstall = FALSE,
   kegg_abbreviation = NULL,
@@ -20,7 +20,7 @@ make_eupath_organismdbi(
 
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
-\item{workdir}{Directory in which to build the packages.}
+\item{build_dir}{Directory in which to build the packages.}
 
 \item{installp}{Install the resulting package?}
 

@@ -5,8 +5,8 @@
 \title{Generate a GRanges rda savefile from a gff file.}
 \usage{
 make_eupath_granges(
-  entry = NULL,
-  workdir = "EuPathDB",
+  entry,
+  build_dir = "EuPathDB",
   eu_version = NULL,
   copy_s3 = FALSE
 )
@@ -14,7 +14,7 @@ make_eupath_granges(
 \arguments{
 \item{entry}{Metadatum entry.}
 
-\item{workdir}{Place to put the resulting file(s).}
+\item{build_dir}{Place to put the resulting file(s).}
 
 \item{eu_version}{Optionally request a specific version of the gff file.}
 

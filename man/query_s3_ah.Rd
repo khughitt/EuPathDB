@@ -7,7 +7,8 @@
 query_s3_ah(
   testing = TRUE,
   file_type = "OrgDb",
-  cachedir = "~/scratch/eupathdb/cache"
+  cachedir = "~/scratch/eupathdb/cache",
+  csv = "inst/extdata/OrgDb_biocv3.10_eupathdbv46_metadata.csv"
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ query_s3_ah(
 \item{file_type}{Type of data to query.}
 
 \item{cachedir}{Place to put the downloaded files, useful for if one's homedirectory is too small.}
+
+\item{csv}{File to check against.}
 }
 \description{
 This may be run after the data has been uploaded to the annotationhub to

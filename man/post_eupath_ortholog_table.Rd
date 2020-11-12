@@ -6,8 +6,8 @@
 \usage{
 post_eupath_ortholog_table(
   entry = NULL,
-  workdir = "EuPathDB",
-  table = "OrthologsLite",
+  ortholog_table = NULL,
+  build_dir = "EuPathDB",
   gene_ids = NULL,
   overwrite = FALSE
 )
@@ -15,10 +15,9 @@ post_eupath_ortholog_table(
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{workdir}{Location to which to save an intermediate savefile.}
+\item{ortholog_table}{This should no longer be needed, it is only OrthologsLite now.}
 
-\item{table}{This defaults to the 'OrthologsLite' table, but that does not
-exist at all eupathdb subprojects.}
+\item{build_dir}{Location to which to save an intermediate savefile.}
 
 \item{gene_ids}{When provided, ask only for the orthologs for these genes.}
 

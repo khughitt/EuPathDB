@@ -4,9 +4,16 @@
 \alias{check_csv}
 \title{Check the metadata csv files and write only the 'good' entries.}
 \usage{
-check_csv(file_type = "OrgDb", bioc_version = "3.9", eu_version = "44")
+check_csv(
+  build_dir = "EuPathDB",
+  file_type = "OrgDb",
+  bioc_version = NULL,
+  eu_version = NULL
+)
 }
 \arguments{
+\item{build_dir}{Directory in which to put the data.}
+
 \item{file_type}{Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?}
 
 \item{bioc_version}{Which bioconductor version is this for?}

@@ -10,7 +10,8 @@ extract_eupath_orthologs(
   query_species = NULL,
   id_column = "ORTHOLOGS_GID",
   org_column = "ORTHOLOGS_ORGANISM",
-  url_column = "ORTHOLOGS_PRODUCT",
+  group_column = "ORTHOLOGS_GROUP_ID",
+  name_column = "ORTHOLOGS_PRODUCT",
   count_column = "ORTHOLOGS_COUNT",
   print_speciesnames = FALSE,
   webservice = "eupathdb"
@@ -29,7 +30,9 @@ text.  If left null, then it will pull all species.}
 
 \item{org_column}{What column provides the species name?}
 
-\item{url_column}{What column provides the orthomcl group ID?}
+\item{group_column}{Ortholog group column name.}
+
+\item{name_column}{Name of the gene for this group.}
 
 \item{count_column}{Name of the column with the count of species represented.}
 

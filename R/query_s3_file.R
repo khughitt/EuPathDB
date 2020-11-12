@@ -7,10 +7,10 @@
 #' @param row Metadata row to query.
 #' @param file_type Currently I have 3 file types of interest.
 #' @param file_column Name of the column with the locations of the files of
-#'   interest.
+#'  interest.
 #' @return MD5 checksum of the resulting file, or NULL.
 #' @export
-query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
+query_s3_file <- function(row, file_type = "OrgDb", file_column = "OrgdbFile") {
   ret <- NULL
   file <- row[[file_column]]
   if (file_type == "GRanges") {
@@ -34,7 +34,7 @@ query_s3_file <- function(row, file_type="OrgDb", file_column="OrgdbFile") {
 #' @param file Filename to query.
 #' @return MD5 sum of the file or NULL.
 query_s3_granges <- function(file) {
-  con <- try(attach(file), silent=TRUE)
+  con <- try(attach(file), silent = TRUE)
   if (class(con)[1] == "try-error") {
     return(NULL)
   }
@@ -48,7 +48,7 @@ query_s3_granges <- function(file) {
   found_rows <- nrow(as.data.frame(data))
   testthat::expect_gt(found_rows, min_rows)
   detached <- paste0("file:", file)
-  detach(name=detached, character.only=TRUE)
+  detach(name=detached, character.only = TRUE)
   md <- as.character(tools::md5sum(file))
   return(md)
 }

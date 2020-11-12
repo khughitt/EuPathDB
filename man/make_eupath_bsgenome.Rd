@@ -7,7 +7,7 @@
 make_eupath_bsgenome(
   entry,
   eu_version = NULL,
-  workdir = "EuPathDB",
+  build_dir = "EuPathDB",
   copy_s3 = FALSE,
   installp = TRUE,
   reinstall = FALSE,
@@ -19,7 +19,7 @@ make_eupath_bsgenome(
 
 \item{eu_version}{Which version of the eupathdb to use for creating the BSGenome?}
 
-\item{workdir}{Working directory.}
+\item{build_dir}{Working directory.}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 

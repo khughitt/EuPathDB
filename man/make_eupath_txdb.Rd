@@ -6,7 +6,7 @@
 \usage{
 make_eupath_txdb(
   entry = NULL,
-  workdir = "EuPathDB",
+  build_dir = "EuPathDB",
   eu_version = NULL,
   reinstall = FALSE,
   installp = TRUE,
@@ -16,7 +16,7 @@ make_eupath_txdb(
 \arguments{
 \item{entry}{One row from the organism metadata.}
 
-\item{workdir}{Base directory for building the package.}
+\item{build_dir}{Base directory for building the package.}
 
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
 

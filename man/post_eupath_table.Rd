@@ -4,24 +4,20 @@
 \alias{post_eupath_table}
 \title{Queries one of the EuPathDB APIs using a POST request.}
 \usage{
-post_eupath_table(query_body, entry, table_name = NULL, minutes = 30)
+post_eupath_table(entry, tables = "GOTerms", table_name = NULL, minutes = 30)
 }
 \arguments{
-\item{query_body}{String of additional query arguments}
-
 \item{entry}{The single metadatum containing the base url of the provider, species, etc.}
 
-\item{table_name}{The name of the table to extract, this is provided to make
+\item{tables}{Name of the table at the eupathdb webservice.}
+
+\item{table_name}{The name of the table in the local SQLite instance. This is provided to make
 for prettier labeling.}
 
 \item{minutes}{A timeout when querying the eupathdb.}
 }
 \value{
 list containing response from API request.
-
-More information
-----------------
-1. https://tritrypdb.org/tritrypdb/serviceList.jsp
 }
 \description{
 This should return a dataframe representation of one table at the eupathdb.

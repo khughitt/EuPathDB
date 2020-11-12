@@ -4,21 +4,10 @@
 \alias{load_orgdb_go}
 \title{Retrieve GO terms associated with a set of genes.}
 \usage{
-load_orgdb_go(
-  orgdb = NULL,
-  gene_ids = NULL,
-  keytype = "gid",
-  columns = c("go", "evidence")
-)
+load_orgdb_go(orgdb = NULL)
 }
 \arguments{
 \item{orgdb}{OrganismDb instance.}
-
-\item{gene_ids}{Identifiers of the genes to retrieve annotations.}
-
-\item{keytype}{The mysterious keytype returns yet again to haunt my dreams.}
-
-\item{columns}{The set of columns to request.}
 }
 \value{
 Data frame of gene IDs, go terms, and names.
@@ -29,7 +18,6 @@ ID and ontologies.  This will extract that table for a given set of gene
 IDs.
 }
 \details{
-Tested in test_45ann_organdb.R
 This is a nice way to extract GO data primarily because the Orgdb data sets
 are extremely fast and flexible, thus by changing the keytype argument, one
 may use a lot of different ID types and still score some useful ontology data.
@@ -45,5 +33,5 @@ may use a lot of different ID types and still score some useful ontology data.
 }
 \author{
 I think Keith provided the initial implementation of this, but atb
-  messed with it pretty extensively.
+ messed with it pretty extensively.
 }

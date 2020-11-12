@@ -14,13 +14,13 @@
 #'
 #' @param entry A metadatum entry.
 #' @param eu_version Choose a specific version of the eupathdb, only really useful
-#'   when downloading files.
+#'  when downloading files.
 #' @param column Which column to query to get the species name?
 #' @return List of package names and some booleans to see if they have already
-#'   been installed.
+#'  been installed.
 #' @author atb
 #' @export
-get_eupath_pkgnames <- function(entry, eu_version=NULL, column="TaxonUnmodified") {
+get_eupath_pkgnames <- function(entry, eu_version = NULL, column = "TaxonUnmodified") {
   species <- entry[[column]]
   version_string <- glue::glue(".v{entry[['SourceVersion']]}")
   if (!is.null(eu_version)) {
@@ -28,6 +28,7 @@ get_eupath_pkgnames <- function(entry, eu_version=NULL, column="TaxonUnmodified"
     version_string <- glue::glue(".{eu_version}")
   }
 
+  ## The format of the pkgnames for species I know is peculiar, emulate it here.
   provider <- tolower(entry[["DataProvider"]])
   taxa <- make_taxon_names(entry, column=column)
   first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
@@ -43,6 +44,8 @@ get_eupath_pkgnames <- function(entry, eu_version=NULL, column="TaxonUnmodified"
                   {entry[['DataProvider']]}{version_string}"),
     "txdb_installed" = FALSE
   )
+
+  ## Now check if the given package has in fact been installed and return the result.
   inst <- as.data.frame(installed.packages())
   if (pkg_list[["bsgenome"]] %in% inst[["Package"]]) {
     pkg_list[["bsgenome_installed"]] <- TRUE

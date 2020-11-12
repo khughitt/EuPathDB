@@ -8,6 +8,7 @@ get_eupath_entry(
   species = "Leishmania major",
   webservice = "eupathdb",
   column = "TaxonUnmodified",
+  metadata = NULL,
   ...
 )
 }
@@ -18,6 +19,8 @@ species name.}
 \item{webservice}{The EuPathDB webservice to query.}
 
 \item{column}{Which column to use for getting the species name?}
+
+\item{metadata}{Optional dataframe of already downloaded metadata.}
 
 \item{...}{Parameters passed to download_eupath_metadata()}
 }

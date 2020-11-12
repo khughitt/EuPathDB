@@ -4,7 +4,7 @@
 \alias{check_s3}
 \title{Check the metadata csv files and write only the 'good' entries.}
 \usage{
-check_s3(file_type = "OrgDb", bioc_version = "3.9", eu_version = "44")
+check_s3(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL)
 }
 \arguments{
 \item{file_type}{Is this an OrgDB, GRanges, TxDb, OrganismDbi, or BSGenome dataset?}
