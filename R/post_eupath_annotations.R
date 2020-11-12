@@ -40,7 +40,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## useful column names.
     ## I later came through and wrote a function function to automagically populate this list.
     species <- entry[["TaxonUnmodified"]]
-    webservice <- entry[["DataProvider"]]
+    webservice <- tolower(entry[["DataProvider"]])
     ## Use a query to find what annotation types are available: protein coding vs. rRNA vs. etc...
     types <- get_eupath_gene_types(webservice = webservice)
     result <- data.frame()
@@ -55,38 +55,38 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## download_json <- glue::glue("{build_dir}/{species_filename}.json")
 
     base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/transcript/searches/GenesByTaxon/reports/standard")
-    wanted_columns <- c("primary_key", "wdk_weight", "has_missing_transcripts", "gene_name",
-                        "gene_source_id", "gene_previous_ids", "gene_product", "transcript_product",
-                        "gene_exon_count", "exon_count", "gene_transcript_count",
-                        "three_prime_utr_length", "five_prime_utr_length", "strand", "gene_type",
-                        "is_pseudo", "transcript_length", "gene_entrez_id", "uniprot_id",
-                        "chromosome", "gene_location_text", "location_text", "sequence_id",
-                        "organism", "gene_ortholog_number", "gene_orthomcl_name",
-                        "gene_paralog_number", "gene_hts_noncoding_snps",
-                        "gene_hts_nonsyn_syn_ratio", "gene_hts_nonsynonymous_snps",
-                        "gene_hts_stop_codon_snps", "gene_hts_synonymous_snps",
-                        "gene_total_hts_snps", "cds", "transcript_sequence", "protein_sequence",
-                        "protein_length", "cds_length", "molecular_weight", "isoelectric_point",
-                        "interpro_id", "interpro_description", "pfam_id", "pfam_description",
-                        "pirsf_id", "pirsf_description", "prositeprofiles_id",
-                        "prositeprofiles_description", "smart_id", "smart_description",
-                        "superfamily_id", "superfamily_description", "tigrfam_id",
-                        "tigrfam_description", "new_product_name", "tm_count", "signalp_peptide",
-                        "signalp_scores", "predicted_go_id_component", "predicted_go_component",
-                        "predicted_go_id_function", "predicted_go_function",
-                        "predicted_go_id_process", "predicted_go_process",
-                        "annotated_go_id_component", "annotated_go_component",
-                        "annotated_go_id_function", "annotated_go_function",
-                        "annotated_go_id_process", "annotated_go_process", "ec_numbers",
-                        "ec_numbers_derived")
+    wanted_columns <- get_semantic_columns(webservice = webservice)
+    ##wanted_columns <- c("primary_key", "wdk_weight", "has_missing_transcripts", "gene_name",
+    ##                    "gene_source_id", "gene_previous_ids", "gene_product", "transcript_product",
+    ##                    "gene_exon_count", "exon_count", "gene_transcript_count",
+    ##                    "three_prime_utr_length", "five_prime_utr_length", "strand", "gene_type",
+    ##                    "is_pseudo", "transcript_length", "gene_entrez_id", "uniprot_id",
+    ##                    "chromosome", "gene_location_text", "location_text", "sequence_id",
+    ##                    "organism", "gene_ortholog_number", "gene_orthomcl_name",
+    ##                    "gene_paralog_number", "gene_hts_noncoding_snps",
+    ##                    "gene_hts_nonsyn_syn_ratio", "gene_hts_nonsynonymous_snps",
+    ##                    "gene_hts_stop_codon_snps", "gene_hts_synonymous_snps",
+    ##                    "gene_total_hts_snps", "cds", "transcript_sequence", "protein_sequence",
+    ##                    "protein_length", "cds_length", "molecular_weight", "isoelectric_point",
+    ##                    "interpro_id", "interpro_description", "pfam_id", "pfam_description",
+    ##                    "pirsf_id", "pirsf_description", "prositeprofiles_id",
+    ##                    "prositeprofiles_description", "smart_id", "smart_description",
+    ##                    "superfamily_id", "superfamily_description", "tigrfam_id",
+    ##                    "tigrfam_description", "new_product_name", "tm_count", "signalp_peptide",
+    ##                    "signalp_scores", "predicted_go_id_component", "predicted_go_component",
+    ##                    "predicted_go_id_function", "predicted_go_function",
+    ##                    "predicted_go_id_process", "predicted_go_process",
+    ##                    "annotated_go_id_component", "annotated_go_component",
+    ##                    "annotated_go_id_function", "annotated_go_function",
+    ##                    "annotated_go_id_process", "annotated_go_process", "ec_numbers",
+    ##                    "ec_numbers_derived")
     query_body <- list(
         "searchConfig" = list(
             "parameters" = list("organism" = jsonlite::unbox(species)),
             "wdkWeight" = jsonlite::unbox(10)),
         "reportConfig" = list(
             "attributes" = wanted_columns,
-            "tables" = list())
-    )
+            "tables" = list()))
     post_json <- jsonlite::toJSON(query_body)
     result <- httr::POST(url = base_url, body = post_json,
                          httr::content_type("application/json"),
@@ -171,24 +171,4 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     message("  Saving ", savefile, " with ", nrow(records), " rows.")
     save(records, file = savefile)
     return(records)
-}
-
-#' Attempt to get a list of sequence types.
-#'
-#' @param webservice choose a service to download from.
-get_eupath_gene_types <- function(webservice = NULL) {
-    if (is.null(webservice)) {
-        webservice <- "fungidb"
-    }
-    tld <- "org"
-    if (webservice == "schistodb") {
-        tld <- "net"
-    }
-    request_url <- glue::glue("https://{webservice}.{tld}/a/service/record-types/transcript/searches/GenesByGeneType")
-    test <- "https://tritrypdb.org/a/service/record-types/transcript/searches/GenesByGeneType"
-    request <- curl::curl(request_url)
-    result <- jsonlite::fromJSON(request_url)
-    vocabulary <- result[["searchData"]][["parameters"]][["vocabulary"]]
-    types <- vocabulary[[2]][, 1]
-    return(types)
 }
