@@ -67,7 +67,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
-    colnames(gene_table)[1] <- "GID"
+  colnames(gene_table)[1] <- "GID"
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
   gene_table <- remove_eupath_nas(gene_table, "annot")
@@ -152,7 +152,8 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## KEGG data
   kegg_table <- data.frame()
   if (isTRUE(do_kegg)) {
-    kegg_table <- try(load_kegg_annotations(species = taxa[["genus_species"]],
+    kegg_table <- try(load_kegg_annotations(linkout_table,
+                                            species = taxa[["genus_species"]],
                                             flatten = FALSE,
                                             abbreviation = kegg_abbreviation[1]))
     if ("try-error" %in% class(kegg_table)) {
@@ -409,11 +410,11 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   Sys.chmod(dbpath, mode = "0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = dbpath)
   ## update SPECIES field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["Species"]]}" WHERE name="SPECIES";')
+  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="SPECIES";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## update ORGANISM field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["Species"]]}" WHERE name="ORGANISM";')
+  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="ORGANISM";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
@@ -464,5 +465,10 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   message("Finished creation of ", pkgname, ".")
   ## Probably should return something more useful/interesting than this, perhaps
   ## the dimensions of the various tables in the orgdb?
-  return(pkgname)
+  sqlite_file <- basename(gsub(x = orgdb_path, pattern = "db$", replacement = "sqlite"))
+  retlist <- list(
+    "pkgname" = pkgname,
+    "db_path" = file.path(orgdb_path, "inst", "extdata", sqlite_file)
+    )
+  return(retlist)
 }

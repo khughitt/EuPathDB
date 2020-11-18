@@ -115,6 +115,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## Every record contains and id, some fields, and tables.
     records <- result[["records"]]
     colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "", x = colnames(records))
+    colnames(records) <- gsub(pattern = "\\.", replacement = "_", x = colnames(records))
     records <- expand_list_columns(records)
 
     ## Use a heuristic to figure out numeric columns and set them accordingly.
@@ -160,6 +161,24 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
 
     ## orgdbs seem to like uppercase column names
     colnames(records) <- toupper(colnames(records))
+
+    ## Drop a few extra dumb columns
+    drop_columns <- c("ANNOT_ORGANISM", "ANNOT_ORGANISM_FULL", "ANNOT_ORGANISM_TEXT",
+                      "ANNOT_RECORDCLASSNAME", "ANNOT_PROJECT_ID", "ANNOT_PROJECT",
+                      "ANNOT_LC_PROJECT_ID", "ANNOT_GENE_SOURCE_ID", "ANNOT_SOURCE_ID")
+    for (d in drop_columns) {
+      if (!is.null(records[[d]])) {
+        records[[d]] <- NULL
+      }
+    }
+
+    ## Do an extra pass for weird NAs
+    for (cname in colnames(records)) {
+      na_idx <- grepl("^#N/A", records[[cname]])
+      records[na_idx, cname] <- ""
+    }
+
+    ## I would like to get rid of any html tags
 
     ## Get rid of duplicated entries
     dup_idx <- duplicated(records)
