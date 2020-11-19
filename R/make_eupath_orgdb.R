@@ -46,14 +46,14 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     created <- dir.create(build_dir, recursive = TRUE)
   }
 
-  ## If available, get the kegg abbreviation, otherwise do not try to collect kegg annotations.
-  do_kegg <- TRUE
-  if (is.null(kegg_abbreviation)) {
-    kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
-    if (length(kegg_abbreviation) == 0) {
-      do_kegg <- FALSE
-    }
-  }
+  ## KEGG is too annoying, disabling it at least for now.
+  do_kegg <- FALSE
+  ## if (is.null(kegg_abbreviation)) {
+  ##   kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
+  ##   if (length(kegg_abbreviation) == 0) {
+  ##     do_kegg <- FALSE
+  ##   }
+  ## }
 
   ## I am almost certain that wrapping these in a try() is no longer necessary.
   gene_table <- try(post_eupath_annotations(entry, build_dir = build_dir, overwrite = overwrite))
@@ -206,8 +206,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     } ## End checking for matching GIDs
   } ## End if we should try getting kegg data.
 
-  uniprot_table <- data.frame()
-
   ## Create the baby table of chromosomes
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
   colnames(chromosome_table) <- c("GID", "CHR_ID")
@@ -225,7 +223,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     "tax_id" = as.character(entry[["TaxonomyID"]]),
     "genus" = taxa[["genus"]],
     "species" = glue::glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
-    ##"goTable" = NULL,
     "goTable" = "godb_xref",
     "gene_info" = gene_table,
     "chromosome" = chromosome_table,
@@ -252,11 +249,11 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     orgdb_args[["interpro_table"]] <- interpro_table
   }
 
-  if (is.null(kegg_table)) {
-    message(" This should not be possible, but the kegg table is still null.")
-  } else if (nrow(kegg_table) > 0) {
-    orgdb_args[["kegg_table"]] <- kegg_table
-  }
+  ## if (is.null(kegg_table)) {
+  ##   message(" This should not be possible, but the kegg table is still null.")
+  ## } else if (nrow(kegg_table) > 0) {
+  ##   orgdb_args[["kegg_table"]] <- kegg_table
+  ## }
 
   if (is.null(linkout_table)) {
     message(" This should not be possible, but the linkout table is still null.")
