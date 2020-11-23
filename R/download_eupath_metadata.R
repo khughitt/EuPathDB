@@ -437,10 +437,12 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
   ## Write out the metadata and finish up.
   if (isTRUE(write_csv)) {
     message("Writing EuPathDB metadata csv files.")
-    written <- write_eupath_metadata(species_xref[["valid"]], webservice,
+    written <- write_eupath_metadata(metadata = species_xref[["valid"]],
+                                     webservice = webservice,
                                      file_type = "valid",
                                      build_dir = build_dir)
-    invalid_written <- write_eupath_metadata(species_xref[["invalid"]], webservice,
+    invalid_written <- write_eupath_metadata(metadata = species_xref[["invalid"]],
+                                             webservice = webservice,
                                              file_type="invalid",
                                              build_dir = build_dir)
   }

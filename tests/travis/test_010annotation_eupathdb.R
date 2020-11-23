@@ -26,25 +26,40 @@ test_that("Do we get an lmajor entry?", {
   expect_equal(expected, actual)
 })
 
-stuff <- httr::GET("https://tritrypdb.org/tritrypdb/service/record-types?format=expanded")
-cont <- httr::content(stuff, encoding="UTF-8", as="text")
-result <- jsonlite::fromJSON(cont, flatten=TRUE)
-all_attributes <- result[["attributes"]]
-first_attributes <- all_attributes[[1]]
-all_data_column_names <- first_attributes[["name"]]
-wanted_column_names <- all_data_column_names
-remove_regexes <- c("_model$", "_cds$", "_image$", "_int$", "^uri$",
-                    "Abbrev$", "^gff_", "Temp$", "_\\d+$", "_graph$",
-                    "^JBrowse$")
-for (r in 1:length(remove_regexes)) {
-  removal <- remove_regexes[r]
-  idx <- grepl(x=wanted_column_names, pattern=removal)
-  print(sum(idx))
-  wanted_column_names <- wanted_column_names[!idx]
-  print(length(wanted_column_names))
-}
+lmajor_orgdb <- make_eupath_orgdb(entry=lmajor_entry, install=FALSE, overwrite=TRUE)
+pkg <- AnnotationDbi::loadDb(lmajor_orgdb[["db_path"]])
+annot_df <- load_orgdb_annotations(orgdb=pkg)[["genes"]]
+expected <- 8
+actual <- ncol(annot_df)
+test_that("Do we get the expected 8 columns from the lmajor orgdb?", {
+  expect_equal(expected, actual)
+})
 
-all_metadata_columns <- all_attributes[[3]][["name"]]
+expected <- 9400
+actual <- nrow(annot_df)
+test_that("Do we get the expected rows from the lmajor orgdb?", {
+  expect_gt(actual, expected)
+})
+
+lmajor_txdb <- make_eupath_txdb(entry=lmajor_entry, install=FALSE)
+lmajor_txdb <- lmajor_txdb[["object"]]
+test_that("Do we get some txdb information?", {
+  expect_equal("TxDb", class(lmajor_txdb[1]) }
+})
+
+lmajor_granges <- make_eupath_granges(entry=lmajor_entry)
+load(file=lmajor_granges[["rda"]])
+granges_data <- get0(lmajor_granges$variable)
+granges_df <- as.data.frame(granges_data)
+granges_col <- ncol(granges_df)
+granges_row <- nrow(granges_df)
+test_that("Do we get some granges information?", {
+  expect_equal(15, granges_col)
+  expect_gt(granges_row, 37300)
+})
+
+lmajor_bsgenome <- make_eupath_bsgenome(entry=lmajor_entry, install=FALSE)
+
 
 end <- as.POSIXlt(Sys.time())
 elapsed <- round(x=as.numeric(end) - as.numeric(start))

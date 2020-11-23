@@ -30,8 +30,9 @@ get_all_metadata <- function(...) {
   if (isTRUE(write_csv)) {
     message("Writing metadata csv files.")
     written <- write_eupath_metadata(
-      valid_metadata, service = "eupathdb", file_type = "valid",
-      bioc_version = bioc_version, eu_version = eu_version, build_dir = build_dir)
+      metadata = valid_metadata, webservice = "eupathdb",
+      file_type = "valid", bioc_version = bioc_version,
+      eu_version = eu_version, build_dir = build_dir)
   }
   retlist <- list(
     "valid" = valid_metadata,

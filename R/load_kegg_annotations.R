@@ -10,7 +10,8 @@
 #'  and KEGG paths.
 #' @author atb
 #' @export
-load_kegg_annotations <- function(species = "coli", abbreviation = NULL, flatten = TRUE) {
+load_kegg_annotations <- function(gene_table, species = "coli",
+                                  abbreviation = NULL, flatten = TRUE) {
   chosen <- NULL
   if (!is.null(abbreviation)) {
     species <- NULL
@@ -81,7 +82,15 @@ load_kegg_annotations <- function(species = "coli", abbreviation = NULL, flatten
   ## Now we have a data frame of all genes <-> ncbi-ids, pathways
   result_nas <- is.na(result)
   result[result_nas] <- ""
-  rownames(result) <- make.names(result[["GID"]], unique = TRUE)
+
+  ## Now lets use the uniprot_xref column to fix the rownames
+  gene_table[["KEGG_GID"]] <- gsub(x = toupper(gene_table[["GID"]]),
+                                   pattern = "\\.", replacement = "_")
+  gene_table <- gene_table[, c("GID", "KEGG_GID")]
+  result_merged <- merge(gene_table, result, by.x = "KEGG_GID", by.y = "GID")
+  GID <- NULL
+  result <- result_merged %>%
+    relocate(GID)
   message("Returning KEGGREST annotations.")
   return(result)
 }

@@ -19,15 +19,15 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
   }
 
   ## determine appropriate prefix to use
-  provider <- tolower(entry[["DataProvider"]])
-  uri_prefix <- prefix_map(provider)
+  webservice <- tolower(entry[["DataProvider"]])
+  uri_prefix <- prefix_map(webservice)
   ## construct API query
   tld <- "org"
-  if (provider == "schistodb") {
+  if (webservice == "schistodb") {
     tld <- "net"
   }
 
-  base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
+  base_url <- glue::glue("https://{webservice}.{tld}/{webservice}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
   species <- entry[["TaxonUnmodified"]]
   query_body <- list(
       "searchConfig" = list(

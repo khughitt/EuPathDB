@@ -12,5 +12,6 @@ get_eupath_gene_types <- function(webservice = NULL) {
   result <- jsonlite::fromJSON(request_url)
   vocabulary <- result[["searchData"]][["parameters"]][["vocabulary"]]
   types <- vocabulary[[2]][, 1]
+  close(request)
   return(types)
 }
