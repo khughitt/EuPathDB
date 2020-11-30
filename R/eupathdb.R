@@ -60,6 +60,18 @@ NULL
 #' @usage lhs \%>\% rhs
 NULL
 
+#' Plus operator
+#'
+#' String concatenation in an infix fashion.
+#'
+#' @name %+%
+#' @rdname plus
+#' @keywords internal
+#' @export
+#' @importFrom stringi %+%
+#' @usage lhs \%+\% rhs
+NULL
+
 #' R CMD check is super annoying about :::.
 #'
 #' In a fit of pique, I did a google search to see if anyone else has been
