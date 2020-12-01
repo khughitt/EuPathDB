@@ -53,7 +53,6 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## Finalize the URL to query using the webservice, tld, etc.
     service_directory <- prefix_map(webservice)
     ## download_json <- glue::glue("{build_dir}/{species_filename}.json")
-
     base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/transcript/searches/GenesByTaxon/reports/standard")
     wanted_columns <- get_semantic_columns(webservice = webservice)
     ##wanted_columns <- c("primary_key", "wdk_weight", "has_missing_transcripts", "gene_name",

@@ -5,7 +5,7 @@ library(crayon)
 #' @param ... One or more strings to be logged.
 #' @export
 info <- function(...) {
-  message("[" %+% crayon::cyan("INFO") %+% "] ", ...)
+  message("[",  crayon::cyan("INFO"), "] ", ...)
 }
 
 #' Warning-level logging function.
@@ -13,7 +13,7 @@ info <- function(...) {
 #' @param ... One or more strings to be logged.
 #' @export
 warn <- function(...) {
-  message("[" %+% crayon::magenta("WARN") %+% "] ", ...)
+  message("[", crayon::magenta("WARN"), "] ", ...)
   warning(...)
 }
 
@@ -22,6 +22,6 @@ warn <- function(...) {
 #' @param ... One or more strings to be logged.
 #' @export
 error <- function(...) {
-  message("[" %+% crayon::yellow("ERROR") %+% "] ", ...)
+  message("[", crayon::yellow("ERROR"), "] ", ...)
   stop(...)
 }

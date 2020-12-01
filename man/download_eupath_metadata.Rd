@@ -5,12 +5,11 @@
 \title{Returns metadata for all eupathdb organisms.}
 \usage{
 download_eupath_metadata(
-  overwrite = FALSE,
+  overwrite = TRUE,
   webservice = "eupathdb",
   bioc_version = NULL,
   build_dir = "EuPathDB",
   eu_version = NULL,
-  write_csv = FALSE,
   limit_n = Inf,
   verbose = FALSE
 )
@@ -25,8 +24,6 @@ download_eupath_metadata(
 \item{build_dir}{Where to put the json.}
 
 \item{eu_version}{Choose a specific eupathdb version?}
-
-\item{write_csv}{Write a csv file in the format expected by AnnotationHubData?}
 
 \item{limit_n}{Maximum number of valid entries to return.}
 

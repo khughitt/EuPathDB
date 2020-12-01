@@ -4,7 +4,8 @@
 #' @param regexes A set of regexes used to prune uninteresting columns.
 get_semantic_columns <- function(webservice = "tritrypdb", regexes = NULL) {
   webservice <- tolower(webservice)
-  url <- glue::glue("https://{webservice}.org/{webservice}/service/record-types?format=expanded")
+  prefix <- prefix_map(webservice)
+  url <- glue::glue("https://{webservice}.org/{prefix}/service/record-types?format=expanded")
   stuff <- httr::GET(url)
   cont <- httr::content(stuff, encoding="UTF-8", as="text")
   result <- jsonlite::fromJSON(cont, flatten=TRUE)

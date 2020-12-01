@@ -9,7 +9,7 @@ make_eupath_bsgenome(
   eu_version = NULL,
   build_dir = "EuPathDB",
   copy_s3 = FALSE,
-  installp = TRUE,
+  install = TRUE,
   reinstall = FALSE,
   ...
 )
@@ -23,7 +23,7 @@ make_eupath_bsgenome(
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 
-\item{installp}{Install the resulting package?}
+\item{install}{Install the resulting package?}
 
 \item{reinstall}{Rewrite an existing package directory.}
 

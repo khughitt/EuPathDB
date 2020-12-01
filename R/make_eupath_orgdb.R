@@ -12,7 +12,6 @@
 #' @param entry If not provided, then species will get this, it contains all the information.
 #' @param build_dir Where to put all the various temporary files.
 #' @param install Install the resulting package?
-#' @param kegg_abbreviation If known, provide the kegg abbreviation.
 #' @param reinstall Re-install an already existing orgdb?
 #' @param overwrite Overwrite a partial installation?
 #' @param verbose talky talky
@@ -23,7 +22,7 @@
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
 make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
-                              kegg_abbreviation = NULL, reinstall = FALSE, overwrite = FALSE,
+                              reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
   ## Pull out the metadata for this species.
   if ("character" %in% class(entry)) {
@@ -47,7 +46,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   }
 
   ## KEGG is too annoying, disabling it at least for now.
-  do_kegg <- FALSE
+  ## do_kegg <- FALSE
   ## if (is.null(kegg_abbreviation)) {
   ##   kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
   ##   if (length(kegg_abbreviation) == 0) {
@@ -150,61 +149,61 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   }
 
   ## KEGG data
-  kegg_table <- data.frame()
-  if (isTRUE(do_kegg)) {
-    kegg_table <- try(load_kegg_annotations(linkout_table,
-                                            species = taxa[["genus_species"]],
-                                            flatten = FALSE,
-                                            abbreviation = kegg_abbreviation[1]))
-    if ("try-error" %in% class(kegg_table)) {
-      kegg_table <- data.frame()
-    } else if ("data.frame" %in% class(kegg_table) & nrow(kegg_table) == 0) {
-      kegg_table <- data.frame()
-    } else {
-      colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
-      colnames(kegg_table)[[1]] <- "GID"
-    }
-    ## I found a problem, KEGG GIDs no longer have the TcCLB in the beginning.
-    ## (For example): tcr:397937.5 should be TcCLB.397937.5
-    ## Unfortunately, CLBrener is a particularly evil example, since
-    ## a lot (approximately 1/2) of GIDs are from the _other_ haplotype...
-    k_gid <- kegg_table[["GID"]]
-    g_gid <- gene_table[["GID"]]
-    found_gids <- sum(k_gid %in% g_gid)
-    if (found_gids == 0) {
-      message("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
-      extra_string <- ""
-      count <- 0
-      searching <- TRUE
-      ## Give it the first 20 genes to try to find a match
-      while (searching) {
-        count <- count + 1
-        if (count > 20) {
-          break
-        }
-        k <- k_gid[count]
-        found <- grep(x = g_gid, pattern = k)
-        if (sum(found) == 0) {
-          next
-        } else {
-          f <- found[1]
-          g <- g_gid[f]
-          message("Found a gid: ", g, ".")
-          pat <- paste0("^(.+)", k, "$")
-          message("Regexing ", pat, " against ", g, ".")
-          extra_string <- gsub(pattern = pat,
-                               replacement = "\\1",
-                               x = g)
-          message("The missing string is: ", extra_string)
-          ## Finished searching!
-          searching <- FALSE
-        }
-      }
-      if (extra_string != "") {
-        kegg_table[["GID"]] <- paste0(extra_string, kegg_table[["GID"]])
-      }
-    } ## End checking for matching GIDs
-  } ## End if we should try getting kegg data.
+  ## kegg_table <- data.frame()
+  ## if (isTRUE(do_kegg)) {
+  ##   kegg_table <- try(load_kegg_annotations(linkout_table,
+  ##                                           species = taxa[["genus_species"]],
+  ##                                           flatten = FALSE,
+  ##                                           abbreviation = kegg_abbreviation[1]))
+  ##   if ("try-error" %in% class(kegg_table)) {
+  ##     kegg_table <- data.frame()
+  ##   } else if ("data.frame" %in% class(kegg_table) & nrow(kegg_table) == 0) {
+  ##     kegg_table <- data.frame()
+  ##   } else {
+  ##     colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
+  ##     colnames(kegg_table)[[1]] <- "GID"
+  ##   }
+  ##   ## I found a problem, KEGG GIDs no longer have the TcCLB in the beginning.
+  ##   ## (For example): tcr:397937.5 should be TcCLB.397937.5
+  ##   ## Unfortunately, CLBrener is a particularly evil example, since
+  ##   ## a lot (approximately 1/2) of GIDs are from the _other_ haplotype...
+  ##   k_gid <- kegg_table[["GID"]]
+  ##   g_gid <- gene_table[["GID"]]
+  ##   found_gids <- sum(k_gid %in% g_gid)
+  ##   if (found_gids == 0) {
+  ##     message("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
+  ##     extra_string <- ""
+  ##     count <- 0
+  ##     searching <- TRUE
+  ##     ## Give it the first 20 genes to try to find a match
+  ##     while (searching) {
+  ##       count <- count + 1
+  ##       if (count > 20) {
+  ##         break
+  ##       }
+  ##       k <- k_gid[count]
+  ##       found <- grep(x = g_gid, pattern = k)
+  ##       if (sum(found) == 0) {
+  ##         next
+  ##       } else {
+  ##         f <- found[1]
+  ##         g <- g_gid[f]
+  ##         message("Found a gid: ", g, ".")
+  ##         pat <- paste0("^(.+)", k, "$")
+  ##         message("Regexing ", pat, " against ", g, ".")
+  ##         extra_string <- gsub(pattern = pat,
+  ##                              replacement = "\\1",
+  ##                              x = g)
+  ##         message("The missing string is: ", extra_string)
+  ##         ## Finished searching!
+  ##         searching <- FALSE
+  ##       }
+  ##     }
+  ##     if (extra_string != "") {
+  ##       kegg_table[["GID"]] <- paste0(extra_string, kegg_table[["GID"]])
+  ##     }
+  ##   } ## End checking for matching GIDs
+  ## } ## End if we should try getting kegg data.
 
   ## Create the baby table of chromosomes
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
