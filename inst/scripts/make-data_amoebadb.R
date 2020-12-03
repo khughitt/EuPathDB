@@ -24,14 +24,25 @@ for (it in start:end) {
     results[["orgdb"]][[species]] <- orgdb_result
   }
   if (isTRUE(txdb)) {
-    txdb_result <- make_eupathdb_txdb(entry, eupathdb_version=eupathdb_version, copy_s3=TRUE, install=install)
+    txdb_result <- make_eupath_txdb(entry, eu_version=eu_version,
+                                    copy_s3=TRUE, install=install)
     if (is.null(txdb_result)) {
       message("Unable to create a txdb for ", species)
       next
     }
     results[["txdb"]][[species]] <- txdb_result[["txdb_name"]]
   }
+  if (isTRUE(granges)) {
+    grange_result <- make_eupath_granges(entry, eu_version=eu_version,
+                                         copy_s3=TRUE)
+    if (is.null(grange_result)) {
+      message("Unable to create a txdb for ", species)
+      next
+    }
+    results[["granges"]][[species]] <- grange_result[["name"]]
+  }
   if (isTRUE(organismdb)) {
-    organ_result <- make_eupathdb_organismdbi(entry, eupathdb_version=eupathdb_version, copy_s3=TRUE, install=install)
+    organ_result <- make_eupathdb_organismdbi(entry, eu_version=eu_version,
+                                              copy_s3=TRUE, install=install)
   }
 } ## End iterating over every entry in the eupathdb metadata.

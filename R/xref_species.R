@@ -12,7 +12,7 @@
 #' @param taxon_column metadata column with the taxonomy information.
 #' @param species_column metadata column with my generated species name.
 #' @return Likely smaller data frame of valid information and larger dataframe of invalid.
-xref_species <- function(valid, invalid, verbose=FALSE,
+xref_species <- function(valid, invalid, verbose=FALSE, xref_column = "TaxonXref",
                          taxon_column = "TaxonUnmodified", species_column = "GenusSpecies") {
   testing_metadata <- valid
   valid_metadata <- data.frame()
@@ -39,7 +39,7 @@ xref_species <- function(valid, invalid, verbose=FALSE,
     ## Remove them from the set to be tested.
     testing_metadata <- testing_metadata[which(!valid_idx), ]
     ## Set the 'Species' column to taxonunmodified
-    valid_metadata[["TaxonXref"]] <- valid_metadata[["TaxonUnmodified"]]
+    valid_metadata[[xref_column]] <- valid_metadata[[taxon_column]]
   }
 
   ## The remainder of testing_metadata needs to be queried further.
@@ -56,7 +56,7 @@ xref_species <- function(valid, invalid, verbose=FALSE,
   if (sum(valid_idx) > 0) {
     ## Pull out the new valid entries
     new_metadata <- testing_metadata[which(valid_idx), ]
-    new_metadata[["TaxonXref"]] <- new_metadata[[species_column]]
+    new_metadata[[xref_column]] <- new_metadata[[species_column]]
     ## Add those to the valid metadata.
     valid_metadata <- rbind(valid_metadata, new_metadata)
     ## Add whatever is left to the set of invalid metadata.
@@ -66,7 +66,7 @@ xref_species <- function(valid, invalid, verbose=FALSE,
   }
   if (nrow(invalid_metadata) > 0) {
     message("Unable to find species names for ", nrow(invalid_metadata), " species.")
-    message(toString(invalid_metadata[["Species"]]))
+    message(toString(invalid_metadata[[taxon_column]]))
   }
 
   ## Now do a final check to see what is up with some weirdos which somehow snuck through.
@@ -75,7 +75,7 @@ xref_species <- function(valid, invalid, verbose=FALSE,
   invalid_idx <- ! valid_idx
   if (sum(invalid_idx) > 0) {
     warning("How in the flying hell are these still here: ",
-            toString(valid_metadata[invalid_idx, "Species"]), ".")
+            toString(valid_metadata[invalid_idx, taxon_column]), ".")
   }
   valid_metadata <- valid_metadata[valid_idx, ]
   invalid_metadata <- rbind(invalid, invalid_metadata)

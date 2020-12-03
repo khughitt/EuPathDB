@@ -51,7 +51,7 @@ write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
   distinct_metadata <- all_metadata %>%
       distinct()
   file_lst[["all_rows"]] <- nrow(distinct_metadata)
-  readr::write_csv(x = distinct_metadata, path = file_lst[["all"]], append = FALSE, col_names = TRUE)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["all"]], append = FALSE, col_names = TRUE)
 
   ## Set up the Granges data
   write_metadata <- metadata %>%
@@ -75,7 +75,7 @@ transcript information for {.data[['Taxon']]}"),
   distinct_metadata <- all_metadata %>%
       distinct()
   file_lst[["granges_rows"]] <- nrow(distinct_metadata)
-  readr::write_csv(x = distinct_metadata, path = file_lst[["granges"]],
+  readr::write_csv(x = distinct_metadata, file = file_lst[["granges"]],
                    append = FALSE, col_names = TRUE)
 
   ## Set up the orgdb data
@@ -100,7 +100,7 @@ annotations for {.data[['Taxon']]}"),
   distinct_metadata <- all_metadata %>%
     distinct()
   file_lst[["orgdb_rows"]] <- nrow(distinct_metadata)
-  readr::write_csv(x = distinct_metadata, path = file_lst[["orgdb"]],
+  readr::write_csv(x = distinct_metadata, file = file_lst[["orgdb"]],
                    append = FALSE, col_names = TRUE)
 
   ## Set up the txdb data
@@ -125,7 +125,7 @@ Transcript information for {.data[['Taxon']]}"),
   distinct_metadata <- all_metadata %>%
     distinct()
   file_lst[["txdb_rows"]] <- nrow(distinct_metadata)
-  readr::write_csv(x = distinct_metadata, path = file_lst[["txdb"]],
+  readr::write_csv(x = distinct_metadata, file = file_lst[["txdb"]],
                    append = FALSE, col_names = TRUE)
 
   ## And the organismdbi data
@@ -150,7 +150,7 @@ Combined information for {.data[['Taxon']]}"),
   distinct_metadata <- all_metadata %>%
     distinct()
 
-  readr::write_csv(x = distinct_metadata, path = file_lst[["organdb"]],
+  readr::write_csv(x = distinct_metadata, file = file_lst[["organdb"]],
                    append = FALSE, col_names = TRUE)
 
   ## Finally, BSGenome
@@ -175,7 +175,7 @@ Genome for {.data[['Taxon']]}"),
   distinct_metadata <- all_metadata %>%
       distinct()
   file_lst[["bsgenome_rows"]] <- nrow(distinct_metadata)
-  readr::write_csv(x = distinct_metadata, path = file_lst[["bsgenome"]],
+  readr::write_csv(x = distinct_metadata, file = file_lst[["bsgenome"]],
                    append = FALSE, col_names = TRUE)
 
   return(file_lst)
