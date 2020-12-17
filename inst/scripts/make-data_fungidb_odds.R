@@ -7,9 +7,12 @@ all_metadata <- meta[["valid"]]
 end <- nrow(all_metadata)
 
 odds <- c()
+evens <- c()
 for (i in 1:nrow(all_metadata)) {
   if (i %% 2 == 1) {
     odds <- c(odds, i)
+  } else {
+    evens <- c(evens, i)
   }
 }
 
@@ -17,13 +20,14 @@ for (it in odds) {
   entry <- all_metadata[it, ]
   species <- entry[["TaxonUnmodified"]]
   message("Starting generation of ", species, ", which is ", it, " of ", end, " species.")
-  pkgnames <- get_eupathdb_pkgnames(entry)
+  pkgnames <- get_eupath_pkgnames(entry)
   if (isTRUE(bsgenome)) {
-    bsgenome_result <- make_eupath_bsgenome(entry, copy_s3=TRUE, install=install, overwrite=TRUE)
+    bsgenome_result <- make_eupath_bsgenome(entry, eu_version=eu_version,
+                                            copy_s3=TRUE, install=install)
     results[["bsgenome"]][[species]] <- bsgenome_result
   }
   if (isTRUE(orgdb)) {
-    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE, install=install, overwrite=TRUE)
+    orgdb_result <- make_eupath_orgdb(entry, copy_s3=TRUE, overwrite=TRUE, install=install)
     if (is.null(orgdb_result)) {
       message("There is insufficient data for ", species, " to make the other packages.")
     }
@@ -46,8 +50,7 @@ for (it in odds) {
     results[["granges"]][[species]] <- grange_result[["name"]]
   }
   if (isTRUE(organismdb)) {
-    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version,
-                                            copy_s3=TRUE, install=install)
+    organ_result <- make_eupath_organismdbi(entry, eu_version=eu_version, copy_s3=TRUE, install=install)
     results[["organismdbi"]] <- organ_result
   }
 } ## End iterating over every entry in the eupathdb metadata.
