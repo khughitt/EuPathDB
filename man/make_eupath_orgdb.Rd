@@ -8,7 +8,6 @@ make_eupath_orgdb(
   entry,
   build_dir = "EuPathDB",
   install = TRUE,
-  kegg_abbreviation = NULL,
   reinstall = FALSE,
   overwrite = FALSE,
   verbose = FALSE,
@@ -22,8 +21,6 @@ make_eupath_orgdb(
 \item{build_dir}{Where to put all the various temporary files.}
 
 \item{install}{Install the resulting package?}
-
-\item{kegg_abbreviation}{If known, provide the kegg abbreviation.}
 
 \item{reinstall}{Re-install an already existing orgdb?}
 

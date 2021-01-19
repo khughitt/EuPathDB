@@ -4,7 +4,13 @@
 \alias{get_all_metadata}
 \title{Invoke download_eupathdb_metadata() using all the sub-projects of the EuPathDB.}
 \usage{
-get_all_metadata(...)
+get_all_metadata(
+  overwrite = TRUE,
+  bioc_version = NULL,
+  build_dir = "EuPathDB",
+  eu_version = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{...}{Arguments passed from above.}

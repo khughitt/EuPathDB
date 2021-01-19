@@ -10,7 +10,6 @@ make_eupath_organismdbi(
   build_dir = "EuPathDB",
   installp = TRUE,
   reinstall = FALSE,
-  kegg_abbreviation = NULL,
   exclude_join = "ENTREZID",
   copy_s3 = FALSE
 )
@@ -25,8 +24,6 @@ make_eupath_organismdbi(
 \item{installp}{Install the resulting package?}
 
 \item{reinstall}{Overwrite existing data files?}
-
-\item{kegg_abbreviation}{For when we cannot automagically find the kegg species id.}
 
 \item{exclude_join}{I had a harebrained idea to automatically set up the
 joins between columns of GO.db/reactome.db/orgdb/txdb objects.  This

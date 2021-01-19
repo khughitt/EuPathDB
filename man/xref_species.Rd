@@ -8,6 +8,7 @@ xref_species(
   valid,
   invalid,
   verbose = FALSE,
+  xref_column = "TaxonXref",
   taxon_column = "TaxonUnmodified",
   species_column = "GenusSpecies"
 )
