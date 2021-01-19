@@ -55,6 +55,7 @@ make_eupath_granges <- function(entry, build_dir = "EuPathDB",
   message("Finished creation of ", pkgname, ".")
   retlist <- list(
     "name" = granges_name,
+    "type" = "granges",
     "variable" = gsub(x = granges_name, pattern = "\\.rda$", replacement = ""),
     "rda" = granges_file)
   return(retlist)

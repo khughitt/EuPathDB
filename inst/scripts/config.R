@@ -5,8 +5,9 @@ orgdb <- TRUE
 txdb <- TRUE
 organismdb <- FALSE
 granges <- TRUE
-eupathdb_version <- "v46"
-bioc_version <- "v3.12"
+eu_version <- NULL
+bioc_version <- NULL
+install  <- FALSE
 
 # base directory to output data files to
 build_dir <- "EuPathDB"

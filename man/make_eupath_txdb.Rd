@@ -9,7 +9,7 @@ make_eupath_txdb(
   build_dir = "EuPathDB",
   eu_version = NULL,
   reinstall = FALSE,
-  installp = TRUE,
+  install = TRUE,
   copy_s3 = FALSE
 )
 }
@@ -22,7 +22,7 @@ make_eupath_txdb(
 
 \item{reinstall}{Overwrite an existing installed package?}
 
-\item{installp}{Install the resulting package?}
+\item{install}{Install the resulting package?}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 }

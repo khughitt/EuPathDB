@@ -1,9 +1,9 @@
 #' Move a package file to its final location for collation by AnnotationHubData.
 #'
-#' @param pkgname Name of package to move to its final home.
+#' @param pkglist Information list from a make_pkg function.
 #' @param type Which type of package is this?
 #' @param build_dir base working directory.
-move_final_package <- function(pkgname, type = "orgdb", build_dir = "EuPathDB") {
+move_final_package <- function(pkglist, type = "orgdb", build_dir = "EuPathDB") {
   final_dir <- file.path(build_dir, "tar")
   if (!file.exists(final_dir)) {
     dir.create(final_dir, recursive = TRUE)

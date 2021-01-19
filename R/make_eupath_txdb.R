@@ -8,13 +8,13 @@
 #' @param build_dir Base directory for building the package.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
 #' @param reinstall Overwrite an existing installed package?
-#' @param installp Install the resulting package?
+#' @param install Install the resulting package?
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = NULL, reinstall = FALSE,
-                             installp = TRUE, copy_s3 = FALSE) {
+make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = NULL,
+                             reinstall = FALSE, install = TRUE, copy_s3 = FALSE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -49,17 +49,18 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_name <- try(make_eupath_granges(entry = entry, build_dir = build_dir,
-                                          copy_s3 = copy_s3), silent = TRUE)
-  if ("try-error" %in% class(granges_name)) {
+  granges_lst <- try(make_eupath_granges(entry = entry, build_dir = build_dir,
+                                         copy_s3 = copy_s3), silent = TRUE)
+  if ("try-error" %in% class(granges_lst)) {
     warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
                  entry[["Species"]], entry[["Strain"]]))
     return(NULL)
   }
   ## Happily, making a granges from txdb is quite quick and easy in most cases.
 
-  final_granges_path <- move_final_package(granges_name, type = "granges", build_dir = build_dir)
-  granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)
+  if (isTRUE(install)) {
+    final_granges_path <- move_final_package(granges_lst, type = "granges", build_dir = build_dir)
+  }
 
   chr_entries <- read.delim(file = input_gff, header = FALSE, sep = "")
   chromosomes <- chr_entries[["V1"]] == "##sequence-region"
@@ -172,7 +173,7 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
     }
   }
 
-  if (isTRUE(installp)) {
+  if (isTRUE(install)) {
     inst <- try(devtools::install(install_dir, quiet = TRUE))
     if (! "try-error" %in% class(inst)) {
       built <- try(devtools::build(install_dir, quiet = TRUE))
@@ -189,8 +190,8 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
     "object" = txdb,
     "gff" = input_gff,
     "txdb_name" = pkgname,
-    "granges_file" = granges_name,
-    "granges_variable" = granges_variable)
+    "granges_file" = granges_lst[["name"]],
+    "granges_variable" = granges_lst[["variable"]])
 
   return(retlist)
 }

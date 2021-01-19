@@ -13,25 +13,16 @@
 #' @return List containing the filenames written.
 write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
                                   bioc_version = NULL, eu_version = NULL,
-                                  build_dir = "EuPathDB") {
+                                  build_dir = "EuPathDB", overwrite = FALSE) {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
   bioc_version <- versions[["bioc_version"]]
-
-  file_lst <- list(
-    "granges" = glue::glue("GRanges_biocv{bioc_version}_{webservice}{eu_version}_metadata.csv"),
-    "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{webservice}{eu_version}_metadata.csv"),
-    "txdb" = glue::glue("TxDb_biocv{bioc_version}_{webservice}{eu_version}_metadata.csv"),
-    "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{webservice}{eu_version}_metadata.csv"),
-    "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{webservice}{eu_version}_metadata.csv"))
-  if (file_type == "invalid") {
-    file_lst <- list(
-      "granges" = glue::glue("GRanges_biocv{bioc_version}_{webservice}{eu_version}_invalid_metadata.csv"),
-      "orgdb" = glue::glue("OrgDb_biocv{bioc_version}_{webservice}{eu_version}_invalid_metadata.csv"),
-      "txdb" = glue::glue("TxDb_biocv{bioc_version}_{webservice}{eu_version}_invalid_metadata.csv"),
-      "organdb" = glue::glue("OrganismDbi_biocv{bioc_version}_{webservice}{eu_version}_invalid_metadata.csv"),
-      "bsgenome" = glue::glue("BSgenome_biocv{bioc_version}_{webservice}{eu_version}_invalid_metadata.csv"))
+  file_lst <- get_metadata_filename(webservice, bioc_version, eu_version, build_dir,
+                                    file_type = file_type)
+  ## If we are not overwriting the data, and it already exists, then move on.
+  if (file.exists(file_lst[[1]]) & isFALSE(overwrite)) {
+    return(file_lst)
   }
 
   ## create output directory, if needed
@@ -40,8 +31,30 @@ write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
     dir.create(out_dir, recursive = TRUE, mode = "0755")
   }
 
+  metadata <- metadata %>%
+    dplyr::mutate_all(as.character) %>%
+    dplyr::mutate_all(stringr::str_trim)
+
+  ## Write a csv of everything
+  all_metadata <- data.frame()
+  distinct_metadata <- data.frame()
+  write_metadata <- metadata
+  if (file.exists(file_lst[["all"]])) {
+    message("Appending to an existing file: ", file_lst[["all"]])
+    all_metadata <- readr::read_csv(file_lst[["all"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
+  } else {
+    all_metadata <- write_metadata
+  }
+  distinct_metadata <- all_metadata %>%
+      distinct()
+  file_lst[["all_rows"]] <- nrow(distinct_metadata)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["all"]], append = FALSE, col_names = TRUE)
+
   ## Set up the Granges data
-  granges_metadata <- metadata %>%
+  write_metadata <- metadata %>%
     dplyr::mutate(
              Title = glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -50,26 +63,23 @@ transcript information for {.data[['Taxon']]}"),
              DispatchClass = "GRanges",
              ResourceName = .data[["GrangesPkg"]],
              RDataPath = .data[["GrangesFile"]])
-
-  ## fix column types
-  numeric_cols <- c("NumGene", "NumOrtholog", "SourceVersion", "TaxonomyID")
-  for (x in numeric_cols) {
-    granges_metadata[, x] <- as.numeric(granges_metadata[, x])
-  }
-
   if (file.exists(file_lst[["granges"]])) {
     message("Appending to an existing file: ", file_lst[["granges"]])
-    readr::read_csv(file_lst[["granges"]], col_types = readr::cols()) %>%
-      bind_rows(granges_metadata) %>%
-      distinct() %>%
-      readr::write_csv(path = file_lst[["granges"]])
+    all_metadata <- readr::read_csv(file_lst[["granges"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
   } else {
-    readr::write_csv(x = granges_metadata, path = file_lst[["granges"]],
-                     append = FALSE, col_names = TRUE)
+    all_metadata <- write_metadata
   }
+  distinct_metadata <- all_metadata %>%
+      distinct()
+  file_lst[["granges_rows"]] <- nrow(distinct_metadata)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["granges"]],
+                   append = FALSE, col_names = TRUE)
 
   ## Set up the orgdb data
-  orgdb_metadata <- metadata %>%
+  write_metadata <- metadata %>%
     dplyr::mutate(
              Title = glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -78,24 +88,23 @@ annotations for {.data[['Taxon']]}"),
              DispatchClass = "SQLiteFile",
              ResourceName = .data[["OrgdbPkg"]],
              RDataPath = .data[["OrgdbFile"]])
-
-  for (x in numeric_cols) {
-    orgdb_metadata[, x] <- as.numeric(orgdb_metadata[, x])
-  }
-
   if (file.exists(file_lst[["orgdb"]])) {
     message("Appending to an existing file: ", file_lst[["orgdb"]])
-    readr::read_csv(file_lst[["orgdb"]], col_types = readr::cols()) %>%
-      bind_rows(orgdb_metadata) %>%
-      distinct() %>%
-      readr::write_csv(path = file_lst[["orgdb"]])
+    all_metadata <- readr::read_csv(file_lst[["orgdb"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
   } else {
-    readr::write_csv(x = orgdb_metadata, path = file_lst[["orgdb"]],
-                     append = FALSE, col_names = TRUE)
+    all_metadata <- write_metadata
   }
+  distinct_metadata <- all_metadata %>%
+    distinct()
+  file_lst[["orgdb_rows"]] <- nrow(distinct_metadata)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["orgdb"]],
+                   append = FALSE, col_names = TRUE)
 
   ## Set up the txdb data
-  txdb_metadata <- metadata %>%
+  write_metadata <- metadata %>%
     dplyr::mutate(
              Title = glue::glue("Transcript information for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -104,24 +113,23 @@ Transcript information for {.data[['Taxon']]}"),
              DispatchClass = "SQLiteFile",
              ResourceName = .data[["TxdbPkg"]],
              RDataPath = .data[["TxdbFile"]])
-
-  for (x in numeric_cols) {
-    txdb_metadata[, x] <- as.numeric(txdb_metadata[, x])
-  }
-
   if (file.exists(file_lst[["txdb"]])) {
     message("Appending to an existing file: ", file_lst[["txdb"]])
-    readr::read_csv(file_lst[["txdb"]], col_types = readr::cols()) %>%
-      bind_rows(txdb_metadata) %>%
-      distinct() %>%
-      readr::write_csv(path = file_lst[["txdb"]])
+    all_metadata <- readr::read_csv(file_lst[["txdb"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
   } else {
-    readr::write_csv(x = txdb_metadata, path = file_lst[["txdb"]],
-                     append = FALSE, col_names = TRUE)
+    all_metadata <- write_metadata
   }
+  distinct_metadata <- all_metadata %>%
+    distinct()
+  file_lst[["txdb_rows"]] <- nrow(distinct_metadata)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["txdb"]],
+                   append = FALSE, col_names = TRUE)
 
   ## And the organismdbi data
-  organismdbi_metadata <- metadata %>%
+  write_metadata <- metadata %>%
     dplyr::mutate(
              Title = glue::glue("Combined information for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -130,23 +138,23 @@ Combined information for {.data[['Taxon']]}"),
              DispatchClass = "SQLiteFile",
              ResourceName = .data[["OrganismdbiPkg"]],
              RDataPath = .data[["OrganismdbiFile"]])
-
-  for (x in numeric_cols) {
-    organismdbi_metadata[, x] <- as.numeric(organismdbi_metadata[, x])
-  }
-
   if (file.exists(file_lst[["organdb"]])) {
     message("Appending to an existing file: ", file_lst[["organdb"]])
-    readr::read_csv(file_lst[["organdb"]], col_types = readr::cols()) %>%
-      bind_rows(organismdbi_metadata) %>%
-      distinct() %>%
-      readr::write_csv(path = file_lst[["organdb"]])
+    all_metadata <- readr::read_csv(file_lst[["organdb"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
   } else {
-    readr::write_csv(x = organismdbi_metadata, path = file_lst[["organdb"]],
-                     append = FALSE, col_names = TRUE)
+    all_metadata <- write_metadata
   }
+  distinct_metadata <- all_metadata %>%
+    distinct()
 
-  bsgenome_metadata <- metadata %>%
+  readr::write_csv(x = distinct_metadata, file = file_lst[["organdb"]],
+                   append = FALSE, col_names = TRUE)
+
+  ## Finally, BSGenome
+  write_metadata <- metadata %>%
     dplyr::mutate(
              Title = glue::glue("Genome for {.data[['Taxon']]}"),
              Description = glue::glue("{.data[['DataProvider']]} {.data[['SourceVersion']]} \\
@@ -157,13 +165,18 @@ Genome for {.data[['Taxon']]}"),
   RDataPath = .data[["BsgenomeFile"]])
   if (file.exists(file_lst[["bsgenome"]])) {
     message("Appending to an existing file: ", file_lst[["bsgenome"]])
-    readr::read_csv(file_lst[["bsgenome"]], col_types = readr::cols()) %>%
-      bind_rows(bsgenome_metadata) %>%
-      distinct() %>%
-      readr::write_csv(path = file_lst[["bsgenome"]])
+    all_metadata <- readr::read_csv(file_lst[["bsgenome"]], col_types = readr::cols(.default = "c")) %>%
+      dplyr::mutate_all(as.character) %>%
+      dplyr::mutate_all(stringr::str_trim) %>%
+      bind_rows(write_metadata)
   } else {
-    readr::write_csv(x = bsgenome_metadata, path = file_lst[["bsgenome"]],
-                     append = FALSE, col_names = TRUE)
+    all_metadata <- write_metadata
   }
+  distinct_metadata <- all_metadata %>%
+      distinct()
+  file_lst[["bsgenome_rows"]] <- nrow(distinct_metadata)
+  readr::write_csv(x = distinct_metadata, file = file_lst[["bsgenome"]],
+                   append = FALSE, col_names = TRUE)
+
   return(file_lst)
 }

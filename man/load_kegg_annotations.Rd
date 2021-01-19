@@ -4,7 +4,12 @@
 \alias{load_kegg_annotations}
 \title{Create a data frame of pathways to gene IDs from KEGGREST}
 \usage{
-load_kegg_annotations(species = "coli", abbreviation = NULL, flatten = TRUE)
+load_kegg_annotations(
+  gene_table,
+  species = "coli",
+  abbreviation = NULL,
+  flatten = TRUE
+)
 }
 \arguments{
 \item{species}{String to use to query KEGG abbreviation.}

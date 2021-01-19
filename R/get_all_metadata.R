@@ -5,9 +5,8 @@
 #'
 #' @param ... Arguments passed from above.
 #' @return Dataframe of the various species metadata.
-get_all_metadata <- function(...) {
-  arglist <- list(...)
-  write_csv <- arglist[["write_csv"]]
+get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL, build_dir = "EuPathDB",
+                             eu_version = NULL, verbose = FALSE) {
   ##projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
   ##              "microsporidiadb", "piroplasmadb", "plasmodb",
   ##              "schistodb", "toxodb", "trichdb", "tritrypdb")
@@ -19,7 +18,7 @@ get_all_metadata <- function(...) {
     webservice <- projects[i]
     results[[webservice]] <- download_eupath_metadata(
       webservice = webservice, overwrite = overwrite, bioc_version = bioc_version,
-      build_dir = build_dir, eu_version = eu_version, write_csv = FALSE)
+      build_dir = build_dir, eu_version = eu_version, verbose = verbose)
   }
 
   for (r in results) {
@@ -29,10 +28,10 @@ get_all_metadata <- function(...) {
 
   if (isTRUE(write_csv)) {
     message("Writing metadata csv files.")
-    written <- write_eupath_metadata(
-      metadata = valid_metadata, webservice = "eupathdb",
-      file_type = "valid", bioc_version = bioc_version,
-      eu_version = eu_version, build_dir = build_dir)
+    written <- write_eupath_metadata(metadata = valid_metadata, webservice = "eupathdb",
+                                     file_type = "valid", bioc_version = bioc_version,
+                                     eu_version = eu_version, build_dir = build_dir,
+                                     overwrite = overwrite)
   }
   retlist <- list(
     "valid" = valid_metadata,

@@ -55,6 +55,7 @@ Collate:
  'get_eupath_gene_types.R'
  'get_eupath_pkgnames.R'
  'get_kegg_orgn.R'
+ 'get_metadata_filename.R'
  'get_semantic_columns.R'
  'kegg_vector_to_df.R'
  'get_versions.R'

@@ -53,9 +53,9 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ## Finalize the URL to query using the webservice, tld, etc.
     service_directory <- prefix_map(webservice)
     ## download_json <- glue::glue("{build_dir}/{species_filename}.json")
-
     base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/transcript/searches/GenesByTaxon/reports/standard")
     wanted_columns <- get_semantic_columns(webservice = webservice)
+    split_columns <- split(wanted_columns, ceiling(seq_along(wanted_columns) / 20))
     ##wanted_columns <- c("primary_key", "wdk_weight", "has_missing_transcripts", "gene_name",
     ##                    "gene_source_id", "gene_previous_ids", "gene_product", "transcript_product",
     ##                    "gene_exon_count", "exon_count", "gene_transcript_count",
@@ -80,56 +80,83 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     ##                    "annotated_go_id_function", "annotated_go_function",
     ##                    "annotated_go_id_process", "annotated_go_process", "ec_numbers",
     ##                    "ec_numbers_derived")
-    query_body <- list(
+    all_records <- data.frame()
+    for (g in 1:length(split_columns)) {
+      group <- split_columns[[g]]
+      query_body <- list(
         "searchConfig" = list(
-            "parameters" = list("organism" = jsonlite::unbox(species)),
-            "wdkWeight" = jsonlite::unbox(10)),
+          "parameters" = list("organism" = jsonlite::unbox(species)),
+          "wdkWeight" = jsonlite::unbox(10)),
         "reportConfig" = list(
-            "attributes" = wanted_columns,
-            "tables" = list()))
-    post_json <- jsonlite::toJSON(query_body)
-    result <- httr::POST(url = base_url, body = post_json,
-                         httr::content_type("application/json"),
-                         httr::timeout(1200))
-  ## Test the result to see that we actually got data.
-  if (result[["status_code"]] == "422") {
-      warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))
-      return(data.frame())
-  } else if (result[["status_code"]] == "400") {
-      ## likely due to bad formatConfig
-      warn(sprintf("API Request failed for %s (code = 400): ", entry[["Taxon"]]))
-  } else if (result[["status_code"]] == "404") {
-      warn(sprintf("API Request failed for %s (code = 404): ", entry[["Taxon"]]))
-  } else if (result[["status_code"]] != "200") {
-      warn(sprintf("API Request failed for %s (code = %d): ",
-                   entry$Taxon, result[["status_code"]]))
-      return(data.frame())
-  } else if (length(result[["content"]]) < 100) {
-      warn("Very small amount of content returned for :", entry[["Taxon"]])
-  }
-  cont <- httr::content(result, encoding = "UTF-8", as = "text")
-    result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
-    if (class(result)[1] == "try-error") {
-        stop("There was a parsing failure when reading the metadata.")
-    }
-    ## Every record contains and id, some fields, and tables.
-    records <- result[["records"]]
-    colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "", x = colnames(records))
-    colnames(records) <- gsub(pattern = "\\.", replacement = "_", x = colnames(records))
-    records <- expand_list_columns(records)
+          "attributes" = group,
+          "tables" = list()))
+      post_json <- jsonlite::toJSON(query_body)
+      result <- httr::POST(url = base_url, body = post_json,
+                           httr::content_type("application/json"),
+                           httr::timeout(1200))
+      ## Test the result to see that we actually got data.
+      if (result[["status_code"]] == "422") {
+        warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))
+        next
+      } else if (result[["status_code"]] == "400") {
+        ## likely due to bad formatConfig
+        warn("API Request failed for ", entry[["TaxonUnmodified"]], ": (code = 400)")
+        next
+      } else if (result[["status_code"]] == "404") {
+        warn("API Request failed for ", entry[["TaxonUnmodified"]], ": (code = 404)")
+        next
+      } else if (result[["status_code"]] != "200") {
+        warn("API Request failed for ", entry[["TaxonUnmodified"]], ": (code = ",
+             result[["status_code"]], ")")
+        next
+      } else if (length(result[["content"]]) < 100) {
+        warn("Very small amount of content returned for :", entry[["Taxon"]])
+        next
+      }
+      cont <- httr::content(result, encoding = "UTF-8", as = "text")
+      ## result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
+      result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
 
+      ## Every record contains and id, some fields, and tables.
+      records <- result[["records"]]
+      colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "", x = colnames(records))
+      colnames(records) <- gsub(pattern = "\\.", replacement = "_", x = colnames(records))
+      records <- expand_list_columns(records)
+      ## Drop some annoying columns
+      records[["recordClassName"]] <- NULL
+
+      if (g == 1) {
+        all_records <- records
+        ## "displayName" "overview" "gene_location_text" "gene_name" "organism" "
+        ## "gene_transcript_count" "lc_project_id" "gene_exon_count" "chromosome"
+        ## "primary_key" "gene_type" "project_id" "is_deprecated" "gene_source_id" "transcript_link"
+        ## "sequence_id" "is_pseudo" "snpoverview" "gene_product" "source_id" "gene_ortholog_number"
+      } else {
+        ## shared_columns <- colnames(records) %in% colnames(all_records)
+        ## records[, shared_columns] <- NULL
+        records[["gene_source_id"]] <- NULL
+        records[["source_id"]] <- NULL
+        records[["project_id"]] <- NULL
+        all_records <- merge(all_records, records, by = "displayName")
+      }
+      message("Snoozing to try to keep the webserver from being sad.")
+      snooze <- Sys.sleep(3)
+    }  ## End of my nasty hack to get around some webservices crashing
+    ##    when I ask for all the columns.
+
+    records <- all_records
     ## Use a heuristic to figure out numeric columns and set them accordingly.
     cnames <- colnames(records)
     for (i in 1:length(cnames)) {
-        cname <- cnames[i]
-        column <- records[[cname]]
-        idx <- !is.na(column)
-        column <- column[idx]
-        res <- suppressWarnings(!is.na(as.numeric(as.character(column))))
-        if (sum(res) == length(column)) {
-            message("Setting ", cname, " to numeric.")
-            records[[cname]] <- as.numeric(records[[cname]])
-        }
+      cname <- cnames[i]
+      column <- records[[cname]]
+      idx <- !is.na(column)
+      column <- column[idx]
+      res <- suppressWarnings(!is.na(as.numeric(as.character(column))))
+      if (sum(res) == length(column)) {
+        message("Setting ", cname, " to numeric.")
+        records[[cname]] <- as.numeric(records[[cname]])
+      }
     }
 
     ## Change entries which say 'N/A' to the actual NA value

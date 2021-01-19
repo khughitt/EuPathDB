@@ -5,20 +5,28 @@
 #' @param bioc_version Manually set the bioconductor release if desired.
 #' @param build_dir Where to put the json.
 #' @param eu_version Choose a specific eupathdb version?
-#' @param write_csv Write a csv file in the format expected by AnnotationHubData?
 #' @param limit_n Maximum number of valid entries to return.
 #' @param verbose Print helper message about species matching?
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export
-download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
+download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                      bioc_version = NULL, build_dir = "EuPathDB",
-                                     eu_version = NULL, write_csv = FALSE,
-                                     limit_n = Inf, verbose = FALSE) {
+                                     eu_version = NULL, limit_n = Inf, verbose = FALSE) {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
   bioc_version <- versions[["bioc_version"]]
+
+  if (isFALSE(overwrite)) {
+    message("Checking for existing metadata csv file.")
+    file_lst <- get_metadata_filename(webservice, bioc_version, eu_version, build_dir)
+    metadata_df <- readr::read_csv(file = file_lst[["all"]], col_types = readr::cols())
+    retlist <- list(
+      "valid" = metadata_df,
+      "invalid" = data.frame())
+    return(retlist)
+  }
 
   ## Choose which service(s) to query, if it is 'eupathdb' do them all.
   webservice <- tolower(webservice)
@@ -430,22 +438,18 @@ download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
     species_xref[["valid"]] <- species_xref[["valid"]][ind, ]
   }
 
-  ## To satisfy readr which detects the BiocVersion as a double sometimes and character others
-  species_xref[["valid"]][["BiocVersion"]] <- as.numeric(species_xref[["valid"]][["BiocVersion"]])
-  species_xref[["invalid"]][["BiocVersion"]] <- as.numeric(species_xref[["invalid"]][["BiocVersion"]])
-
   ## Write out the metadata and finish up.
-  if (isTRUE(write_csv)) {
-    message("Writing EuPathDB metadata csv files.")
-    written <- write_eupath_metadata(metadata = species_xref[["valid"]],
-                                     webservice = webservice,
-                                     file_type = "valid",
-                                     build_dir = build_dir)
-    invalid_written <- write_eupath_metadata(metadata = species_xref[["invalid"]],
-                                             webservice = webservice,
-                                             file_type="invalid",
-                                             build_dir = build_dir)
-  }
+  written <- write_eupath_metadata(metadata = species_xref[["valid"]],
+                                   webservice = webservice,
+                                   file_type = "valid",
+                                   build_dir = build_dir,
+                                   overwrite = overwrite)
+  invalid_written <- write_eupath_metadata(metadata = species_xref[["invalid"]],
+                                           webservice = webservice,
+                                           file_type="invalid",
+                                           build_dir = build_dir,
+                                           overwrite = overwrite)
+
   retlist <- list(
     "valid" = species_xref[["valid"]],
     "invalid" = species_xref[["invalid"]])
