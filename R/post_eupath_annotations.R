@@ -83,17 +83,41 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     all_records <- data.frame()
     for (g in 1:length(split_columns)) {
       group <- split_columns[[g]]
-      query_body <- list(
-        "searchConfig" = list(
-          "parameters" = list("organism" = jsonlite::unbox(species)),
-          "wdkWeight" = jsonlite::unbox(10)),
-        "reportConfig" = list(
-          "attributes" = group,
-          "tables" = list()))
-      post_json <- jsonlite::toJSON(query_body)
+      ##query_body <- list(
+      ##  "searchConfig" = list(
+      ##    "parameters" = list("organism" = jsonlite::unbox(species)),
+      ##    "wdkWeight" = jsonlite::unbox(10)),
+      ##  "reportConfig" = list(
+      ##    "attributes" = group,
+      ##    "tables" = list()))
+      ##post_json <- jsonlite::toJSON(query_body)
+      group_string <- gsub(pattern=" ", replacement="", x=toString(paste0('"', group, '"')))
+      post_json <- glue::glue('{{
+  "searchConfig": {{
+    "parameters": {{
+      "organism": "[\\"{species}\\"]"
+    }},
+    "wdkWeight": 10
+  }},
+  "reportConfig": {{
+    "attributes": [ {group_string} ],
+    "tables": []
+  }}
+}}')
+      ##species_coded <- URLencode(species)
+      ##get_string <- glue(
+      ##  '{base_url}?organism="[\"{species_coded}\"]"\\
+      ##  &reportConfig={{"attributes":[{group_string}],"tables":[]}}')
       result <- httr::POST(url = base_url, body = post_json,
                            httr::content_type("application/json"),
                            httr::timeout(1200))
+
+      ##wtf2 <- 'https://fungidb.org/fungidb/service/record-types/transcript/searches/GenesByTaxon/reports/standard?organism=%5B%22Schizosaccharomyces%20pombe%20972h-%22%5D&reportConfig={"attributes":["primary_key","gene_source_id"],"tables":[]}'
+      ##get_string <- glue(
+      ##  '{base_url}?organism=%5B%22{species_coded}%22%5D&reportConfig={{"attributes":[{group_string}],"tables":[]}')
+      ##try = URLdecode(wtf)
+      ##result
+      ##result <- httr::GET(url=get_string)
       ## Test the result to see that we actually got data.
       if (result[["status_code"]] == "422") {
         warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))
@@ -139,7 +163,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
         records[["project_id"]] <- NULL
         all_records <- merge(all_records, records, by = "displayName")
       }
-      message("Snoozing to try to keep the webserver from being sad.")
+      ## message("Snoozing to try to keep the webserver from being sad.")
       snooze <- Sys.sleep(3)
     }  ## End of my nasty hack to get around some webservices crashing
     ##    when I ask for all the columns.

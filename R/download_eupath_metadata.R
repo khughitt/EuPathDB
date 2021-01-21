@@ -414,6 +414,10 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     metadata[i, "TaxonUnmodified"] <- species_info[["unmodified"]]
   }
 
+  ## FIXME FIXME  THIS IS A STUPID HACK TO WORK AROUND THE REMOVAL OF '-' FROM 972h-
+  metadata[["TaxonUnmodified"]] <- gsub(x=metadata[["TaxonUnmodified"]], pattern="pombe 972h",
+                                        replacement="pombe 972h-")
+
   ## Use the xref_() functions to try to ensure that we find valid taxonomy names
   ## and identifiers for as many species as possible.
   ## There are two things we need to successfully cross reference:
