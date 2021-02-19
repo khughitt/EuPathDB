@@ -21,7 +21,12 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   matched_idx <- c()
   unmatched_idx <- c()
-
+##############################################################
+###
+###  Working around some brokenness in the eupathdb here!!!
+###
+##############################################################
+  metadata[["TaxonCanonical"]] <- ""
   for (it in 1:nrow(metadata)) {
     metadatum <- metadata[it, ]
     species_info <- make_taxon_names(metadatum, column = species_column)
@@ -54,6 +59,7 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
         }
         unmatched_idx <- c(unmatched_idx, it)
       }
+      ## The taxon_column slot for this entry is _not_ NA
     } else {
       ## Now let us check the cases when the eupathdb _does_provide a taxonomy ID.
       id_idx <- all_taxa_ids[["tax_id"]] == metadata[it, taxon_column]
@@ -72,6 +78,7 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
                   "             vs. genomeinfodb: ", id_gs)
         }
         ## metadata[it, "Species"] <- id_gs
+        metadata[it, "TaxonCanonical"] <- id_gs
         matched_idx <- c(matched_idx, it)
       } else {
         id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
@@ -79,6 +86,7 @@ xref_taxonomy <- function(metadata, verbose = FALSE,
           message("More than 1 match for metadata: ", metadata[it, "TaxonUnmodified"], "\n",
                   "             vs. genomeinfodb: ", id_gs)
         }
+        metadata[it, "TaxonCanonical"] <- id_gs[1]
         metadata[it, species_column] <- id_gs[1]
         matched_idx <- c(matched_idx, it)
       }

@@ -83,15 +83,30 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     all_records <- data.frame()
     for (g in 1:length(split_columns)) {
       group <- split_columns[[g]]
-      ##query_body <- list(
-      ##  "searchConfig" = list(
-      ##    "parameters" = list("organism" = jsonlite::unbox(species)),
-      ##    "wdkWeight" = jsonlite::unbox(10)),
-      ##  "reportConfig" = list(
-      ##    "attributes" = group,
-      ##    "tables" = list()))
-      ##post_json <- jsonlite::toJSON(query_body)
       group_string <- gsub(pattern=" ", replacement="", x=toString(paste0('"', group, '"')))
+      ## Ohhhhh I see the problem, in a fashion similar to the bug with Schizosaccharomyces pombe,
+      ## the TriTrypDB is not including the '/' symbols in the strain ID when it returns the metadata.
+
+      ## Here is the string returned when examining the API help:
+      ## https://fungidb.org/fungidb/app/web-services-help?searchName=GenesByTaxon&weight=10&organism=%5B%22Allomyces%20macrogynus%20ATCC%2038327%22%2C%22Blastocladiomycota%22%5D
+      ## Note that the json printed here is not really... valid.  But unless something very close to it is provided the API will fail.
+      ## The most problematic part is of course the json escaped quotes.
+      ## As far as I can tell, my json is exactly identical to their json, but still it does not effing work.
+      ##
+      ## {
+      ## "searchConfig": {
+      ##   "parameters": {
+      ##     "organism": "[\"Allomyces macrogynus ATCC 38327\",\"Blastocladiomycota\"]"
+      ##   },
+      ##   "wdkWeight": 10
+      ## },
+      ## "reportConfig": {
+      ##   "attributes": [
+      ##       "primary_key"
+      ##       ],
+      ##   "tables": []
+      ## }
+      ## }
       post_json <- glue::glue('{{
   "searchConfig": {{
     "parameters": {{
@@ -104,20 +119,24 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     "tables": []
   }}
 }}')
-      ##species_coded <- URLencode(species)
-      ##get_string <- glue(
-      ##  '{base_url}?organism="[\"{species_coded}\"]"\\
-      ##  &reportConfig={{"attributes":[{group_string}],"tables":[]}}')
       result <- httr::POST(url = base_url, body = post_json,
                            httr::content_type("application/json"),
                            httr::timeout(1200))
+      cont <- httr::content(result, encoding = "UTF-8", as = "text")
 
-      ##wtf2 <- 'https://fungidb.org/fungidb/service/record-types/transcript/searches/GenesByTaxon/reports/standard?organism=%5B%22Schizosaccharomyces%20pombe%20972h-%22%5D&reportConfig={"attributes":["primary_key","gene_source_id"],"tables":[]}'
-      ##get_string <- glue(
-      ##  '{base_url}?organism=%5B%22{species_coded}%22%5D&reportConfig={{"attributes":[{group_string}],"tables":[]}')
-      ##try = URLdecode(wtf)
-      ##result
-      ##result <- httr::GET(url=get_string)
+      ## Here is the string theoretically expected for a GET:
+      ## Note that it is also problematic because of its inconsistent use of html encoded quotes and brackets.
+      ## https://fungidb.org/fungidb/service/record-types/transcript/searches/GenesByTaxon/reports/standard?organism=%5B%22Allomyces%20macrogynus%20ATCC%2038327%22%2C%22Blastocladiomycota%22%5D&reportConfig={"attributes":["primary_key"],"tables":[]}
+      species_coded <- URLencode(species)
+      get_string <- glue(
+          '{base_url}?organism=%5B%22{species_coded}%22%5D&reportConfig={{"attributes":[{group_string}],"tables":[]}')
+      result <- httr::GET(url=get_string)
+      cont <- httr::content(result, encoding = "UTF-8", as = "text")
+
+
+      result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
+
+
       ## Test the result to see that we actually got data.
       if (result[["status_code"]] == "422") {
         warn(sprintf("API request failed for %s (code = 422): ", entry[["Taxon"]]))

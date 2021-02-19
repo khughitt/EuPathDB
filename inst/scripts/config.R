@@ -5,7 +5,7 @@ orgdb <- TRUE
 txdb <- TRUE
 organismdb <- FALSE
 granges <- TRUE
-eu_version <- NULL
+eu_version <- 49
 bioc_version <- NULL
 install  <- FALSE
 
