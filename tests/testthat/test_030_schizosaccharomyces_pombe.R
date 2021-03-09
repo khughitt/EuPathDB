@@ -8,16 +8,14 @@ context("030_schizosaccharomyces_pombe
 ## Since I am primarily interested in the tritrypdb, I will focus there.
 
 webservice <- "fungidb"
-meta <- download_eupath_metadata(webservice=webservice)
+meta <- download_eupath_metadata(webservice=webservice, eu_version=46)
 all_metadata <- meta[["valid"]]
-
-eu_version <- get_versions()[["eu_version"]]
 
 wanted <- "pombe"
 entry <- get_eupath_entry(species=wanted, metadata=meta)
 
-orgdb_result <- make_eupath_orgdb(entry, verbose=TRUE)
-expected <- paste0("org.Spombe.972h.", eu_version, ".eg.db")
+orgdb_result <- make_eupath_orgdb(entry, verbose=TRUE, overwrite=TRUE)
+OBexpected <- paste0("org.Spombe.972h.", eu_version, ".eg.db")
 actual <- as.character(orgdb_result)
 test_that("Did make_eupath_orgdb return an expected result?", {
   expect_equal(actual, expected)

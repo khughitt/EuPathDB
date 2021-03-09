@@ -406,11 +406,11 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   Sys.chmod(dbpath, mode = "0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = dbpath)
   ## update SPECIES field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="SPECIES";')
+  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "SPECIES";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## update ORGANISM field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="ORGANISM";')
+  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "ORGANISM";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
@@ -433,7 +433,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     if (file.exists(s3_file)) {
       removed <- file.remove(s3_file)
     }
-    copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
+    copied <- copy_s3_file(src_dir = orgdb_path, type = "orgdb", s3_file = s3_file)
     if (isTRUE(copied)) {
       message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
     } else {
