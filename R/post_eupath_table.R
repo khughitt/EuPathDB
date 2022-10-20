@@ -13,7 +13,7 @@
 #'
 #' @author Keith Hughitt
 #' @export
-post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minutes = 30) {
+post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minutes = 60) {
   if (is.null(entry)) {
     stop("   This requires a eupathdb entry.")
   }
@@ -51,8 +51,11 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
     warning("   A minimal amount of content was returned.")
   }
   cont <- httr::content(result, encoding = "UTF-8", as = "text")
-  handle <- textConnection(cont)
-  result <- read.csv(handle)
+  ##handle <- textConnection(cont)
+  ##result <- read.csv(handle, quote = "", stringsAsFactors = FALSE)
+  ##%>%
+  ##  mutate(across(everything(), ~ purrr::map_chr(.x, ~ gsub("\"", "", .x))))
+  result <- as.data.frame(suppressWarnings(readr::read_csv(cont, show_col_types = FALSE)))
 
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {
@@ -66,6 +69,12 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
   new_colnames <- gsub(pattern = "\\.", replacement = "_", x = new_colnames)
   ## Get rid of double _
   new_colnames <- gsub(pattern = "__", replacement = "_", x = new_colnames)
+  new_colnames <- gsub(pattern = "\\)", replacement = "", x = new_colnames)
+  new_colnames <- gsub(pattern = "\\(", replacement = "", x = new_colnames)
+  new_colnames <- gsub(pattern = "%", replacement = "PCT", x = new_colnames)
+  new_colnames <- gsub(pattern = "\\#", replacement = "NUM", x = new_colnames)
+  new_colnames <- gsub(pattern = "\\-", replacement = "", x = new_colnames)
+  new_colnames <- gsub(pattern = " ", replacement = "_", x = new_colnames)
   colnames(result) <- new_colnames
   colnames(result)[1] <- "GID"
   ## remove duplicated rows
@@ -77,6 +86,6 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
       colnames(result)[c] <- new_col
     }
   }
-  close(handle)
+  ## close(handle)
   return(result)
 }

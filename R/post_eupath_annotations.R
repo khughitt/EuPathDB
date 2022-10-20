@@ -9,28 +9,9 @@
 #' @param build_dir Location to dump the resulting data.
 #' @param overwrite Overwrite existing data if it exists?
 post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir = "EuPathDB") {
-  if (is.null(entry)) {
-    stop("  Need an entry from the eupathdb.")
-  }
-
-  ## Check for output rda directory and create it if necessary
-  rdadir <- file.path(build_dir, "rda")
-  if (!file.exists(build_dir)) {
-    created <- dir.create(build_dir, recursive = TRUE)
-  }
-
-  ## Look for an existing savefile and load if we are not overwriting existing data.
-  savefile <- file.path(build_dir, glue::glue("{entry[['Genome']]}_annotations.rda"))
-  if (file.exists(savefile)) {
-    if (isTRUE(overwrite)) {
-      removed <- file.remove(savefile)
-    } else {
-      message("  Delete the file ", savefile, " to regenerate.")
-      result <- new.env()
-      load(savefile, envir = result)
-      result <- result[["result"]]
-      return(result)
-    }
+  rda <- check_rda("annotations", entry, build_dir, overwrite)
+  if (!is.null(rda)) {
+    return(rda)
   }
 
   ## query body as a structured list
