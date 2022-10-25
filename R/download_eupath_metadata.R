@@ -455,3 +455,9 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     "invalid" = species_xref[["invalid"]])
   return(retlist)
 }
+
+
+download_real_taxa <- function(webservice, tld, service_directory) {
+  funkytown <- "curl 'https://tritrypdb.org/tritrypdb/service/record-types/transcript/searches/GenesByTaxon?expandParams=true' -H 'Connection: keep-alive' -H 'DNT: 1' -H 'x-client-wdk-timestamp: 1611591828791'  -H 'x-client-retry-count: 0'  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'  -H 'content-type: application/json; charset=utf-8'  -H 'Accept: */*'  -H 'Sec-Fetch-Site: same-origin'  -H 'Sec-Fetch-Mode: cors'  -H 'Sec-Fetch-Dest: empty'  -H 'Referer: https://tritrypdb.org/tritrypdb/app/search/transcript/GenesByTaxon'  -H 'Accept-Language: en-US,en;q=0.9'  --compressed"
+  curl_result <- system2("/bin/bash", args = c("-c", shQuote(funkytown)), stdout = TRUE)
+}

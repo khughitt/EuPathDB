@@ -19,8 +19,10 @@ get_semantic_columns <- function(webservice = "tritrypdb", regexes = NULL) {
   ## for the various rnaseq/proteomics/etc data sets.
   all_data_column_names <- result[["attributes"]][[1]][["name"]]
   ## Keeping in mind that I don't want most of these columns, I made the following variable of
-  ## regexes to match stuff I don't care about.  I will remove stuff from the bottom us.
-  remove_regexes <- c("_model$",  ## gene models from a bunch of experiments I don't understand.
+  ## regexes to match stuff I don't care about.  I will remove stuff from the bottom up.
+  remove_regexes <- c(
+    ##"snpoverview", "gene_source_id", "lc_project_id", "transcript_link",
+                      "_model$",  ## gene models from a bunch of experiments I don't understand.
                       "_cds$", ## The cds models from the same experiments.
                       "_image$", ## A few columns of image data end thus.
                       "_int$", ## The random_int column, yeah I am sure that is useful

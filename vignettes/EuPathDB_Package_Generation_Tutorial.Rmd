@@ -69,8 +69,8 @@ ulimit -HSn 4096  ## If you can do it, make this number higher.
 ```{r 01example_install}
 library(EuPathDB)
 
-## Ask for the version 42 data from fungidb for species with 'cerevisiae' in the name.
-sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb", eu_version="v42")
+## Ask for the Saccharomyces cerevisiae metadata.
+sc_entry <- get_eupath_entry(species="cerevisiae", webservice="fungidb")
 sc_name <- sc_entry[["Species"]]
 sc_entry
 ```
@@ -88,8 +88,7 @@ bsgenome_pkg <- make_eupath_bsgenome(sc_entry)
 organ_pkg <- make_eupath_organismdbi(sc_entry)
 ```
 
-You will have to trust that the above worked in my R session and installed for
-me packages named:
+The above functions installed the following packages:
 
 1.  OrgDB: org.Scerevisiae.S288c.v42.eg.db
 2.  OrganismDBI: fungidb.Saccharomyces.cerevisiae.S288c.v42

@@ -8,7 +8,7 @@ move_final_package <- function(pkglist, type = "orgdb", build_dir = "EuPathDB") 
   if (!file.exists(final_dir)) {
     dir.create(final_dir, recursive = TRUE)
   }
-  pkgname <- basename(as.character(pkgname))
+  pkgname <- basename(as.character(pkglist))
   version_string <- format(Sys.time(), "%Y.%m")
   final_filename <- glue::glue("{pkgname}_{version_string}.tar.gz")
   current_path <- file.path(build_dir, final_filename)

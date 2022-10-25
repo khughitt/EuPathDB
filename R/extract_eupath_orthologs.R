@@ -47,7 +47,7 @@
 extract_eupath_orthologs <- function(db, master = "GID", query_species = NULL,
                                      id_column = "ORTHOLOGS_GID",
                                      org_column = "ORTHOLOGS_ORGANISM",
-                                     group_column = "ORTHOLOGS_GROUP_ID",
+                                     group_column = "ANNOT_GENE_ORTHOMCL_NAME",
                                      name_column = "ORTHOLOGS_PRODUCT",
                                      count_column = "ORTHOLOGS_COUNT",
                                      print_speciesnames = FALSE,
@@ -69,6 +69,7 @@ extract_eupath_orthologs <- function(db, master = "GID", query_species = NULL,
   }
 
   columns <- c(id_column, group_column, org_column, name_column, count_column)
+  columns <- toupper(columns)
   gene_set <- AnnotationDbi::keys(pkg, keytype = master)
   column_set <- AnnotationDbi::columns(pkg)
   column_intersect <- columns %in% column_set

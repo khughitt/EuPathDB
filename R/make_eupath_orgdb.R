@@ -86,22 +86,22 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## Gather orthologs
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
-  if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
-    ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
-    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  } else {
-    ortholog_table <- as.data.frame(gene_table[, c("GID")])
-    ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
-    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  }
-  ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
-                                                   ortholog_table = ortholog_table,
-                                                   build_dir = build_dir,
-                                                   gene_ids = gene_ids,
-                                                   overwrite = overwrite))
-  if ("try-error" %in% class(ortholog_table)) {
-    ortholog_table <- data.frame()
-  }
+  ## if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
+  ##   ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
+  ##   colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  ## } else {
+  ##   ortholog_table <- as.data.frame(gene_table[, c("GID")])
+  ##   ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
+  ##   colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  ## }
+  ## ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
+  ##                                                  ortholog_table = ortholog_table,
+  ##                                                  build_dir = build_dir,
+  ##                                                  gene_ids = gene_ids,
+  ##                                                  overwrite = overwrite))
+  ## if ("try-error" %in% class(ortholog_table)) {
+  ##   ortholog_table <- data.frame()
+  ## }
 
   ## Get the PDB table
   pdb_table <- data.frame()
@@ -344,7 +344,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
     if (nrow(go_table) > 0) {
-      tmp_table <- go_table[, c("GID", "GODB_GO_ID", "GODB_EVIDENCE_CODE")]
+      tmp_table <- go_table[, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
       colnames(tmp_table) <- c("GID", "GO", "EVIDENCE")
       godb_table <- rbind(godb_table, tmp_table)
     }
@@ -406,11 +406,11 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   Sys.chmod(dbpath, mode = "0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = dbpath)
   ## update SPECIES field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="SPECIES";')
+  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "SPECIES";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## update ORGANISM field
-  query <- glue::glue('UPDATE metadata SET value="{entry[["TaxonUnmodified"]]}" WHERE name="ORGANISM";')
+  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "ORGANISM";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
@@ -433,7 +433,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     if (file.exists(s3_file)) {
       removed <- file.remove(s3_file)
     }
-    copied <- copy_s3_file(src_dir=orgdb_path, type="orgdb", s3_file=s3_file)
+    copied <- copy_s3_file(src_dir = orgdb_path, type = "orgdb", s3_file = s3_file)
     if (isTRUE(copied)) {
       message(" Successfully copied the orgdb sqlite database to the s3 staging directory.")
     } else {

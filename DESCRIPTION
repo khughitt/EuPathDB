@@ -41,6 +41,7 @@ VignetteBuilder: knitr
 Collate:
  'check_csv.R'
  'check_files.R'
+ 'check_rda.R'
  'check_s3.R'
  'clean_pkg.R'
  'copy_s3_file.R'

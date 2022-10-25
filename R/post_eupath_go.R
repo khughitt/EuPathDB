@@ -5,31 +5,23 @@
 #' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return A big honking table.
 post_eupath_go_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
-  if (is.null(entry)) {
-    stop("  Need an entry from the eupathdb.")
-  }
-
-  rdadir <- file.path(build_dir, "rda")
-  if (!file.exists(rdadir)) {
-    created <- dir.create(rdadir, recursive = TRUE)
-  }
-
-  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_go_table.rda"))
-  if (file.exists(savefile)) {
-    if (isTRUE(overwrite)) {
-      removed <- file.remove(savefile)
-    } else {
-      message("  Delete the file ", savefile, " to regenerate.")
-      result <- new.env()
-      load(savefile, envir = result)
-      result <- result[["result"]]
-      return(result)
-    }
+  rda <- check_rda("go", entry, build_dir, overwrite)
+  if (!is.null(rda)) {
+    return(rda)
   }
 
   result <- post_eupath_table(entry, tables = "GOTerms", table_name = "godb")
-  colnames(result) <- gsub(x = colnames(result), pattern = "GO_GO", replacement = "GO")
-  colnames(result) <- gsub(x = colnames(result), pattern = "^GO$", replacement = "GO_GOID")
+  ## 202210: There appears to be a problem in the current GOTerms table, it has
+  ## a new EOF in the middle which leads to the GO IDs to get scrambled.
+  ## The first instance of the GO table getting scrambled is at row 159,780.
+  ## At that row, the GODB_EVIDENCE_CODE gets scrambled to 5.8S rRNA.
+
+  ## It appears that a good work around is to use read.csv() with the argument
+  ## 'quote = ""' -- with the caveat that doing so leads to some strangeness in
+  ## the returned column names.
+  ## It also appears that readr::read_csv can get around this?
+  colnames(result) <- gsub(x = colnames(result), pattern = "^GODB_", replacement = "GO_")
+  colnames(result) <- gsub(x = colnames(result), pattern = "^GO_GO_", replacement = "GO_")
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)
