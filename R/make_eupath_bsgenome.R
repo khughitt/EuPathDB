@@ -15,8 +15,8 @@
 #' @return List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB", copy_s3 = FALSE,
-                                 install = TRUE, reinstall = FALSE, ...) {
+make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
+                                 copy_s3 = FALSE, install = TRUE, reinstall = FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
   if (!is.null(arglist[["author"]])) {
@@ -65,7 +65,8 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB
     created <- dir.create(bsgenome_dir, recursive = TRUE)
   }
   ## Download them to this directory.
-  downloaded <- download.file(url=fasta_start, destfile=genome_filename, quiet=FALSE)
+  downloaded <- download.file(url = fasta_start, destfile = genome_filename,
+                              quiet = FALSE)
   ## Extract all the individual chromosomes into this directory.
   input <- Biostrings::readDNAStringSet(genome_filename)
   output_list <- list()
@@ -76,7 +77,7 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB
     bar <- utils::txtProgressBar(style = 3)
   }
   genome_prefix <- NULL
-  for (index in 1:length(input)) {
+  for (index in seq_len(length(input))) {
     if (isTRUE(show_progress)) {
       pct_done <- index / length(input)
       setTxtProgressBar(bar, pct_done)
@@ -143,33 +144,64 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB
   tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
   annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose = TRUE))
 
-  inst <- NULL
-  if (isTRUE(install)) {
-    if (class(annoying) != "try-error") {
-      inst <- try(devtools::install(pkgname, quiet = TRUE))
-    }
+  built <- NULL
+  workedp <- ! "try-error" %in% class(annoying)
+  if (isTRUE(workedp)) {
+    built <- try(devtools::build(pkgname, quiet = TRUE))
+    workedp <- ! "try-error" %in% class(built)
   }
 
-  if (isTRUE(copy_s3)) {
-    source_dir <- basename(bsgenome_dir)
-    s3_file <- entry[["BsgenomeFile"]]
-    copied <- copy_s3_file(src_dir = source_dir, type = "bsgenome", s3_file = s3_file)
-    if (isTRUE(copied)) {
-      message(" Successfully copied the genome 2bit file to the s3 staging directory.")
+  ## If we were able to build the package, then I think we can copy the data
+  ## and delete the intermediate files.
+
+  ## Note that as of this writing, one cannot use bsgenome with AH, so don't copy the data to S3
+  ## no matter what. I will leave in the code to do it though in case it becomes possible.
+  copy_s3 <- FALSE
+  if (isTRUE(workedp)) {
+
+    if (isTRUE(install)) {
+      inst <- try(devtools::install(pkgname, quiet = TRUE))
+    }
+
+    if (isTRUE(copy_s3)) {
+      source_dir <- basename(bsgenome_dir)
+      s3_file <- entry[["BsgenomeFile"]]
+      copied <- copy_s3_file(src_dir = source_dir, type = "bsgenome", s3_file = s3_file)
+      if (isTRUE(copied)) {
+        message(" Successfully copied the genome 2bit file to the s3 staging directory.")
+      }
+    }
+
+    pkg_archive_dir <- file.path(build_dir, "packages", "bsgenome")
+    if (!file.exists(pkg_archive_dir)) {
+      tt <- dir.create(pkg_archive_dir, recursive = TRUE)
+    }
+
+    ## If everything worked and we did whatever it is we think is appropriate with the results,
+    ## then it should be safe to clean up the intermediates.
+    message("Cleanning up the bsgenome staging directory: ", bsgenome_dir, ".")
+    if (file.exists(bsgenome_dir)) {
+      deleted <- unlink(x = bsgenome_dir, recursive = TRUE, force = TRUE)
+    }
+    weirdo <- basename(bsgenome_dir)
+    if (file.exists(weirdo)) {
+      deleted <- unlink(x = weirdo, recursive = TRUE, force = TRUE)
+    }
+    downloaded_fasta <- paste0(weirdo, ".fasta")
+    deleted <- unlink(x = downloaded_fasta, force = TRUE)
+    build_fasta <- file.path("build", downloaded_fasta)
+    deleted <- unlink(x = build_fasta, force = TRUE)
+
+    if (!is.null(built)) {
+      message("Moving the tarball to the archive directory.")
+      destination <- file.path(pkg_archive_dir, basename(built))
+      tt <- file.rename(built, destination)
     }
   }
 
   retlist <- list(
-  "bsgenome_name" = pkgname)
-  if (class(inst) != "try-error" & !is.null(inst)) {
-    ## Clean up a little.
-    deleted <- unlink(x = bsgenome_dir, recursive = TRUE, force = TRUE)
-    built <- try(devtools::build(pkgname, quiet = TRUE))
-    if (class(built) != "try-error") {
-      final_path <- move_final_package(pkgname, type = "bsgenome", build_dir = build_dir)
-      final_deleted <- unlink(x = pkgname, recursive = TRUE, force = TRUE)
-    }
-  }
+    "bsgenome_name" = pkgname,
+    "pkg_file" = destination)
   message("Finished creation of ", pkgname, ".")
   return(retlist)
 }

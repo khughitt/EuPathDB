@@ -4,7 +4,12 @@
 \alias{post_eupath_go_table}
 \title{Use the POST interface to get GO data from the EuPathDB.}
 \usage{
-post_eupath_go_table(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE)
+post_eupath_go_table(
+  entry = NULL,
+  build_dir = "EuPathDB",
+  overwrite = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}

@@ -8,10 +8,14 @@
 #' @param entry Eupathdb annotation entry.
 #' @param build_dir Location to dump the resulting data.
 #' @param overwrite Overwrite existing data if it exists?
-post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir = "EuPathDB") {
+post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
   rda <- check_rda("annotations", entry, build_dir, overwrite)
-  if (!is.null(rda)) {
-    return(rda)
+  savefile <- rda[["savefile"]]
+  if (!is.null(rda[["result"]])) {
+    if (isTRUE(verbose)) {
+      message("Returning primary annotation the data from a previous savefile.")
+    }
+    return(rda[["result"]])
   }
 
   ## query body as a structured list
@@ -62,9 +66,10 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
   ##                    "annotated_go_id_process", "annotated_go_process", "ec_numbers",
   ##                    "ec_numbers_derived")
   all_records <- data.frame()
-  for (g in 1:length(split_columns)) {
+  for (g in seq_len(length(split_columns))) {
     group <- split_columns[[g]]
-    group_string <- gsub(pattern=" ", replacement="", x=toString(paste0('"', group, '"')))
+    group_string <- gsub(pattern = " ", replacement = "",
+                         x = toString(paste0('"', group, '"')))
     ## Ohhhhh I see the problem, in a fashion similar to the bug with Schizosaccharomyces pombe,
     ## the TriTrypDB is not including the '/' symbols in the strain ID when it returns the metadata.
 
@@ -156,15 +161,14 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
       records[["project_id"]] <- NULL
       all_records <- merge(all_records, records, by = "displayName")
     }
-    ## message("Snoozing to try to keep the webserver from being sad.")
-    snooze <- Sys.sleep(3)
-  }  ## End of my nasty hack to get around some webservices crashing
-  ##    when I ask for all the columns.
+    snooze <- Sys.sleep(1)
+  } ## End of my nasty hack to get around some webservices crashing
+  ## when I ask for all the columns.
 
   records <- all_records
   ## Use a heuristic to figure out numeric columns and set them accordingly.
   cnames <- colnames(records)
-  for (i in 1:length(cnames)) {
+  for (i in seq_len(length(cnames))) {
     cname <- cnames[i]
     column <- records[[cname]]
     idx <- !is.na(column)
@@ -186,7 +190,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
   ## and send the NAs to a contextually sensible value that sqlite will not yell about
   ## e.g. if a column is numeric, set it to 0; if a column is a character, set it to ""
   colnames(records) <- paste0("annot_", colnames(records))
-  for (col_num in 1:length(colnames(records))) {
+  for (col_num in seq_len(length(colnames(records)))) {
     cname <- colnames(records)[col_num]
     na_idx <- is.na(records[[col_num]])
     if (is.character(records[[col_num]])) {
@@ -203,9 +207,8 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
     }
   }
 
-  ## orgdbs seem to like uppercase column names
+  ## orgdbs likes uppercase column names
   colnames(records) <- toupper(colnames(records))
-
   ## Drop a few extra dumb columns
   drop_columns <- c("ANNOT_ORGANISM", "ANNOT_ORGANISM_FULL", "ANNOT_ORGANISM_TEXT",
                     "ANNOT_RECORDCLASSNAME", "ANNOT_PROJECT_ID", "ANNOT_PROJECT",
@@ -223,6 +226,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, build_dir =
   }
 
   ## I would like to get rid of any html tags
+  ## This will require a bit of regex work.
 
   ## Get rid of duplicated entries
   dup_idx <- duplicated(records)

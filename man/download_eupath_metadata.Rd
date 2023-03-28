@@ -8,9 +8,7 @@ download_eupath_metadata(
   overwrite = TRUE,
   webservice = "eupathdb",
   bioc_version = NULL,
-  build_dir = "EuPathDB",
   eu_version = NULL,
-  limit_n = Inf,
   verbose = FALSE
 )
 }
@@ -21,13 +19,13 @@ download_eupath_metadata(
 
 \item{bioc_version}{Manually set the bioconductor release if desired.}
 
-\item{build_dir}{Where to put the json.}
-
 \item{eu_version}{Choose a specific eupathdb version?}
 
-\item{limit_n}{Maximum number of valid entries to return.}
-
 \item{verbose}{Print helper message about species matching?}
+
+\item{build_dir}{Where to put the json.}
+
+\item{limit_n}{Maximum number of valid entries to return.}
 }
 \value{
 Dataframe with lots of rows for the various species in eupathdb.

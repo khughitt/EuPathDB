@@ -4,10 +4,14 @@
 #' @param build_dir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
-post_eupath_pubmed_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
+post_eupath_pubmed_table <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
   rda <- check_rda("pubmed", entry, build_dir, overwrite)
-  if (!is.null(rda)) {
-    return(rda)
+  savefile <- rda[["savefile"]]
+  if (!is.null(rda[["result"]])) {
+    if (isTRUE(verbose)) {
+      message("Returning Pubmed data from a previous savefile.")
+    }
+    return(rda[["result"]])
   }
 
   result <- post_eupath_table(entry, tables = "PubMed", table_name = "pubmed")

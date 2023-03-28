@@ -10,7 +10,7 @@ extract_eupath_orthologs(
   query_species = NULL,
   id_column = "ORTHOLOGS_GID",
   org_column = "ORTHOLOGS_ORGANISM",
-  group_column = "ORTHOLOGS_GROUP_ID",
+  group_column = "ANNOT_GENE_ORTHOMCL_NAME",
   name_column = "ORTHOLOGS_PRODUCT",
   count_column = "ORTHOLOGS_COUNT",
   print_speciesnames = FALSE,
