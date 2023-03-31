@@ -12,11 +12,11 @@
 post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL,
                                        gene_ids = NULL, overwrite = FALSE, verbose = TRUE) {
 
-  rda <- check_rda("ortholog", entry, build_dir, overwrite)
+  rda <- check_rda("ortholog", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {
-      message("Returning GOslim data from a previous savefile.")
+      message("Returning ortholog data from a previous savefile.")
     }
     return(rda[["result"]])
   }

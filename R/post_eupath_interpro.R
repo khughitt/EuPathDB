@@ -5,7 +5,7 @@
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
 post_eupath_interpro_table <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
-  rda <- check_rda("interpro", entry, build_dir, overwrite)
+  rda <- check_rda("interpro", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {

@@ -5,7 +5,7 @@
 #' @param overwrite If trying again, overwrite the savefile?
 #' @return A big honking table.
 post_eupath_pathway_table <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
-  rda <- check_rda("pathway", entry, build_dir, overwrite)
+  rda <- check_rda("pathway", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {

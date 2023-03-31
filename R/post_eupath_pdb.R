@@ -5,7 +5,7 @@
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
 post_eupath_pdb_table <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
-  rda <- check_rda("pdb", entry, build_dir, overwrite)
+  rda <- check_rda("pdb", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {

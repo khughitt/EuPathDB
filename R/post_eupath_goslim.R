@@ -4,9 +4,9 @@
 #' @param build_dir Location to write savefiles.
 #' @param overwrite Overwrite intermediate savefiles in case of incomplete install?
 #' @return  A big honking table.
-post_eupath_goslim_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE,
+post_eupath_goslim_table <- function(entry = NULL, overwrite = FALSE,
                                      verbose = FALSE) {
-  rda <- check_rda("goslim", entry, build_dir, overwrite)
+  rda <- check_rda("goslim", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {

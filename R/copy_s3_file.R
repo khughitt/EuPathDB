@@ -3,7 +3,7 @@
 #' @param src_dir Source directory for the package top be copied.
 #' @param s3_file Where is the final file to be located?
 #' @param type Which type of package is this?
-copy_s3_file <- function(src_dir, s3_file, type = "bsgenome") {
+copy_s3_file <- function(src_dir, s3_file, type = "bsgenome", move = FALSE) {
   final_dir <- dirname(s3_file)
   if (!file.exists(final_dir)) {
     dir.create(final_dir, recursive = TRUE)
@@ -23,6 +23,11 @@ copy_s3_file <- function(src_dir, s3_file, type = "bsgenome") {
   } else if (type == "bsgenome") {
     source_file <- file.path(src_dir, "inst", "extdata", "single_sequences.2bit")
   }
-  copied <- file.copy(source_file, s3_file, overwrite = TRUE)
+
+  if (isTRUE(move)) {
+    copied <- file.rename(source_file, s3_file)
+  } else {
+    copied <- file.copy(source_file, s3_file, overwrite = TRUE)
+  }
   return(copied)
 }

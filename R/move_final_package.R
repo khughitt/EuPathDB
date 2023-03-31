@@ -17,12 +17,13 @@ move_final_package <- function(pkglist, type = "orgdb") {
     current_path <- file.path(build_dir, pkgname)
     final_path <- file.path(final_dir, pkgname)
   } else if (type == "txdb") {
+    ## These are not needed because I do this at the download step now.
     gff_file <- file.path(build_dir, glue::glue("{pkgname}.gff"))
-    gff_dir <- file.path(build_dir, "gff")
-    if (!file.exists(gff_dir)) {
-      dir.create(gff_dir, recursive = TRUE)
-    }
-    gff_moved <- file.rename(from = gff_file, file.path(gff_dir, basename(gff_file)))
+    ##gff_dir <- file.path(build_dir, "gff")
+    ##if (!file.exists(gff_dir)) {
+    ##  dir.create(gff_dir, recursive = TRUE)
+    ##}
+    ##gff_moved <- file.rename(from = gff_file, file.path(gff_dir, basename(gff_file)))
   } else if (type == "bsgenome") {
     current_path <- basename(final_path)
     fasta_file <- file.path(build_dir, glue::glue("{pkgname}.fasta"))
@@ -47,6 +48,6 @@ move_final_package <- function(pkglist, type = "orgdb") {
     fasta_moved <- try(
         file.rename(from = fasta_file, file.path(fasta_dir, basename(fasta_file))), silent = TRUE)
   }
-  moved <- file.rename(from = current_path, to = final_path)
+  moved <- try(file.rename(from = current_path, to = final_path))
   return(final_path)
 }

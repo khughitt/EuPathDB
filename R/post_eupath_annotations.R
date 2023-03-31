@@ -9,7 +9,7 @@
 #' @param build_dir Location to dump the resulting data.
 #' @param overwrite Overwrite existing data if it exists?
 post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
-  rda <- check_rda("annotations", entry, build_dir, overwrite)
+  rda <- check_rda("annotations", entry, overwrite)
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {
@@ -234,8 +234,9 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, verbose = F
     message("  Dropped ", sum(dup_idx), " duplicated entries.")
   }
   records <- records[!dup_idx, ]
-
+  colnames(records)[1] <- "GID"
   message("  Saving ", savefile, " with ", nrow(records), " rows.")
-  save(records, file = savefile)
+  result <- records
+  save(result, file = savefile)
   return(records)
 }
