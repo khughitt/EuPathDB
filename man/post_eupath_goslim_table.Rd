@@ -7,7 +7,8 @@
 post_eupath_goslim_table(
   entry = NULL,
   build_dir = "EuPathDB",
-  overwrite = FALSE
+  overwrite = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{

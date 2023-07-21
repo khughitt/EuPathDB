@@ -4,7 +4,7 @@
 \alias{make_taxon_names}
 \title{Iterate through the various ways of representing taxon names}
 \usage{
-make_taxon_names(entry, column = "TaxonUnmodified")
+make_taxon_names(entry, column = "TaxonUnmodified", spaces = "dot")
 }
 \arguments{
 \item{entry}{An entry of the eupathdb metadata.}

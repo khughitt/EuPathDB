@@ -21,8 +21,7 @@
 #'  probably change.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
-                              reinstall = FALSE, overwrite = FALSE,
+make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
   ## Pull out the metadata for this species.
   if ("character" %in% class(entry)) {
@@ -41,21 +40,15 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
 
   message("Starting creation of ", pkgname, ".")
   ## Create working directory if necessary
-  if (!dir.exists(build_dir)) {
-    created <- dir.create(build_dir, recursive = TRUE)
+
+  ## The place to stick the orgdb upon completion.
+  org_path <- file.path(build_dir, "orgdb")
+  if (!file.exists(org_path)) {
+    tt <- dir.create(org_path, recursive = TRUE)
   }
 
-  ## KEGG is too annoying, disabling it at least for now.
-  ## do_kegg <- FALSE
-  ## if (is.null(kegg_abbreviation)) {
-  ##   kegg_abbreviation <- get_kegg_orgn(glue::glue("{taxa[['genus']]} {taxa[['species']]}"))
-  ##   if (length(kegg_abbreviation) == 0) {
-  ##     do_kegg <- FALSE
-  ##   }
-  ## }
-
   ## I am almost certain that wrapping these in a try() is no longer necessary.
-  gene_table <- try(post_eupath_annotations(entry, build_dir = build_dir, overwrite = overwrite))
+  gene_table <- try(post_eupath_annotations(entry, overwrite = overwrite))
   if ("try-error" %in% class(gene_table)) {
     gene_table <- data.frame()
     warning(" Unable to create an orgdb for this species.")
@@ -69,6 +62,8 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   colnames(gene_table)[1] <- "GID"
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
+  ## At some point we should be able to remove this, because post_*() try pretty hard to get
+  ## rid of spurious NAs in the returned.data.
   gene_table <- remove_eupath_nas(gene_table, "annot")
 
   ## Get the GO data from the GO and GOSlim tables
@@ -77,6 +72,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   if ("try-error" %in% class(go_table)) {
     go_table <- data.frame()
   }
+
   goslim_table <- data.frame()
   goslim_table <- try(post_eupath_goslim_table(entry, build_dir = build_dir, overwrite = overwrite))
   if ("try-error" %in% class(goslim_table)) {
@@ -86,27 +82,25 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## Gather orthologs
   gene_ids <- gene_table[["GID"]]
   ortholog_table <- data.frame()
-  ## if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
-  ##   ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
-  ##   colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  ## } else {
-  ##   ortholog_table <- as.data.frame(gene_table[, c("GID")])
-  ##   ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
-  ##   colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  ## }
-  ## ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
-  ##                                                  ortholog_table = ortholog_table,
-  ##                                                  build_dir = build_dir,
-  ##                                                  gene_ids = gene_ids,
-  ##                                                  overwrite = overwrite))
-  ## if ("try-error" %in% class(ortholog_table)) {
-  ##   ortholog_table <- data.frame()
-  ## }
+  if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
+    ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
+    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  } else {
+       ortholog_table <- as.data.frame(gene_table[, c("GID")])
+       ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
+       colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+  }
+  ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
+                                                   ortholog_table = ortholog_table,
+                                                   gene_ids = gene_ids,
+                                                   overwrite = overwrite))
+  if ("try-error" %in% class(ortholog_table)) {
+     ortholog_table <- data.frame()
+   }
 
   ## Get the PDB table
   pdb_table <- data.frame()
   pdb_table <- try(post_eupath_pdb_table(entry = entry,
-                                         build_dir = build_dir,
                                          overwrite = overwrite))
   if ("try-error" %in% class(pdb_table)) {
     pdb_table <- data.frame()
@@ -115,7 +109,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## The linkout table for entrez cross references papers.
   linkout_table <- data.frame()
   linkout_table <- try(post_eupath_linkout_table(entry = entry,
-                                                 build_dir = build_dir,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(linkout_table)) {
     linkout_table <- data.frame()
@@ -124,7 +117,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## The pubmed table for publications.
   pubmed_table <- data.frame()
   pubmed_table <- try(post_eupath_pubmed_table(entry = entry,
-                                               build_dir = build_dir,
                                                overwrite = overwrite))
   if ("try-error" %in% class(pubmed_table)) {
     pubmed_table <- data.frame()
@@ -133,7 +125,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## Interpro-specific annotations/cross references.
   interpro_table <- data.frame()
   interpro_table <- try(post_eupath_interpro_table(entry = entry,
-                                                   build_dir = build_dir,
                                                    overwrite = overwrite))
   if ("try-error" %in% class(interpro_table)) {
     interpro_table <- data.frame()
@@ -142,68 +133,10 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## The pathway data
   pathway_table <- data.frame()
   pathway_table <- try(post_eupath_pathway_table(entry = entry,
-                                                 build_dir = build_dir,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(pathway_table)) {
     pathway_table <- data.frame()
   }
-
-  ## KEGG data
-  ## kegg_table <- data.frame()
-  ## if (isTRUE(do_kegg)) {
-  ##   kegg_table <- try(load_kegg_annotations(linkout_table,
-  ##                                           species = taxa[["genus_species"]],
-  ##                                           flatten = FALSE,
-  ##                                           abbreviation = kegg_abbreviation[1]))
-  ##   if ("try-error" %in% class(kegg_table)) {
-  ##     kegg_table <- data.frame()
-  ##   } else if ("data.frame" %in% class(kegg_table) & nrow(kegg_table) == 0) {
-  ##     kegg_table <- data.frame()
-  ##   } else {
-  ##     colnames(kegg_table) <- glue::glue("KEGGREST_{toupper(colnames(kegg_table))}")
-  ##     colnames(kegg_table)[[1]] <- "GID"
-  ##   }
-  ##   ## I found a problem, KEGG GIDs no longer have the TcCLB in the beginning.
-  ##   ## (For example): tcr:397937.5 should be TcCLB.397937.5
-  ##   ## Unfortunately, CLBrener is a particularly evil example, since
-  ##   ## a lot (approximately 1/2) of GIDs are from the _other_ haplotype...
-  ##   k_gid <- kegg_table[["GID"]]
-  ##   g_gid <- gene_table[["GID"]]
-  ##   found_gids <- sum(k_gid %in% g_gid)
-  ##   if (found_gids == 0) {
-  ##     message("Attempting to match the kegg GIDs to the EuPathDB GIDs...")
-  ##     extra_string <- ""
-  ##     count <- 0
-  ##     searching <- TRUE
-  ##     ## Give it the first 20 genes to try to find a match
-  ##     while (searching) {
-  ##       count <- count + 1
-  ##       if (count > 20) {
-  ##         break
-  ##       }
-  ##       k <- k_gid[count]
-  ##       found <- grep(x = g_gid, pattern = k)
-  ##       if (sum(found) == 0) {
-  ##         next
-  ##       } else {
-  ##         f <- found[1]
-  ##         g <- g_gid[f]
-  ##         message("Found a gid: ", g, ".")
-  ##         pat <- paste0("^(.+)", k, "$")
-  ##         message("Regexing ", pat, " against ", g, ".")
-  ##         extra_string <- gsub(pattern = pat,
-  ##                              replacement = "\\1",
-  ##                              x = g)
-  ##         message("The missing string is: ", extra_string)
-  ##         ## Finished searching!
-  ##         searching <- FALSE
-  ##       }
-  ##     }
-  ##     if (extra_string != "") {
-  ##       kegg_table[["GID"]] <- paste0(extra_string, kegg_table[["GID"]])
-  ##     }
-  ##   } ## End checking for matching GIDs
-  ## } ## End if we should try getting kegg data.
 
   ## Create the baby table of chromosomes
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
@@ -248,12 +181,6 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
     orgdb_args[["interpro_table"]] <- interpro_table
   }
 
-  ## if (is.null(kegg_table)) {
-  ##   message(" This should not be possible, but the kegg table is still null.")
-  ## } else if (nrow(kegg_table) > 0) {
-  ##   orgdb_args[["kegg_table"]] <- kegg_table
-  ## }
-
   if (is.null(linkout_table)) {
     message(" This should not be possible, but the linkout table is still null.")
   } else if (nrow(linkout_table) > 0) {
@@ -289,12 +216,12 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## -- otherwise you get 'The type of data in the 'GID'
   ## columns must be the same for all data.frames.'
   used_columns <- c()
-  for (i in 1:length(orgdb_args)) {
+  for (i in seq_len(length(orgdb_args))) {
     argname <- names(orgdb_args)[i]
     if (class(orgdb_args[[i]])[1] == "data.frame") {
       ## Make sure that the column names in this data frame are unique.
       ## This starts at 2 because the first column should _always_ by 'GID'
-      for (cn in 2:length(colnames(orgdb_args[[i]]))) {
+      for (cn in seq(from = 2, to = length(colnames(orgdb_args[[i]])))) {
         colname <- colnames(orgdb_args[[i]])[cn]
         if (colname %in% used_columns) {
           new_colname <- glue::glue("{toupper(argname)}_{colname}")
@@ -372,7 +299,7 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   }
 
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
-  backup_path <- file.path(build_dir, glue::glue("{pkgname}.bak"))
+  backup_path <- file.path(org_path, glue::glue("{pkgname}.bak"))
   first_path <- file.path(build_dir, pkgname)
   if (file.exists(backup_path)) {
     message(backup_path, " already exists, deleting it.")
@@ -444,17 +371,26 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   ## And install the resulting package.
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
+
+  built <- NULL
+  workedp <- FALSE
+  if (isTRUE(build)) {
+    built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
+    workedp <- ! "try-error" %in% class(built)
+  }
+
   if (isTRUE(install)) {
     install_path <- file.path(getwd(), orgdb_path)
     inst <- suppressWarnings(try(devtools::install_local(install_path)))
+    workedp <- ! "try-error" %in% class(inst)
+  }
 
-    if (! "try-error" %in% class(inst)) {
-      ## I am tired of reading about unportable filenames here, so adding the suppress.
-      built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
-      if (! "try-error" %in% class(built)) {
-        final_path <- move_final_package(orgdb_path, type = "orgdb", build_dir = build_dir)
-        final_deleted <- unlink(x = orgdb_path, recursive = TRUE, force = TRUE)
-      }
+  if (isTRUE(workedp)) {
+    final_path <- move_final_package(orgdb_path, type = "orgdb")
+    orgdb_path <- file.path(dirname(orgdb_path), "orgdb", basename(orgdb_path))
+    rda_files <- get_rda_filename(entry, "all")
+    for (rda in rda_files) {
+      deleted <- unlink(x = rda, force = TRUE)
     }
   }
 
@@ -464,7 +400,9 @@ make_eupath_orgdb <- function(entry, build_dir = "EuPathDB", install = TRUE,
   sqlite_file <- basename(gsub(x = orgdb_path, pattern = "db$", replacement = "sqlite"))
   retlist <- list(
     "pkgname" = pkgname,
-    "db_path" = file.path(orgdb_path, "inst", "extdata", sqlite_file)
-    )
+    "db_path" = file.path(orgdb_path, "inst", "extdata", sqlite_file))
+  if (isTRUE(build)) {
+    retlist[["package_file"]] <- built
+  }
   return(retlist)
 }

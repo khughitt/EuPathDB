@@ -4,10 +4,14 @@
 #' @param build_dir Location to which to save intermediate savefile.
 #' @param overwrite If trying again, overwrite the savefile?
 #' @return A big honking table.
-post_eupath_pathway_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
-  rda <- check_rda("pathway", entry, build_dir, overwrite)
-  if (!is.null(rda)) {
-    return(rda)
+post_eupath_pathway_table <- function(entry = NULL, overwrite = FALSE, verbose = FALSE) {
+  rda <- check_rda("pathway", entry, overwrite)
+  savefile <- rda[["savefile"]]
+  if (!is.null(rda[["result"]])) {
+    if (isTRUE(verbose)) {
+      message("Returning pathway data from a previous savefile.")
+    }
+    return(rda[["result"]])
   }
 
   result <- post_eupath_table(entry, tables = "MetabolicPathways", table_name = "pathway")
