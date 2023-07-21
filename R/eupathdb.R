@@ -1,3 +1,7 @@
+#' Set the build directory when creating packages and downloading data.
+#' @export
+build_dir <- "build"
+
 #' EuPathDB: Access EuPathDB annotations using AnnotationHub
 #'
 #' EuPathDB provides an R interface for retrieving annotation resources from

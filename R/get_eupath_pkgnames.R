@@ -24,14 +24,14 @@ get_eupath_pkgnames <- function(entry, eu_version = NULL, column = "TaxonUnmodif
   species <- entry[[column]]
   version_string <- glue::glue(".v{entry[['SourceVersion']]}")
   if (!is.null(eu_version)) {
-    eu_version <- gsub(x=eu_version, pattern="^(\\d)(.*)$", replacement="v\\1\\2")
+    eu_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
     version_string <- glue::glue(".{eu_version}")
   }
 
   ## The format of the pkgnames for species I know is peculiar, emulate it here.
   provider <- tolower(entry[["DataProvider"]])
-  taxa <- make_taxon_names(entry, column=column)
-  first_char <- strsplit(taxa[["genus"]], split="")[[1]][[1]]
+  taxa <- make_taxon_names(entry, column = column)
+  first_char <- strsplit(taxa[["genus"]], split = "")[[1]][[1]]
   pkg_list <- list(
     "bsgenome" = glue::glue("BSGenome.{taxa[['taxon']]}{version_string}"),
     "bsgenome_installed" = FALSE,

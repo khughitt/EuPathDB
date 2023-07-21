@@ -5,7 +5,8 @@
 #'
 #' @param ... Arguments passed from above.
 #' @return Dataframe of the various species metadata.
-get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL, build_dir = "EuPathDB",
+#' @export
+get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
                              eu_version = NULL, verbose = FALSE) {
   ##projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
   ##              "microsporidiadb", "piroplasmadb", "plasmodb",
@@ -14,11 +15,11 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL, build_dir = 
   projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
                 "microsporidiadb", "piroplasmadb", "plasmodb",
                 "toxodb", "trichdb", "tritrypdb")
-  for (i in 1:length(projects)) {
+  for (i in seq_along(length(projects))) {
     webservice <- projects[i]
     results[[webservice]] <- download_eupath_metadata(
       webservice = webservice, overwrite = overwrite, bioc_version = bioc_version,
-      build_dir = build_dir, eu_version = eu_version, verbose = verbose)
+      eu_version = eu_version, verbose = verbose)
   }
 
   for (r in results) {
