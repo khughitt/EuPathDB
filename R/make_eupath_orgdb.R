@@ -37,7 +37,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
       "orgdb_name" = pkgname)
     return(retlist)
   }
-
+  orgdb_path <- file.path(build_dir, pkgname)
   message("Starting creation of ", pkgname, ".")
   ## Create working directory if necessary
 
@@ -59,7 +59,6 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
   }
-  colnames(gene_table)[1] <- "GID"
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
   ## At some point we should be able to remove this, because post_*() try pretty hard to get
@@ -68,13 +67,13 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## Get the GO data from the GO and GOSlim tables
   go_table <- data.frame()
-  go_table <- try(post_eupath_go_table(entry, build_dir = build_dir, overwrite = overwrite))
+  go_table <- try(post_eupath_go_table(entry, overwrite = overwrite))
   if ("try-error" %in% class(go_table)) {
     go_table <- data.frame()
   }
 
   goslim_table <- data.frame()
-  goslim_table <- try(post_eupath_goslim_table(entry, build_dir = build_dir, overwrite = overwrite))
+  goslim_table <- try(post_eupath_goslim_table(entry, overwrite = overwrite))
   if ("try-error" %in% class(goslim_table)) {
     goslim_table <- data.frame()
   }
@@ -158,8 +157,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     "goTable" = "godb_xref",
     "gene_info" = gene_table,
     "chromosome" = chromosome_table,
-    "type" = type_table
-  )
+    "type" = type_table)
 
   ## add any non-empty tables, this is sort of our last sanity check before
   ## making the package.
@@ -298,32 +296,32 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     orgdb_args[["godb_xref"]] <- godb_table
   }
 
+  ## FIXME: I think this got messed up when rebasing, I had a little logic
+  ## to back up partially created directories.
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
-  backup_path <- file.path(org_path, glue::glue("{pkgname}.bak"))
-  first_path <- file.path(build_dir, pkgname)
-  if (file.exists(backup_path)) {
-    message(backup_path, " already exists, deleting it.")
+  if (file.exists(orgdb_path)) {
+    message(orgdb_path, " already exists, deleting it.")
     ## Something which bit me in the ass for file operations in R, always
     ## set a return value and check it.
-    ret <- unlink(backup_path, recursive = TRUE)
-  }
-  if (file.exists(first_path)) {
-    message(first_path, " already exists, backing it up.")
-    ret <- file.rename(first_path, backup_path)
+    ret <- unlink(orgdb_path, recursive = TRUE)
   }
 
   ## Now lets finally make the package!
   lib_result <- requireNamespace("AnnotationForge")
   att_result <- try(attachNamespace("AnnotationForge"), silent = TRUE)
   message(" Calling makeOrgPackage() for ", entry[["TaxonUnmodified"]])
-  orgdb_path <- ""
+
+  built_orgdb_path <- NULL
   if (isTRUE(verbose)) {
-    orgdb_path <- try(do.call("makeOrgPackage", orgdb_args))
+    built_orgdb_path <- try(do.call("makeOrgPackage", orgdb_args))
   } else {
-    orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
+    built_orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
   }
-  if (class(orgdb_path) == "try-error") {
+  if (class(built_orgdb_path) == "try-error") {
     return(NULL)
+  }
+  if (orgdb_path != built_orgdb_path) {
+    warning("Something is funky with the expected and actual orgdb build path.")
   }
 
   ## Fix name in sqlite metadata table
@@ -353,7 +351,6 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## FIXME: See if you can remove the following two lines!
   orgdb_path <- clean_pkg(orgdb_path, removal = "_", replace = "")
   orgdb_path <- clean_pkg(orgdb_path, removal = "_like", replace = "like")
-  testthat::expect_equal(first_path, orgdb_path)
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["OrgdbFile"]]
@@ -374,6 +371,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   built <- NULL
   workedp <- FALSE
+
   if (isTRUE(build)) {
     built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
     workedp <- ! "try-error" %in% class(built)

@@ -234,8 +234,9 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE, verbose = F
     message("  Dropped ", sum(dup_idx), " duplicated entries.")
   }
   records <- records[!dup_idx, ]
-
+  colnames(records)[1] <- "GID"
   message("  Saving ", savefile, " with ", nrow(records), " rows.")
-  save(records, file = savefile)
+  result <- records
+  save(result, file = savefile)
   return(records)
 }

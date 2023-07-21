@@ -16,7 +16,7 @@ post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL,
   savefile <- rda[["savefile"]]
   if (!is.null(rda[["result"]])) {
     if (isTRUE(verbose)) {
-      message("Returning GOslim data from a previous savefile.")
+      message("Returning ortholog data from a previous savefile.")
     }
     return(rda[["result"]])
   }

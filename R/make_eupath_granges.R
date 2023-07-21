@@ -10,8 +10,7 @@
 #' @param eu_version Optionally request a specific version of the gff file.
 #' @param copy_s3 Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?
 #' @export
-make_eupath_granges <- function(entry, build_dir = "EuPathDB",
-                                eu_version = NULL, copy_s3 = FALSE) {
+make_eupath_granges <- function(entry, eu_version = NULL, copy_s3 = FALSE) {
   versions <- get_versions(eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   taxa <- make_taxon_names(entry)
@@ -20,7 +19,7 @@ make_eupath_granges <- function(entry, build_dir = "EuPathDB",
 
   message("Starting creation of ", pkgname, ".")
 
-  input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))
+  input_gff <- file.path(build_dir, "gff", glue::glue("{pkgname}.gff"))
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
     tt <- download.file(url = gff_url, destfile = input_gff,
@@ -40,7 +39,8 @@ make_eupath_granges <- function(entry, build_dir = "EuPathDB",
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["GrangesFile"]]
-    copied <- copy_s3_file(src_dir = granges_file, type = "granges", s3_file = s3_file)
+    copied <- copy_s3_file(src_dir = granges_file, type = "granges",
+                           s3_file = s3_file, move = TRUE)
   }
 
   ## import.gff3 appears to be opening 2 connections to the gff file, both are read only.
