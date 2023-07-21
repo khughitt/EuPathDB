@@ -2,6 +2,13 @@
 #' @export
 build_dir <- "build"
 
+<<<<<<< HEAD
+=======
+#' Boolean to see if packages should be built by devtools.
+#' @export
+build <- TRUE
+
+>>>>>>> refs/remotes/origin/master
 #' EuPathDB: Access EuPathDB annotations using AnnotationHub
 #'
 #' EuPathDB provides an R interface for retrieving annotation resources from

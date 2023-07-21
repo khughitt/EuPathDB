@@ -7,7 +7,6 @@
 get_all_metadata(
   overwrite = TRUE,
   bioc_version = NULL,
-  build_dir = "EuPathDB",
   eu_version = NULL,
   verbose = FALSE
 )

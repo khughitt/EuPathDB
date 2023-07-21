@@ -4,7 +4,7 @@
 \alias{move_final_package}
 \title{Move a package file to its final location for collation by AnnotationHubData.}
 \usage{
-move_final_package(pkglist, type = "orgdb", build_dir = "EuPathDB")
+move_final_package(pkglist, type = "orgdb")
 }
 \arguments{
 \item{pkglist}{Information list from a make_pkg function.}

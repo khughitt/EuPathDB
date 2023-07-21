@@ -4,11 +4,7 @@
 \alias{post_eupath_annotations}
 \title{Create a series of POST requests which download all the annotation data for a species.}
 \usage{
-post_eupath_annotations(
-  entry = NULL,
-  overwrite = FALSE,
-  build_dir = "EuPathDB"
-)
+post_eupath_annotations(entry = NULL, overwrite = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{entry}{Eupathdb annotation entry.}
