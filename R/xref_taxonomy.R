@@ -14,8 +14,7 @@
 #' @export
 xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
                                  taxon_number_column = "TaxonomyID",
-                                 metadata_taxon_column = "TaxonUnmodified",
-                                 metadata_second_try = "GenusSpecies") {
+                                 metadata_taxon_column = "TaxonUnmodified") {
   ## If we don't have a taxonomy number, iterate over the species names
   ## To try and find a suitable match
   if (is.na(metadatum[[taxon_number_column]])) {

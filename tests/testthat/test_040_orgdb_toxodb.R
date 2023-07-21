@@ -42,7 +42,6 @@ for (it in seq_len(end)) {
                                   install = install, reinstall = FALSE)
   organ_result <- make_eupath_organismdbi(entry, eu_version = version, copy_s3 = copy_s3,
                                           install = install, reinstall = FALSE)
-
 } ## End iterating over every entry in the eupathdb metadata.
 
 ## This needs to be rewritten for a specific toxo species of interest,

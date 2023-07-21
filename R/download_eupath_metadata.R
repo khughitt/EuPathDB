@@ -182,7 +182,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   ## This transmute is being performed in an attempt to standardize the column names.
   ## In creating it, I took the original column names, alphabetized them, rewrote them as
-  ## CamelCase, changed once which are explicitly numeric/URLs, and added a few which are
+  ## CamelCase, changed ones which are explicitly numeric/URLs, and added a few which are
   ## used by AnnotationHub.  I think we can assume they will change more as time passes, given
   ## that they have changed at least once in the recent past.
 
@@ -374,6 +374,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   message("Loading taxonomy and species database to cross reference against the download.")
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   ah_species <- AnnotationHubData::getSpeciesList()
+  ## Load the taxonomy ID number database in order to check/fix messed up/missing IDs.
   matched_taxonomy_numbers <- 0
   unmatched_taxonomy_numbers <- 0
   ## Include the package names for the various data types along with the most likely
@@ -387,39 +388,34 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     ## Species column here.
     pkg_names <- get_eupath_pkgnames(metadatum, column = "TaxonomyName")
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
-    metadatum[["BsgenomePkg"]] <- pkg_names[["bsgenome"]]
-    metadatum[["BsgenomeFile"]] <- file.path(
-      build_dir, "BSgenome", metadatum[["BiocVersion"]],
-      metadatum[["BsgenomePkg"]], "single_sequences.2bit")
-    metadatum[["GrangesPkg"]] <- pkg_names[["granges"]]
-    metadatum[["GrangesFile"]] <- file.path(
-      build_dir, "GRanges", metadatum[["BiocVersion"]], metadatum[["GrangesPkg"]])
-    metadatum[["OrganismdbiPkg"]] <- pkg_names[["organismdbi"]]
-    metadatum[["OrganismdbiFile"]] <- file.path(
-      build_dir, "OrganismDbi", metadatum[["BiocVersion"]],
-      metadatum[["OrganismdbiPkg"]], "graphInfo.rda")
-    metadatum[["OrgdbPkg"]] <- pkg_names[["orgdb"]]
-    metadatum[["OrgdbFile"]] <- file.path(
-      build_dir, "OrgDb", metadatum[["BiocVersion"]],
-      gsub(x = metadatum[["OrgdbPkg"]], pattern = "db$", replacement = "sqlite"))
-    metadatum[["TxdbPkg"]] <- pkg_names[["txdb"]]
-    metadatum[["TxdbFile"]] <- file.path(
-      build_dir, "TxDb", metadatum[["BiocVersion"]],
-      glue::glue("{metadatum[['TxdbPkg']]}.sqlite"))
-    metadatum[["GenusSpecies"]] <- gsub(x = species_info[["genus_species"]],
+    metadatum["BsgenomePkg"] <- pkg_names[["bsgenome"]]
+    metadatum["BsgenomeFile"] <- file.path(
+      build_dir, "BSgenome", metadatum["BiocVersion"],
+      metadatum["BsgenomePkg"], "single_sequences.2bit")
+    metadatum["GrangesPkg"] <- pkg_names[["granges"]]
+    metadatum["GrangesFile"] <- file.path(
+      build_dir, "GRanges", metadatum["BiocVersion"], metadatum["GrangesPkg"])
+    metadatum["OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
+    metadatum["OrganismdbiFile"] <- file.path(
+      build_dir, "OrganismDbi", metadatum["BiocVersion"],
+      metadatum["OrganismdbiPkg"], "graphInfo.rda")
+    metadatum["OrgdbPkg"] <- pkg_names[["orgdb"]]
+    metadatum["OrgdbFile"] <- file.path(
+      build_dir, "OrgDb", metadatum["BiocVersion"],
+      gsub(x = metadatum["OrgdbPkg"], pattern = "db$", replacement = "sqlite"))
+    metadatum["TxdbPkg"] <- pkg_names[["txdb"]]
+    metadatum["TxdbFile"] <- file.path(
+      build_dir, "TxDb", metadatum["BiocVersion"],
+      glue::glue("{metadatum['TxdbPkg']}.sqlite"))
+    metadatum["GenusSpecies"] <- gsub(x = species_info[["genus_species"]],
                                         pattern = "\\.", replacement = " ")
-    metadatum[["Strain"]] <- species_info[["strain"]]
-    metadatum[["Genus"]] <- species_info[["genus"]]
-    metadatum[["Species"]] <- species_info[["species"]]
-    metadatum[["Taxon"]] <- gsub(x = species_info[["taxon"]],
+    metadatum["Strain"] <- species_info[["strain"]]
+    metadatum["Genus"] <- species_info[["genus"]]
+    metadatum["Species"] <- species_info[["species"]]
+    metadatum["Taxon"] <- gsub(x = species_info[["taxon"]],
                                pattern = "\\.", replacement = " ")
-    metadatum[["TaxonUnmodified"]] <- species_info[["unmodified"]]
+    metadatum["TaxonUnmodified"] <- species_info[["unmodified"]]
 
-    ## Use the xref_() functions to try to ensure that we find valid taxonomy names
-    ## and identifiers for as many species as possible.
-    ## There are two things we need to successfully cross reference:
-    ##  1.  The taxonomy IDs from GenomeInfoDB
-    ##  2.  The species names provided by AnnotationHubData's getSpeciesList().
     taxonomy_number <- xref_taxonomy_number(
       metadatum, all_taxa_ids, taxon_number_column = "TaxonomyID",
       metadata_taxon_column = "TaxonUnmodified", verbose = verbose)
@@ -471,7 +467,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                    overwrite = overwrite)
   invalid_written <- write_eupath_metadata(metadata = invalid_entries,
                                            webservice = webservice,
-                                           file_type ="invalid",
+                                           file_type = "invalid",
                                            overwrite = overwrite)
 
   retlist <- list(

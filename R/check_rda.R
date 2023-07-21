@@ -1,4 +1,10 @@
 #' Check the status of a saved database.
+#
+#' I save a bunch of rda files when downloading tables, this checks on them.
+#'
+#' @param name Table name
+#' @param entry metadatum entry to query
+#' @param overwrite when turned on, the existing file is deleted to make way for a new rda.
 check_rda <- function(name, entry, overwrite) {
   retlist <- list()
   if (is.null(entry)) {
@@ -21,6 +27,11 @@ check_rda <- function(name, entry, overwrite) {
 }
 
 #' Provide the filename for a temporary rda file for saving data while running.
+#'
+#' This defines the names of the various savefiles when saving tables.
+#'
+#' @param entry metadata entry to define a tablename.
+#' @param name Specific table to provide.
 get_rda_filename <- function(entry, name) {
   possible <- c("annotations", "go", "goslim", "interpro", "linkout",
                 "ortholog", "pathway", "pdb", "pubmed")
