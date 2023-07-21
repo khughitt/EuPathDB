@@ -15,8 +15,8 @@
 #' @return List of package names generated (only 1).
 #' @author atb
 #' @export
-make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "EuPathDB", copy_s3 = FALSE,
-                                 install = TRUE, reinstall = FALSE, ...) {
+make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
+                                 copy_s3 = FALSE, install = TRUE, reinstall = FALSE, ...) {
   arglist <- list(...)
   author <- "Ashton Trey Belew <abelew@umd.edu>"
   if (!is.null(arglist[["author"]])) {
