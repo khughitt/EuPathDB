@@ -68,8 +68,15 @@ xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
 }
 
 #' Try harder to fill in the taxonomy ID number.
+#'
+#' I think if we look a little harder, we can figure out a taxonomy number.
+#'
+#' @param metadatum Downloaded metadata from eupathdb.
+#' @param all_taxa_ids Taxonomy Information.
+#' @param metadata_taxon_column Column which contains the taxon name (not ID).
+#' @param taxon_number_column Column which should (but not always) contain the ID number.
 search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "TaxonUnmodified",
-                            taxon_number_column = "TaxonomyID") {
+                            taxon_number_column = "TaxonomyID", verbose = TRUE) {
   ## Calling make_taxon_names() again because we don't save all the
   ## combinations of species/strain in the metadata
   species_info <- make_taxon_names(metadatum, column = metadata_taxon_column, spaces = "space")
@@ -80,6 +87,9 @@ search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "Ta
 
   ## First identify genera in all_taxa_ids which are shared with this entry.
   found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% metadatum[["Genus"]])
+  if (isTRUE(verbose)) {
+    message("Found ", length(found_genus_taxa_idx), " candidate genera.")
+  }
   if (length(found_genus_taxa_idx) > 0) {
     ## Assuming we got more than 1 hit, narrow the search to species which match.
     ## Note that some organisms in tha taxonomy database have species set to what
@@ -108,69 +118,6 @@ search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "Ta
                  length(found_species_taxa) > 0) {
       if (length(found_species_taxa) == 1) {
         taxon_id <- species_taxa[["tax_id"]]
-        if (isTRUE(verbose)) {
-          message("Found an exact match for the combination genus/species not strain.")
-        }
-      } else if (length(found_species_taxa) > 1) {
-        taxon_id <- species_taxa[1, "tax_id"]
-        if (isTRUE(verbose)) {
-          message("Found multiple species matches for ", starting_taxon,
-                  ", chose the first: ", taxon_id, ".")
-        }
-      } ## End multiple species matches
-    } else {
-      if (isTRUE(verbose)) {
-        message("Found a genus, but not species for ", starting_taxon,
-                ", not adding taxon ID number.")
-      }
-    }
-  } else {
-    if (isTRUE(verbose)) {
-      message("Did not find a genus id for ", starting_taxon, ".")
-    }
-  }
-  return(taxon_id)
-}
-
-
-#' Try harder to fill in the taxonomy ID number.
-search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "TaxonUnmodified",
-                            taxon_number_column = "TaxonomyID") {
-  ## Calling make_taxon_names() again because we don't save all the
-  ## combinations of species/strain in the metadata
-  species_info <- make_taxon_names(metadatum, column = metadata_taxon_column, spaces = "space")
-  starting_taxon <- species_info["unmodified"]
-  taxon_id <- NULL
-
-  ## First identify genera in all_taxa_ids which are shared with this entry.
-  found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% metadatum[["Genus"]])
-  if (length(found_genus_taxa_idx) > 0) {
-    ## Assuming we got more than 1 hit, narrow the search to species which match.
-    ## Note that some organisms in tha taxonomy database have species set to what
-    ## the eupathdb appears to call the combination of species+strain
-    ## while others are just the species.
-    ## Thus we should check for both, but for the moment I think I will check for
-    ## only the most specific of the two and see how far that gets me.
-    genus_taxa <- all_taxa_ids[found_genus_taxa_idx, ]
-    found_species_strain_taxa <- which(
-      all_taxa_ids[["genus"]] %in% metadatum[["Genus"]] &
-        all_taxa_ids[["species"]] %in% metadatum[["species_strain"]])
-    found_species_taxa <- which(
-      all_taxa_ids[["genus"]] %in% metadatum[["Genus"]] &
-        all_taxa_ids[["species"]] %in% metadatum[["species"]])
-    species_strain_taxa <- all_taxa_ids[found_species_strain_taxa, ]
-    species_taxa <- all_taxa_ids[found_species_taxa, ]
-
-    ## If we still have more than 1 hit, I will arbitrarily choose the first.
-    if (length(found_species_strain_taxa) == 1) {
-      taxon_id <- species_strain_taxa["tax_id"]
-      if (isTRUE(verbose)) {
-        message("Found an exact match for the combination genus/species/strain.")
-      }
-    } else if (length(found_species_strain_taxa) == 0 &&
-                 length(found_species_taxa) > 0) {
-      if (length(found_species_taxa) == 1) {
-        taxon_id <- species_taxa["tax_id"]
         if (isTRUE(verbose)) {
           message("Found an exact match for the combination genus/species not strain.")
         }

@@ -296,6 +296,8 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     orgdb_args[["godb_xref"]] <- godb_table
   }
 
+  ## FIXME: I think this got messed up when rebasing, I had a little logic
+  ## to back up partially created directories.
   ## The following lines are because makeOrgPackage fails stupidly if the directory exists.
   if (file.exists(orgdb_path)) {
     message(orgdb_path, " already exists, deleting it.")

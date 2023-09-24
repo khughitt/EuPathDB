@@ -12,11 +12,7 @@
 #' @export
 download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
-<<<<<<< HEAD
-                                     limit_n = Inf, verbose = FALSE) {
-=======
                                      verbose = FALSE) {
->>>>>>> refs/remotes/origin/master
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
@@ -45,26 +41,6 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   }
 
   .data <- NULL  ## To satisfy R CMD CHECK
-<<<<<<< HEAD
-  shared_tags <- c("Annotation", "EuPathDB", "Eukaryote", "Pathogen", "Parasite")
-  tags <- list(
-    "AmoebaDB" = c(shared_tags, "Amoeba"),
-    "CryptoDB" = c(shared_tags, "Cryptosporidium"),
-    "FungiDB" = c(shared_tags, "Fungus", "Fungi"),
-    "GiardiaDB" = c(shared_tags, "Giardia"),
-    "MicrosporidiaDB" = c(shared_tags, "Microsporidia"),
-    "PiroplasmaDB" = c(shared_tags, "Piroplasma"),
-    "PlasmoDB" = c(shared_tags, "Plasmodium"),
-    "SchistoDB" = c(shared_tags, "Schistosoma"),
-    "ToxoDB" = c(shared_tags, "Toxoplasmosis"),
-    "TrichDB" = c(shared_tags, "Trichomonas"),
-    "TriTrypDB" = c(shared_tags, "Trypanosome", "Kinetoplastid", "Leishmania"))
-  tag_strings <- lapply(tags, function(x) {
-    paste(x, collapse = ":")
-  })
-
-=======
->>>>>>> refs/remotes/origin/master
   ## Excepting schistodb, all the services are .orgs which is a .net.
   tld <- "org"
   if (webservice == "schistodb") {
@@ -206,7 +182,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   ## This transmute is being performed in an attempt to standardize the column names.
   ## In creating it, I took the original column names, alphabetized them, rewrote them as
-  ## CamelCase, changed once which are explicitly numeric/URLs, and added a few which are
+  ## CamelCase, changed ones which are explicitly numeric/URLs, and added a few which are
   ## used by AnnotationHub.  I think we can assume they will change more as time passes, given
   ## that they have changed at least once in the recent past.
 
@@ -394,22 +370,16 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   metadata[["Valid_Taxonomy_ID"]] <- FALSE
   metadata[["Valid_AH_Species"]] <- FALSE
 
-<<<<<<< HEAD
-  all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
-=======
   ## Load the taxonomy ID number database in order to check/fix messed up/missing IDs.
+  message("Loading taxonomy and species database to cross reference against the download.")
   all_taxa_ids <- GenomeInfoDb::loadTaxonomyDb()
   ah_species <- AnnotationHubData::getSpeciesList()
->>>>>>> refs/remotes/origin/master
+  ## Load the taxonomy ID number database in order to check/fix messed up/missing IDs.
   matched_taxonomy_numbers <- 0
   unmatched_taxonomy_numbers <- 0
   ## Include the package names for the various data types along with the most likely
   ## useful separations of the taxon name (e.g. The Genus, Species, Strain, etc.)
-<<<<<<< HEAD
-  for (i in seq_along(nrow(metadata))) {
-=======
   for (i in seq_len(nrow(metadata))) {
->>>>>>> refs/remotes/origin/master
     metadatum <- metadata[i, ]
     ## In most invocations of make_taxon_names and get_eupath_pkgnames,
     ## we use the column 'TaxonUnmodified', because we are modifying Species to
@@ -418,7 +388,6 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     ## Species column here.
     pkg_names <- get_eupath_pkgnames(metadatum, column = "TaxonomyName")
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
-<<<<<<< HEAD
     metadatum["BsgenomePkg"] <- pkg_names[["bsgenome"]]
     metadatum["BsgenomeFile"] <- file.path(
       build_dir, "BSgenome", metadatum["BiocVersion"],
@@ -446,76 +415,11 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     metadatum["Taxon"] <- gsub(x = species_info[["taxon"]],
                                pattern = "\\.", replacement = " ")
     metadatum["TaxonUnmodified"] <- species_info[["unmodified"]]
-=======
-    metadatum[["BsgenomePkg"]] <- pkg_names[["bsgenome"]]
-    metadatum[["BsgenomeFile"]] <- file.path(
-      build_dir, "BSgenome", metadatum[["BiocVersion"]],
-      metadatum[["BsgenomePkg"]], "single_sequences.2bit")
-    metadatum[["GrangesPkg"]] <- pkg_names[["granges"]]
-    metadatum[["GrangesFile"]] <- file.path(
-      build_dir, "GRanges", metadatum[["BiocVersion"]], metadatum[["GrangesPkg"]])
-    metadatum[["OrganismdbiPkg"]] <- pkg_names[["organismdbi"]]
-    metadatum[["OrganismdbiFile"]] <- file.path(
-      build_dir, "OrganismDbi", metadatum[["BiocVersion"]],
-      metadatum[["OrganismdbiPkg"]], "graphInfo.rda")
-    metadatum[["OrgdbPkg"]] <- pkg_names[["orgdb"]]
-    metadatum[["OrgdbFile"]] <- file.path(
-      build_dir, "OrgDb", metadatum[["BiocVersion"]],
-      gsub(x = metadatum[["OrgdbPkg"]], pattern = "db$", replacement = "sqlite"))
-    metadatum[["TxdbPkg"]] <- pkg_names[["txdb"]]
-    metadatum[["TxdbFile"]] <- file.path(
-      build_dir, "TxDb", metadatum[["BiocVersion"]],
-      glue::glue("{metadatum[['TxdbPkg']]}.sqlite"))
-    metadatum[["GenusSpecies"]] <- gsub(x = species_info[["genus_species"]],
-                                        pattern = "\\.", replacement = " ")
-    metadatum[["Strain"]] <- species_info[["strain"]]
-    metadatum[["Genus"]] <- species_info[["genus"]]
-    metadatum[["Species"]] <- species_info[["species"]]
-    metadatum[["Taxon"]] <- gsub(x = species_info[["taxon"]],
-                               pattern = "\\.", replacement = " ")
-    metadatum[["TaxonUnmodified"]] <- species_info[["unmodified"]]
 
-    ## Use the xref_() functions to try to ensure that we find valid taxonomy names
-    ## and identifiers for as many species as possible.
-    ## There are two things we need to successfully cross reference:
-    ##  1.  The taxonomy IDs from GenomeInfoDB
-    ##  2.  The species names provided by AnnotationHubData's getSpeciesList().
->>>>>>> refs/remotes/origin/master
     taxonomy_number <- xref_taxonomy_number(
       metadatum, all_taxa_ids, taxon_number_column = "TaxonomyID",
       metadata_taxon_column = "TaxonUnmodified", verbose = verbose)
     if (is.null(taxonomy_number)) {
-<<<<<<< HEAD
-      unmatched_taxonomy_numbers <- unmatched_taxonomy_numbers + 1
-    } else {
-      metadatum["TaxonomyID"] <- taxonomy_number
-      matched_taxonomy_numbers <- matched_taxonomy_numbers + 1
-    }
-
-    ## Put the row back into the metadata df with the filled information.
-    metadata[i, ] <- metadatum
-  }
-
-  ## Use the xref_() functions to try to ensure that we find valid taxonomy names
-  ## and identifiers for as many species as possible.
-  ## There are two things we need to successfully cross reference:
-  ##  1.  The taxonomy IDs from GenomeInfoDB
-  ##  2.  The species names provided by AnnotationHubData's getSpeciesList().
-
-  species_xref <- xref_species(valid = taxa_xref[["matched_metadata"]],
-                               invalid = taxa_xref[["unmatched_metadata"]],
-                               taxon_column = "TaxonUnmodified",
-                               species_column = "GenusSpecies",
-                               verbose = verbose)
-  ## Hopefully now, the TaxonXref column contains only things which match getSpeciesList()
-  ## and the TaxonomyID column contains only things in the GenomeInfoDb.
-
-  ## if enabled, limit metadata table to N entries;
-  if (limit_n < Inf && limit_n < nrow(species_xref[["valid"]])) {
-    info(sprintf("Limiting metadata results to %d entries", limit_n))
-    ind <- sample(nrow(species_xref[["valid"]]), limit_n)
-    species_xref[["valid"]] <- species_xref[["valid"]][ind, ]
-=======
       ## Then we could not make a match.
       unmatched_taxonomy_numbers <- unmatched_taxonomy_numbers + 1
     } else if (isTRUE(taxonomy_number)) {
@@ -530,8 +434,8 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
       message("Should not fall through to here.")
     }
 
-    metadatum[["GIDB_Genus_Species"]] <- xref_gidb_species(metadatum,
-                                                           all_taxa_ids, verbose = verbose)
+    metadatum[["GIDB_Genus_Species"]] <- xref_gidb_species(
+      metadatum, taxon_number_column = "TaxonomyID", all_taxa_ids, verbose = verbose)
 
     found_ah_species <- xref_ah_species(metadatum, ah_species, verbose = verbose)
     if (!is.null(found_ah_species)) {
@@ -554,7 +458,6 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   if (isTRUE(verbose)) {
     message("Writing ", nrow(valid_entries), " valid entries and ",
             nrow(invalid_entries), " invalid entries.")
->>>>>>> refs/remotes/origin/master
   }
 
   ## Write out the metadata and finish up.
@@ -564,11 +467,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                    overwrite = overwrite)
   invalid_written <- write_eupath_metadata(metadata = invalid_entries,
                                            webservice = webservice,
-<<<<<<< HEAD
-                                           file_type="invalid",
-=======
-                                           file_type ="invalid",
->>>>>>> refs/remotes/origin/master
+                                           file_type = "invalid",
                                            overwrite = overwrite)
 
   retlist <- list(

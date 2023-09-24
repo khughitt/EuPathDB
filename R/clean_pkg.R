@@ -26,7 +26,7 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
   full_path <- file.path(basedir, dir)
   ## at_cmd <- paste0("perl -p -i -e 's/ at /\\@/g' ", full_path, "/DESCRIPTION")
   at_cmd <- glue::glue("perl -p -i -e 's/ at /\\@/g' {full_path}/DESCRIPTION")
-  system(command=at_cmd)
+  system(command = at_cmd)
   ## Since I changed @ to at I figured . could be dot too
   ## dot_cmd <- paste0("perl -p -i -e 's/ dot /\\./g' ", full_path, "/DESCRIPTION")
   dot_cmd <- glue::glue("perl -p -i -e 's/ dot /\\./g' {full_path}/DESCRIPTION")
@@ -34,9 +34,9 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
 
   new_dir <- dir
   new_path <- file.path(basedir, new_dir)
-  if (grepl(pattern=removal, x=dir)) {
+  if (grepl(pattern = removal, x = dir)) {
     ## Get rid of the -like in the path name
-    new_dir <- gsub(pattern=removal, replacement=replace, x=dir)
+    new_dir <- gsub(pattern = removal, replacement = replace, x = dir)
     new_path <- file.path(basedir, new_dir)
     ## And rename the directory
     ## mv_cmd <- paste0("mv ", path, " ", new_path)
@@ -57,19 +57,19 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
     if (isTRUE(sqlite)) {
       ## Move the sqlite file, now the directory has been renamed.
       ## So when we go to move it we need to take that into account.
-      old_sqlite_base <- gsub(pattern=".db", replacement="", x=dir)
+      old_sqlite_base <- gsub(pattern = ".db", replacement = "", x = dir)
       sqlite_basename <- basename(dir)
-      sqlite_basename <- gsub(pattern=".sqlite", replacement="", x=sqlite_basename)
+      sqlite_basename <- gsub(pattern = ".sqlite", replacement = "", x = sqlite_basename)
       old_sqlite_file <- file.path(new_dir, "inst", "extdata", glue::glue("{old_sqlite_base}.sqlite"))
       old_sqlite <- file.path(basedir, old_sqlite_file)
-      new_sqlite_file <- gsub(pattern=removal, replacement=replace, x=old_sqlite_file)
+      new_sqlite_file <- gsub(pattern = removal, replacement = replace, x = old_sqlite_file)
       new_sqlite <- file.path(basedir, new_sqlite_file)
       ## sqlite_mv_cmd <- paste0("mv ", old_sqlite, " ", new_sqlite)
       sqlite_mv_cmd <- glue::glue("mv {old_sqlite} new_sqlite")
       message("moving sqlite file: ", sqlite_mv_cmd)
       system(sqlite_mv_cmd)
       ## orgdb_dir <- new_dir
-      new_pkg_name <- gsub(pattern=removal, replacement=replace, x=sqlite_basename)
+      new_pkg_name <- gsub(pattern = removal, replacement = replace, x = sqlite_basename)
       ## Update the orgdb sqlite file to reflect the new name
       ## final_sqlite_cmd <- paste0("chmod +w ", new_sqlite, " ; sqlite3 ", new_sqlite,
       ##                            " \"UPDATE metadata SET value='", new_pkg_name,
@@ -82,5 +82,6 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
       system(final_sqlite_cmd)
     }
   }
+  message("The cleaned orgdb should be located at: ", new_path, ".")
   return(new_path)
 }

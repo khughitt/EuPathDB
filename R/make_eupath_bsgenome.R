@@ -156,6 +156,7 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
 
   ## Note that as of this writing, one cannot use bsgenome with AH, so don't copy the data to S3
   ## no matter what. I will leave in the code to do it though in case it becomes possible.
+  destination <- file.path(pkg_archive_dir)
   copy_s3 <- FALSE
   if (isTRUE(workedp)) {
 

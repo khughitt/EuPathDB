@@ -50,11 +50,20 @@ xref_ah_species <- function(metadatum, ah_species, verbose = FALSE,
 
 }
 
+#' Cross reference information from the taxonDB vs. the downloaded metadata.
+#'
+#' @param metadatum The downloaded metadata for an individual species.
+#' @param all_taxa_ids The taxonDB result.
+#' @param taxon_number_column The metadatum column which should contain the relevant number.
+#' @param verbose Be a chatty catty?
 xref_gidb_species <- function(metadatum, all_taxa_ids,
                               taxon_number_column = "TaxonomyID",
                               verbose = verbose) {
   id <- metadatum[[taxon_number_column]]
   if (is.null(id)) {
+    return(NULL)
+  }
+  if (is.na(id)) {
     return(NULL)
   }
 
