@@ -98,7 +98,8 @@ search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "Ta
   ## First identify genera in all_taxa_ids which are shared with this entry.
   found_genus_taxa_idx <- which(all_taxa_ids[["genus"]] %in% metadatum[["Genus"]])
   if (isTRUE(verbose)) {
-    message("Found ", length(found_genus_taxa_idx), " candidate genera.")
+    message("Found ", length(found_genus_taxa_idx), " candidate genera matching ",
+            metadatum[["Genus"]])
   }
   if (length(found_genus_taxa_idx) > 0) {
     ## Assuming we got more than 1 hit, narrow the search to species which match.
@@ -129,7 +130,8 @@ search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "Ta
       if (length(found_species_taxa) == 1) {
         taxon_id <- species_taxa[["tax_id"]]
         if (isTRUE(verbose)) {
-          message("Found an exact match for the combination genus/species not strain.")
+          message("Found an exact match for the combination genus/species not strain for ",
+                  species_taxa, ".")
         }
       } else if (length(found_species_taxa) > 1) {
         taxon_id <- species_taxa[1, "tax_id"]
