@@ -11,6 +11,9 @@
 #' @export
 build <- TRUE
 
+#' Set the build directory
+build_dir <- "build"
+
 #' EuPathDB: Access EuPathDB annotations using AnnotationHub
 #'
 #' EuPathDB provides an R interface for retrieving annotation resources from

@@ -4,7 +4,12 @@
 \alias{post_eupath_pathway_table}
 \title{Use the post interface to get pathway data.}
 \usage{
-post_eupath_pathway_table(entry = NULL, overwrite = FALSE, verbose = FALSE)
+post_eupath_pathway_table(
+  entry,
+  working_species,
+  overwrite = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}

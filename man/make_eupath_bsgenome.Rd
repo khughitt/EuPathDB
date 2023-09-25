@@ -11,7 +11,9 @@ make_eupath_bsgenome(
   copy_s3 = FALSE,
   install = TRUE,
   reinstall = FALSE,
-  ...
+  author = NULL,
+  verbose = FALSE,
+  build = TRUE
 )
 }
 \arguments{

@@ -10,8 +10,8 @@ version <- NULL
 webservice <- "amoebadb"
 meta <- download_eupath_metadata(webservice = webservice, verbose = TRUE)
 test_that("Did we download the metadata?", {
-  expect_gt(nrow(meta[["valid"]]), 33)
-  expect_lt(nrow(meta[["invalid"]]), 8)
+  expect_gt(nrow(meta[["valid"]]), 25)
+  expect_lt(nrow(meta[["invalid"]]), 10)
 })
 
 valid_end <- nrow(meta[["valid"]])

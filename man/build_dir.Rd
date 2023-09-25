@@ -3,7 +3,7 @@
 \docType{data}
 \name{build_dir}
 \alias{build_dir}
-\title{Set the build directory when creating packages and downloading data.}
+\title{Set the build directory}
 \format{
 An object of class \code{character} of length 1.
 }
@@ -11,6 +11,6 @@ An object of class \code{character} of length 1.
 build_dir
 }
 \description{
-Set the build directory when creating packages and downloading data.
+Set the build directory
 }
 \keyword{datasets}

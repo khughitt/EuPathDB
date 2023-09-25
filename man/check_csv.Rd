@@ -5,7 +5,7 @@
 \title{Check the metadata csv files and write only the 'good' entries.}
 \usage{
 check_csv(
-  build_dir = "EuPathDB",
+  build_dir = "build",
   file_type = "OrgDb",
   bioc_version = NULL,
   eu_version = NULL

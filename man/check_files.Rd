@@ -8,7 +8,7 @@ check_files(
   file_type = "OrgDb",
   bioc_version = NULL,
   eu_version = NULL,
-  build_dir = "EuPathDB",
+  build_dir = "build",
   verbose = FALSE,
   destination = NULL
 )

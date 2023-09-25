@@ -4,7 +4,13 @@
 \alias{post_eupath_table}
 \title{Queries one of the EuPathDB APIs using a POST request.}
 \usage{
-post_eupath_table(entry, tables = "GOTerms", table_name = NULL, minutes = 60)
+post_eupath_table(
+  entry,
+  species,
+  tables = "GOTerms",
+  table_name = NULL,
+  minutes = 60
+)
 }
 \arguments{
 \item{entry}{The single metadatum containing the base url of the provider, species, etc.}

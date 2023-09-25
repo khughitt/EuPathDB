@@ -7,11 +7,12 @@
 make_eupath_organismdbi(
   entry = NULL,
   eu_version = NULL,
-  build_dir = "EuPathDB",
+  build_dir = "build",
   installp = TRUE,
   reinstall = FALSE,
   exclude_join = "ENTREZID",
-  copy_s3 = FALSE
+  copy_s3 = FALSE,
+  build = TRUE
 )
 }
 \arguments{

@@ -4,7 +4,7 @@
 \alias{remove_eupath_nas}
 \title{Get rid of spurious NA entries in a table from the eupathdb.}
 \usage{
-remove_eupath_nas(table, name = "annot")
+remove_eupath_nas(table, name = "annot", verbose = FALSE)
 }
 \arguments{
 \item{table}{dataframe of SQLite-bound data}

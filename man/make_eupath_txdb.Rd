@@ -9,7 +9,10 @@ make_eupath_txdb(
   eu_version = NULL,
   reinstall = FALSE,
   install = TRUE,
-  copy_s3 = FALSE
+  copy_s3 = FALSE,
+  verbose = FALSE,
+  build_dir = "build",
+  build = TRUE
 )
 }
 \arguments{

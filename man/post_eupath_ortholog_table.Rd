@@ -5,7 +5,8 @@
 \title{Use the post interface to get ortholog data.}
 \usage{
 post_eupath_ortholog_table(
-  entry = NULL,
+  entry,
+  working_species,
   ortholog_table = NULL,
   gene_ids = NULL,
   overwrite = FALSE,
