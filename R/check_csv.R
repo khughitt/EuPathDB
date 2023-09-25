@@ -8,7 +8,7 @@
 #' @param bioc_version Which bioconductor version is this for?
 #' @param eu_version Which eupathdb version is this for?
 #' @export
-check_csv <- function(build_dir = "EuPathDB", file_type = "OrgDb",
+check_csv <- function(build_dir = "build", file_type = "OrgDb",
                       bioc_version = NULL, eu_version = NULL) {
   ## Make sure the versions are set.
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)

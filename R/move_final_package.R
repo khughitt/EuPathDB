@@ -4,7 +4,7 @@
 #' @param type Which type of package is this?
 #' @param build_dir base working directory.
 move_final_package <- function(pkglist, type = "orgdb") {
-  final_dir <- file.path(build_dir, "tar")
+  final_dir <- file.path(build_dir, "tar", type)
   if (!file.exists(final_dir)) {
     dir.create(final_dir, recursive = TRUE)
   }

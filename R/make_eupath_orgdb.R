@@ -20,9 +20,11 @@
 #' @return Currently only the name of the installed package.  This should
 #'  probably change.
 #' @author Keith Hughitt with significant modifications by atb.
+#' @import glue
 #' @export
 make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrite = FALSE,
-                              verbose = FALSE, copy_s3 = FALSE, godb_source = NULL) {
+                              verbose = FALSE, copy_s3 = FALSE, godb_source = NULL, split = 13,
+                              build_dir = "build", build = TRUE) {
   ## Pull out the metadata for this species.
   if ("character" %in% class(entry)) {
     entry <- get_eupath_entry(entry)
@@ -31,13 +33,19 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## Figure out the package name to use: (e.g. "org.Cbaileyi.TAMU.09Q1.v46.eg.db")
   pkgnames <- get_eupath_pkgnames(entry)
   pkgname <- pkgnames[["orgdb"]]
-  if (isTRUE(pkgnames[["orgdb_installed"]]) & !isTRUE(reinstall)) {
-    message(" ", pkgname, " is already installed.")
+
+  ## I think it is no longer necessary to do stuff like this, but instead get the information from
+  ## the entry[['OrgDbFile']] or whatever...
+  orgdb_path <- file.path(build_dir, pkgname)
+  if (isTRUE(pkgnames[["orgdb_installed"]]) && !isTRUE(reinstall)) {
+    sqlite_file <- basename(gsub(x = orgdb_path, pattern = "db$", replacement = "sqlite"))
+    db_path <- system.file(file.path("extdata", sqlite_file), package = pkgname)
+    message(" ", pkgname, " is already installed and a copy should be found at: ", db_path, ".")
     retlist <- list(
-      "orgdb_name" = pkgname)
+      "orgdb_name" = pkgname,
+      "db_path" = db_path)
     return(retlist)
   }
-  orgdb_path <- file.path(build_dir, pkgname)
   message("Starting creation of ", pkgname, ".")
   ## Create working directory if necessary
 
@@ -48,13 +56,10 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   }
 
   ## I am almost certain that wrapping these in a try() is no longer necessary.
-  gene_table <- try(post_eupath_annotations(entry, overwrite = overwrite))
-  if ("try-error" %in% class(gene_table)) {
-    gene_table <- data.frame()
-    warning(" Unable to create an orgdb for this species.")
-    return(NULL)
-  }
-  if (nrow(gene_table) == 0) {
+  gene_table <- try(post_eupath_annotations(entry, overwrite = overwrite, split = split))
+  working_species <- attr(gene_table, "species")
+  if ("try-error" %in% class(gene_table) || is.null(gene_table) ||
+        nrow(gene_table) == 0) {
     gene_table <- data.frame()
     warning(" Unable to create an orgdb for this species.")
     return(NULL)
@@ -67,13 +72,15 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## Get the GO data from the GO and GOSlim tables
   go_table <- data.frame()
-  go_table <- try(post_eupath_go_table(entry, overwrite = overwrite))
+  go_table <- try(post_eupath_go_table(entry, working_species,
+                                       overwrite = overwrite))
   if ("try-error" %in% class(go_table)) {
     go_table <- data.frame()
   }
 
   goslim_table <- data.frame()
-  goslim_table <- try(post_eupath_goslim_table(entry, overwrite = overwrite))
+  goslim_table <- try(post_eupath_goslim_table(entry, working_species,
+                                               overwrite = overwrite))
   if ("try-error" %in% class(goslim_table)) {
     goslim_table <- data.frame()
   }
@@ -89,7 +96,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
        ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
        colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
   }
-  ortholog_table <- try(post_eupath_ortholog_table(entry = entry,
+  ortholog_table <- try(post_eupath_ortholog_table(entry, working_species,
                                                    ortholog_table = ortholog_table,
                                                    gene_ids = gene_ids,
                                                    overwrite = overwrite))
@@ -99,7 +106,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## Get the PDB table
   pdb_table <- data.frame()
-  pdb_table <- try(post_eupath_pdb_table(entry = entry,
+  pdb_table <- try(post_eupath_pdb_table(entry, working_species,
                                          overwrite = overwrite))
   if ("try-error" %in% class(pdb_table)) {
     pdb_table <- data.frame()
@@ -107,7 +114,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## The linkout table for entrez cross references papers.
   linkout_table <- data.frame()
-  linkout_table <- try(post_eupath_linkout_table(entry = entry,
+  linkout_table <- try(post_eupath_linkout_table(entry, working_species,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(linkout_table)) {
     linkout_table <- data.frame()
@@ -115,7 +122,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## The pubmed table for publications.
   pubmed_table <- data.frame()
-  pubmed_table <- try(post_eupath_pubmed_table(entry = entry,
+  pubmed_table <- try(post_eupath_pubmed_table(entry, working_species,
                                                overwrite = overwrite))
   if ("try-error" %in% class(pubmed_table)) {
     pubmed_table <- data.frame()
@@ -123,7 +130,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## Interpro-specific annotations/cross references.
   interpro_table <- data.frame()
-  interpro_table <- try(post_eupath_interpro_table(entry = entry,
+  interpro_table <- try(post_eupath_interpro_table(entry, working_species,
                                                    overwrite = overwrite))
   if ("try-error" %in% class(interpro_table)) {
     interpro_table <- data.frame()
@@ -131,7 +138,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## The pathway data
   pathway_table <- data.frame()
-  pathway_table <- try(post_eupath_pathway_table(entry = entry,
+  pathway_table <- try(post_eupath_pathway_table(entry, working_species,
                                                  overwrite = overwrite))
   if ("try-error" %in% class(pathway_table)) {
     pathway_table <- data.frame()
@@ -153,7 +160,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     "outputDir" = build_dir,
     "tax_id" = as.character(entry[["TaxonomyID"]]),
     "genus" = taxa[["genus"]],
-    "species" = glue::glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
+    "species" = glue("{taxa[['species_strain']]}.v{entry[['SourceVersion']]}"),
     "goTable" = "godb_xref",
     "gene_info" = gene_table,
     "chromosome" = chromosome_table,
@@ -222,7 +229,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
       for (cn in seq(from = 2, to = length(colnames(orgdb_args[[i]])))) {
         colname <- colnames(orgdb_args[[i]])[cn]
         if (colname %in% used_columns) {
-          new_colname <- glue::glue("{toupper(argname)}_{colname}")
+          new_colname <- glue("{toupper(argname)}_{colname}")
           colnames(orgdb_args[[i]])[cn] <- new_colname
           used_columns <- c(used_columns, new_colname)
         } else {
@@ -331,11 +338,11 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   Sys.chmod(dbpath, mode = "0644")
   db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = dbpath)
   ## update SPECIES field
-  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "SPECIES";')
+  query <- glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "SPECIES";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## update ORGANISM field
-  query <- glue::glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "ORGANISM";')
+  query <- glue('UPDATE metadata SET value = "{entry[["TaxonUnmodified"]]}" WHERE name = "ORGANISM";')
   sq_result <- RSQLite::dbSendQuery(conn = db, query)
   cleared <- RSQLite::dbClearResult(sq_result)
   ## lock it back down
@@ -371,18 +378,15 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   built <- NULL
   workedp <- FALSE
-
   if (isTRUE(build)) {
     built <- try(suppressWarnings(devtools::build(orgdb_path, quiet = TRUE)))
     workedp <- ! "try-error" %in% class(built)
   }
-
   if (isTRUE(install)) {
     install_path <- file.path(getwd(), orgdb_path)
     inst <- suppressWarnings(try(devtools::install_local(install_path)))
     workedp <- ! "try-error" %in% class(inst)
   }
-
   if (isTRUE(workedp)) {
     final_path <- move_final_package(orgdb_path, type = "orgdb")
     orgdb_path <- file.path(dirname(orgdb_path), "orgdb", basename(orgdb_path))

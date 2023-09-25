@@ -12,8 +12,9 @@
 #' @return list containing response from API request.
 #'
 #' @author Keith Hughitt
+#' @import glue
 #' @export
-post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minutes = 60) {
+post_eupath_table <- function(entry, species, tables = "GOTerms", table_name = NULL, minutes = 60) {
   if (is.null(entry)) {
     stop("   This requires a eupathdb entry.")
   }
@@ -27,8 +28,7 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
     tld <- "net"
   }
 
-  base_url <- glue::glue("https://{webservice}.{tld}/{prefix}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
-  species <- entry[["TaxonUnmodified"]]
+  base_url <- glue("https://{webservice}.{tld}/{prefix}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
   query_body <- list(
       "searchConfig" = list(
           "parameters" = list("organism" = jsonlite::unbox(species)),
@@ -82,7 +82,7 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
   if (!is.null(table_name)) {
     for (c in 2:length(colnames(result))) {
       col_name <- colnames(result)[c]
-      new_col <- glue::glue("{toupper(table_name)}_{toupper(col_name)}")
+      new_col <- glue("{toupper(table_name)}_{toupper(col_name)}")
       colnames(result)[c] <- new_col
     }
   }

@@ -17,8 +17,6 @@ make_eupath_granges <- function(entry, eu_version = NULL, copy_s3 = FALSE) {
   pkgnames <- get_eupath_pkgnames(entry, eu_version = eu_version)
   pkgname <- pkgnames[["txdb"]]
 
-  message("Starting creation of ", pkgname, ".")
-
   input_gff <- file.path(build_dir, "gff", glue::glue("{pkgname}.gff"))
   if (!file.exists(input_gff)) {
     gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
@@ -52,7 +50,7 @@ make_eupath_granges <- function(entry, eu_version = NULL, copy_s3 = FALSE) {
     closed <- try(close(getConnection(con)), silent = TRUE)
   }
 
-  message("Finished creation of ", pkgname, ".")
+  message("Finished creation of GRanges ", pkgname, ".")
   retlist <- list(
     "name" = granges_name,
     "type" = "granges",

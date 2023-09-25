@@ -6,7 +6,6 @@
 \usage{
 make_eupath_txdb(
   entry = NULL,
-  build_dir = "EuPathDB",
   eu_version = NULL,
   reinstall = FALSE,
   install = TRUE,
@@ -16,8 +15,6 @@ make_eupath_txdb(
 \arguments{
 \item{entry}{One row from the organism metadata.}
 
-\item{build_dir}{Base directory for building the package.}
-
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
 
 \item{reinstall}{Overwrite an existing installed package?}
@@ -25,6 +22,8 @@ make_eupath_txdb(
 \item{install}{Install the resulting package?}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
+
+\item{build_dir}{Base directory for building the package.}
 }
 \value{
 TxDb instance name.

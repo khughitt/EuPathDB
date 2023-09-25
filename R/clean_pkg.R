@@ -82,6 +82,5 @@ clean_pkg <- function(path, removal="-like", replace="", sqlite=TRUE) {
       system(final_sqlite_cmd)
     }
   }
-  message("The cleaned orgdb should be located at: ", new_path, ".")
   return(new_path)
 }

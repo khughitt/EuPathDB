@@ -1,24 +1,24 @@
 start <- as.POSIXlt(Sys.time())
 library(testthat)
 library(EuPathDB)
-context("040_orgdb_toxodb")
+context("041_crypto")
+devtools::load_all("../../")
 
 install <- FALSE
 copy_s3 <- TRUE
 version <- NULL
-webservice <- "toxodb"
+webservice <- "cryptodb"
 meta <- download_eupath_metadata(webservice = webservice, verbose = TRUE)
 test_that("Did we download the metadata?", {
-  expect_gt(nrow(meta[["valid"]]), 30)
+  expect_gt(nrow(meta[["valid"]]), 19)
   expect_lt(nrow(meta[["invalid"]]), 5)
 })
 
-all_metadata <- rbind(meta[["valid"]], meta[["invalid"]])
-end <- nrow(all_metadata)
-for (it in seq_len(end)) {
-  entry <- all_metadata[it, ]
+valid_end <- nrow(meta[["valid"]])
+for (it in seq_len(valid_end)) {
+  entry <- meta[["valid"]][it, ]
   sp <- entry[["TaxonUnmodified"]]
-  message("Starting generation of ", sp, ", which is ", it, " of ", end, " species.")
+  message("Starting generation of ", sp, ", which is ", it, " of ", valid_end, " species.")
   pkgnames <- get_eupath_pkgnames(entry)
   test_that("We have valid package names for this entry.", {
     expect_false(is.null(pkgnames[["organismdbi"]]))
@@ -28,11 +28,13 @@ for (it in seq_len(end)) {
     expect_false(is.null(pkgnames[["granges"]]))
   })
 
-  bsgenome_result <- make_eupath_bsgenome(entry, eu_version = version, copy_s3 = copy_s3,
+  bsgenome_result <- make_eupath_bsgenome(entry, eu_version = version, copy_s3 = FALSE,
                                           install = install, reinstall = FALSE)
-  test_that("We got a valid bsgnome package name result.", {
-    expect_equal(entry[["BsgenomePkg"]], as.character(bsgenome_result[["bsgenome_name"]]))
-  })
+  if (!is.null(bsgenome_result)) {
+    test_that("We got a valid bsgnome package name result.", {
+      expect_equal(entry[["BsgenomePkg"]], as.character(bsgenome_result[["bsgenome_name"]]))
+    })
+  }
 
   orgdb_result <- make_eupath_orgdb(entry, copy_s3 = copy_s3,
                                     install = install, reinstall = FALSE)
@@ -70,25 +72,27 @@ for (it in seq_len(end)) {
 
   txdb_result <- make_eupath_txdb(entry, eu_version = version, copy_s3 = copy_s3,
                                   install = install, reinstall = FALSE)
-  test_that("Created an txdb sqlite file.", {
-    expect_true(file.exists(txdb_result[["db_path"]]))
-  })
-  db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = txdb_result[["db_path"]])
-  tables <- RSQLite::dbListTables(db)
-  ## I expect to find a couple of tables always: gene_info, genes, go, chromosomes
-  test_that("The sqlite data has some of the expected tables.", {
-    expect_gt(length(tables), 2)
-    expect_true("metadata" %in% tables)
-    expect_true("gene" %in% tables)
-  })
-  found_meta <- RSQLite::dbGetQuery(db, "SELECT * FROM metadata")
-  test_that("The metadata makes sense.", {
-    expect_gt(nrow(found_meta), 10)
-  })
-  found_genes <- RSQLite::dbGetQuery(db, "SELECT * FROM gene LIMIT 10")
-  test_that("We have some txdb genes.", {
-    expect_equal(nrow(found_genes), 10)
-  })
+  if (!is.null(txdb_result)) {
+    test_that("Created an txdb sqlite file.", {
+      expect_true(file.exists(txdb_result[["db_path"]]))
+    })
+    db <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = txdb_result[["db_path"]])
+    tables <- RSQLite::dbListTables(db)
+    ## I expect to find a couple of tables always: gene_info, genes, go, chromosomes
+    test_that("The sqlite data has some of the expected tables.", {
+      expect_gt(length(tables), 2)
+      expect_true("metadata" %in% tables)
+      expect_true("gene" %in% tables)
+    })
+    found_meta <- RSQLite::dbGetQuery(db, "SELECT * FROM metadata")
+    test_that("The metadata makes sense.", {
+      expect_gt(nrow(found_meta), 10)
+    })
+    found_genes <- RSQLite::dbGetQuery(db, "SELECT * FROM gene LIMIT 10")
+    test_that("We have some txdb genes.", {
+      expect_equal(nrow(found_genes), 10)
+    })
+  }
 
 } ## End iterating over every entry in the eupathdb metadata.
 

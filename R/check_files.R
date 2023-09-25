@@ -11,7 +11,7 @@
 #' @param destination Place to put non-matched files.
 #' @export
 check_files <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = NULL,
-                        build_dir = "EuPathDB", verbose = FALSE, destination = NULL) {
+                        build_dir = "build", verbose = FALSE, destination = NULL) {
   if (is.null(destination)) {
     destination <- getwd()
   }
@@ -22,9 +22,9 @@ check_files <- function(file_type = "OrgDb", bioc_version = NULL, eu_version = N
 
   ## Get the column containing the filepaths of the data.
   path_column <- as.character(stringr::str_to_title(file_type))
-  path_column <- as.character(glue::glue("{path_column}File"))
+  path_column <- as.character(glue("{path_column}File"))
   csv_file <- file.path(build_dir, "metadata",
-                        glue::glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv"))
+                        glue("{file_type}_biocv{bioc_version}_eupathdb{eu_version}_metadata.csv"))
 
   ## Get the metadata and start comparing it to the actual files.
   mdata <- readr::read_csv(csv_file)

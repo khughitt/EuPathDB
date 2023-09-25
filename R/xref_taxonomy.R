@@ -15,15 +15,18 @@
 xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
                                  taxon_number_column = "TaxonomyID",
                                  metadata_taxon_column = "TaxonUnmodified") {
+  retlist <- list()
+
   ## If we don't have a taxonomy number, iterate over the species names
   ## To try and find a suitable match
   if (is.na(metadatum[[taxon_number_column]])) {
     chosen_id <- search_na_taxon(metadatum, all_taxa_ids,
                                  taxon_number_column = taxon_number_column,
                                  metadata_taxon_column = metadata_taxon_column)
-    return(chosen_id)
+    retlist[["ID"]] <- chosen_id
+    retlist[["status"]] <- "eupathdb_na"
+    return(retlist)
   }
-
 
   ## Now let us check the cases when the eupathdb
   ## _does_ provide a taxonomy ID number.
@@ -36,7 +39,9 @@ xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
       message("Successful single match for metadata: ",
               metadatum[[metadata_taxon_column]], ".")
     }
-    return(TRUE)
+    retlist[["ID"]] <- TRUE
+    retlist[["status"]] <- "exact_match"
+    return(retlist)
   }
 
   if (sum(id_idx) == 0) {
@@ -49,7 +54,8 @@ xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
     chosen_id <- search_na_taxon(metadatum, all_taxa_ids,
                                  taxon_number_column = taxon_number_column,
                                  metadata_taxon_column = metadata_taxon_column)
-    return(chosen_id)
+    retlist[["ID"]] <- chosen_id
+    retlist[["status"]] <- "eupathdb_mismatch"
   }
 
 
@@ -60,11 +66,15 @@ xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
       message("More than 1 match for metadata: ", metadatum[[metadata_taxon_column]], "\n",
               "             vs. genomeinfodb: ", id_gs)
     }
-    return(NULL)
+    retlist[["ID"]] <- NULL
+    retlist[["status"]] <- "multiple_matches"
+    return(retlist)
   }
 
   message("We shold not fall through to here.")
-  return(NULL)
+  retlist[["ID"]] <- NULL
+  retlist[["status"]] <- "no_match"
+  return(retlist)
 }
 
 #' Try harder to fill in the taxonomy ID number.

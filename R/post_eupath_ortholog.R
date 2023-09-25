@@ -9,7 +9,8 @@
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL,
+post_eupath_ortholog_table <- function(entry, working_species,
+                                       ortholog_table = NULL,
                                        gene_ids = NULL, overwrite = FALSE, verbose = TRUE) {
 
   rda <- check_rda("ortholog", entry, overwrite)
@@ -21,7 +22,8 @@ post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL,
     return(rda[["result"]])
   }
 
-  result <- post_eupath_table(entry, tables = "OrthologsLite", table_name = "orthologs")
+  result <- post_eupath_table(entry, working_species,
+                              tables = "OrthologsLite", table_name = "orthologs")
   colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
                         "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
   result[["GENE_ID"]] <- NULL

@@ -6,6 +6,11 @@
 \usage{
 get_rda_filename(entry, name)
 }
+\arguments{
+\item{entry}{metadata entry to define a tablename.}
+
+\item{name}{Specific table to provide.}
+}
 \description{
-Provide the filename for a temporary rda file for saving data while running.
+This defines the names of the various savefiles when saving tables.
 }

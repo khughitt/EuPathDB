@@ -14,7 +14,7 @@
 #' @export
 write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
                                   bioc_version = NULL, eu_version = NULL,
-                                  overwrite = FALSE) {
+                                  overwrite = FALSE, output_csv = NULL) {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
@@ -25,7 +25,6 @@ write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
   if (file.exists(file_lst[[1]]) && isFALSE(overwrite)) {
     return(file_lst)
   }
-
   ## create output directory, if needed
   out_dir <- file.path(build_dir, "metadata")
   if (!dir.exists(out_dir)) {

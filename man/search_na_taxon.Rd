@@ -8,9 +8,19 @@ search_na_taxon(
   metadatum,
   all_taxa_ids,
   metadata_taxon_column = "TaxonUnmodified",
-  taxon_number_column = "TaxonomyID"
+  taxon_number_column = "TaxonomyID",
+  verbose = TRUE
 )
 }
+\arguments{
+\item{metadatum}{Downloaded metadata from eupathdb.}
+
+\item{all_taxa_ids}{Taxonomy Information.}
+
+\item{metadata_taxon_column}{Column which contains the taxon name (not ID).}
+
+\item{taxon_number_column}{Column which should (but not always) contain the ID number.}
+}
 \description{
-Try harder to fill in the taxonomy ID number.
+I think if we look a little harder, we can figure out a taxonomy number.
 }

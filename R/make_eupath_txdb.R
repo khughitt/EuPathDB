@@ -14,7 +14,9 @@
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
 make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
-                             reinstall = FALSE, install = TRUE, copy_s3 = FALSE) {
+                             reinstall = FALSE, install = TRUE,
+                             copy_s3 = FALSE, verbose = FALSE,
+                             build_dir = "build", build = TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -41,15 +43,19 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
   if (!RCurl::url.exists(gff_url)) {
     warn(sprintf("Cannot create TxDb package for %s %s: GFF file unavailable.",
                  entry[["Species"]], entry[["Strain"]]))
+    message("Attempted to download url: ")
+    message(gff_url)
     return(NULL)
   }
-
-  message("Starting creation of ", pkgname, ".")
+  if (isTRUE(verbose)) {
+    message("Starting creation of ", pkgname, ".")
+  }
   if (!file.exists(input_gff)) {
     downloaded_gff <- try(download.file(url = gff_url, destfile = input_gff,
                                         method = "curl", quiet = FALSE), silent = TRUE)
     if ("try-error" %in% class(downloaded_gff)) {
-      stop(" Failed to download the gff file from: ", gff_url, ".")
+      warning(" Failed to download the gff file from: ", gff_url, ".")
+      return(NULL)
     }
   }
 
@@ -76,10 +82,19 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
   txdb_metadata[["name"]] <- rownames(txdb_metadata)
   colnames(txdb_metadata) <- c("value", "name")
   txdb_metadata <- txdb_metadata[, c("name", "value")]
-  txdb <- try(GenomicFeatures::makeTxDbFromGFF(
-    file = input_gff, format = "gff", chrominfo = chromosome_info,
-    dataSource = entry[["SourceUrl"]],
-    organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
+  txdb <- NULL
+  if (!is.na(entry[["TaxonomyID"]])) {
+    txdb <- try(GenomicFeatures::makeTxDbFromGFF(
+      taxonomyId = entry[["TaxonomyID"]],
+      file = input_gff, format = "gff", chrominfo = chromosome_info,
+      dataSource = entry[["SourceUrl"]],
+      organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
+  } else {
+    txdb <- try(GenomicFeatures::makeTxDbFromGFF(
+      file = input_gff, format = "gff", chrominfo = chromosome_info,
+      dataSource = entry[["SourceUrl"]],
+      organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
+  }
   if ("try-error" %in% class(txdb)) {
     ## Perhaps it is an invalid taxonomy ID?
     txdb <- try(GenomicFeatures::makeTxDbFromGFF(
@@ -159,11 +174,15 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
   install_dir <- clean_pkg(install_dir, removal = "_", replace = "")
   install_dir <- clean_pkg(install_dir, removal = "_like", replace = "like")
 
+  s3_file <- entry[["TxdbFile"]]
   if (isTRUE(copy_s3)) {
-    s3_file <- entry[["TxdbFile"]]
     copied <- copy_s3_file(src_dir = db_dir, type = "txdb", s3_file = s3_file)
     if (isTRUE(copied)) {
-      message(" Successfully copied the txdb sqlite to the s3 staging directory.")
+      if (isTRUE(verbose)) {
+        message(" Successfully copied the txdb sqlite to the s3 staging directory.")
+      }
+    } else {
+      warning(" Failed to copy the txdb sqlite file to the s3 staging directory.")
     }
   }
 
@@ -182,9 +201,13 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
   if (isTRUE(workedp)) {
     final_path <- move_final_package(pkgname, type = "txdb")
     final_deleted <- unlink(x = install_dir, recursive = TRUE, force = TRUE)
+    message("Moved built tar to ", final_path, " and deleted installation directory:")
+    message(install_dir)
   }
 
-  message("Finished creation of ", pkgname)
+  if (isTRUE(verbose)) {
+    message("Finished creation of ", pkgname)
+  }
   retlist <- list(
     "db_path" = s3_file,
     "gff" = input_gff,

@@ -12,7 +12,7 @@
 #' @export
 download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
-                                     verbose = FALSE) {
+                                     verbose = FALSE, build_dir = "build") {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
@@ -22,6 +22,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     message("Checking for existing metadata csv file.")
     file_lst <- get_metadata_filename(webservice, bioc_version, eu_version)
     metadata_df <- readr::read_csv(file = file_lst[["all"]], col_types = readr::cols())
+
     retlist <- list(
       "valid" = metadata_df,
       "invalid" = data.frame())
@@ -99,22 +100,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   result <- httr::POST(url = base_url, body = post_string,
                        httr::content_type("application/json"),
                        httr::timeout(120))
-  ## Test the result to see that we actually got data.
-  if (result[["status_code"]] == "422") {
-    warning("API request failed for %s (code = 422).")
-    return(data.frame())
-  } else if (result[["status_code"]] == "400") {
-    ## likely due to bad formatConfig
-    warning("API Request failed for %s (code = 400).")
-  } else if (result[["status_code"]] == "404") {
-    warning("API Request failed for %s (code = 404).")
-  } else if (result[["status_code"]] != "200") {
-    warning("API Request failed for (code = %d).", result[["status_code"]])
-    return(data.frame())
-  } else if (length(result[["content"]]) < 100) {
-    warning("Very small amount of content returned.")
-  }
-  cont <- httr::content(result, encoding = "UTF-8", as = "text")
+  cont <- check_post_result(result)
   result <- try(jsonlite::fromJSON(cont, flatten = TRUE))
   if (class(result)[1] == "try-error") {
     stop("There was a parsing failure when reading the metadata.")
@@ -369,6 +355,9 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   metadata[["AH_Genus_Species"]] <- ""
   metadata[["Valid_Taxonomy_ID"]] <- FALSE
   metadata[["Valid_AH_Species"]] <- FALSE
+  metadata[["Matched_Taxonomy"]] <- "unmatched"
+  metadata[["Matched_GIDB"]] <- "unmatched"
+  metadata[["Matched_AH"]] <- "unmatched"
 
   ## Load the taxonomy ID number database in order to check/fix messed up/missing IDs.
   message("Loading taxonomy and species database to cross reference against the download.")
@@ -390,22 +379,22 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
     metadatum["BsgenomePkg"] <- pkg_names[["bsgenome"]]
     metadatum["BsgenomeFile"] <- file.path(
-      build_dir, "BSgenome", metadatum["BiocVersion"],
+      build_dir, "S3", "BSgenome", metadatum["BiocVersion"],
       metadatum["BsgenomePkg"], "single_sequences.2bit")
     metadatum["GrangesPkg"] <- pkg_names[["granges"]]
     metadatum["GrangesFile"] <- file.path(
-      build_dir, "GRanges", metadatum["BiocVersion"], metadatum["GrangesPkg"])
+      build_dir, "S3", "GRanges", metadatum["BiocVersion"], metadatum["GrangesPkg"])
     metadatum["OrganismdbiPkg"] <- pkg_names[["organismdbi"]]
     metadatum["OrganismdbiFile"] <- file.path(
-      build_dir, "OrganismDbi", metadatum["BiocVersion"],
+      build_dir, "S3", "OrganismDbi", metadatum["BiocVersion"],
       metadatum["OrganismdbiPkg"], "graphInfo.rda")
     metadatum["OrgdbPkg"] <- pkg_names[["orgdb"]]
     metadatum["OrgdbFile"] <- file.path(
-      build_dir, "OrgDb", metadatum["BiocVersion"],
+      build_dir, "S3", "OrgDb", metadatum["BiocVersion"],
       gsub(x = metadatum["OrgdbPkg"], pattern = "db$", replacement = "sqlite"))
     metadatum["TxdbPkg"] <- pkg_names[["txdb"]]
     metadatum["TxdbFile"] <- file.path(
-      build_dir, "TxDb", metadatum["BiocVersion"],
+      build_dir, "S3", "TxDb", metadatum["BiocVersion"],
       glue::glue("{metadatum['TxdbPkg']}.sqlite"))
     metadatum["GenusSpecies"] <- gsub(x = species_info[["genus_species"]],
                                         pattern = "\\.", replacement = " ")
@@ -416,9 +405,11 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                pattern = "\\.", replacement = " ")
     metadatum["TaxonUnmodified"] <- species_info[["unmodified"]]
 
-    taxonomy_number <- xref_taxonomy_number(
+    taxonomy_lst <- xref_taxonomy_number(
       metadatum, all_taxa_ids, taxon_number_column = "TaxonomyID",
       metadata_taxon_column = "TaxonUnmodified", verbose = verbose)
+    taxonomy_number <- taxonomy_lst[["ID"]]
+    metadatum[["Matched_Taxonomy"]] <- taxonomy_lst[["status"]]
     if (is.null(taxonomy_number)) {
       ## Then we could not make a match.
       unmatched_taxonomy_numbers <- unmatched_taxonomy_numbers + 1
@@ -434,10 +425,14 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
       message("Should not fall through to here.")
     }
 
-    metadatum[["GIDB_Genus_Species"]] <- xref_gidb_species(
+    gidb_lst <- xref_gidb_species(
       metadatum, taxon_number_column = "TaxonomyID", all_taxa_ids, verbose = verbose)
+    metadatum[["GIDB_Genus_Species"]] <- gidb_lst[["ID"]]
+    metadatum[["Matched_GIDB"]] <- gidb_lst[["status"]]
 
-    found_ah_species <- xref_ah_species(metadatum, ah_species, verbose = verbose)
+    ah_lst <- xref_ah_species(metadatum, ah_species, verbose = verbose)
+    found_ah_species <- ah_lst[["ID"]]
+    metadata[["Matched_AH"]] <- ah_lst[["status"]]
     if (!is.null(found_ah_species)) {
       metadatum[["Valid_AH_Species"]] <- TRUE
       metadatum[["AH_Genus_Species"]] <- found_ah_species
@@ -469,10 +464,10 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                            webservice = webservice,
                                            file_type = "invalid",
                                            overwrite = overwrite)
-
-  retlist <- list(
+    retlist <- list(
     "valid" = valid_entries,
     "invalid" = invalid_entries)
+  class(retlist) <- "downloaded_metadata"
   return(retlist)
 }
 

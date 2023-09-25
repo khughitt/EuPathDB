@@ -27,10 +27,15 @@ xref_ah_species <- function(metadatum, ah_species, verbose = FALSE,
   ## will get filled in with just the species names provided by the eupathdb.
   ## If we cannot match even that, then the entries will get moved into the
   ## pile of invalid entries for future examination and probably deletion.
+  retlist <- list(
+    "ID" = NULL,
+    "status" = "unmatched")
 
   initial_valid <- metadatum[[metadata_taxon_column]] %in% ah_species
   if (isTRUE(initial_valid)) {
-    return(metadatum[[metadata_taxon_column]])
+    retlist[["ID"]] <- metadatum[[metadata_taxon_column]]
+    retlist[["status"]] <- "exact_taxon"
+    return(retlist)
   }
 
   ## We have previously filled in the 'Species' column with information from GenomeInfoDb.
@@ -40,9 +45,13 @@ xref_ah_species <- function(metadatum, ah_species, verbose = FALSE,
     if (isTRUE(verbose)) {
       message("Found a match between the GIDB genus/species and the AH species list.")
     }
-    return(metadatum[[gidb_species_column]])
+    retlist[["ID"]] <- metadatum[[gidb_species_column]]
+    retlist[["status"]] <- "exact_gidb_species"
+    return(retlist)
   } else {
-    return(NULL)
+    retlist[["ID"]] <- NULL
+    retlist[["status"]] <- "unexpected_gidb"
+    return(retlist)
   }
 
   ## If we get here, see if AH has genus/species.
@@ -60,23 +69,31 @@ xref_gidb_species <- function(metadatum, all_taxa_ids,
                               taxon_number_column = "TaxonomyID",
                               verbose = verbose) {
   id <- metadatum[[taxon_number_column]]
+  retlist <- list(
+    "ID" = id,
+    "status" = "unmatched")
   if (is.null(id)) {
-    return(NULL)
+    return(retlist)
   }
   if (is.na(id)) {
-    return(NULL)
+    return(retlist)
   }
 
   gs <- NULL
   found <- all_taxa_ids[["tax_id"]] == id
   if (sum(found) == 0) {
-    gs <- NULL
+    retlist[["ID"]] <- NULL
+    retlist[["status"]] <- "mismatched"
   } else if (sum(found) == 1) {
     gs <- paste0(all_taxa_ids[found, "genus"], " ", all_taxa_ids[found, "species"])
+    retlist[["ID"]] <- gs
+    retlist[["status"]] <- "exact_match"
   } else {
     message("This should not happen, returning the first match.")
     matched <- all_taxa_ids[found, ]
     gs <- paste0(all_taxa_ids[1, "genus"], " ", all_taxa_ids[1, "species"])
+    retlist[["ID"]] <- gs
+    retlist[["status"]] <- "multi_match"
   }
-  return(gs)
+  return(retlist)
 }

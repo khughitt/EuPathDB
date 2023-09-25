@@ -16,11 +16,10 @@
 #' @author atb
 #' @export
 make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
-                                 copy_s3 = FALSE, install = TRUE, reinstall = FALSE, ...) {
-  arglist <- list(...)
-  author <- "Ashton Trey Belew <abelew@umd.edu>"
-  if (!is.null(arglist[["author"]])) {
-    author <- arglist[["author"]]
+                                 copy_s3 = FALSE, install = TRUE, reinstall = FALSE,
+                                 author = NULL, verbose = FALSE, build = TRUE) {
+  if (is.null(author)) {
+    author <- "Ashton Trey Belew <abelew@umd.edu>"
   }
   if (is.null(entry)) {
     stop("Need an entry.")
@@ -53,11 +52,19 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
     db_version <- gsub(x = eu_version, pattern = "^(\\d)(.*)$", replacement = "v\\1\\2")
   }
   fasta_start <- entry[["URLGenome"]]
+  ## One might reasonably look at the next line and think 'wtf'.  Some metadata shows incorrect
+  ## protocols and/or incorrect TLDs for the provided download links.  E.g. they report http when
+  ## only https works and/or say the download link is at zzz.net when it is actually zzz.org...
+  ## I wrote the eupathdb folks about this a long time ago, this may therefore not be needed anymore.
   fasta_hostname <- sub(pattern = "(https|http)://(.*)\\.(org|net).*$",
                          replacement = "\\2",
                          x = fasta_start)
   ## genome_filename <- file.path(build_dir, paste0(pkgname, ".fasta"))
-  genome_filename <- file.path(build_dir, glue::glue("{pkgname}.fasta"))
+  download_dir <- file.path(build_dir, "fasta")
+  if (!file.exists(download_dir)) {
+    created <- dir.create(download_dir, recursive = TRUE)
+  }
+  genome_filename <- file.path(download_dir, glue::glue("{pkgname}.fasta"))
 
   ## Find a spot to dump the fasta files
   bsgenome_dir <- file.path(build_dir, pkgname)
@@ -65,23 +72,27 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
     created <- dir.create(bsgenome_dir, recursive = TRUE)
   }
   ## Download them to this directory.
-  downloaded <- download.file(url = fasta_start, destfile = genome_filename,
-                              quiet = FALSE)
+  if (file.exists(genome_filename)) {
+    message("The fasta file was already downloaded.")
+  } else {
+    downloaded <- download.file(url = fasta_start, destfile = genome_filename,
+                                quiet = FALSE)
+  }
   ## Extract all the individual chromosomes into this directory.
   input <- Biostrings::readDNAStringSet(genome_filename)
   output_list <- list()
   sequence_names <- "c("
   message(" Writing chromosome files, this is slow for fragmented scaffolds.")
   show_progress <- interactive() && is.null(getOption("knitr.in.progress"))
-  if (isTRUE(show_progress)) {
-    bar <- utils::txtProgressBar(style = 3)
-  }
+  #if (isTRUE(show_progress)) {
+  #  bar <- utils::txtProgressBar(style = 3)
+  #}
   genome_prefix <- NULL
   for (index in seq_len(length(input))) {
-    if (isTRUE(show_progress)) {
-      pct_done <- index / length(input)
-      setTxtProgressBar(bar, pct_done)
-    }
+   # if (isTRUE(show_progress)) {
+   #   pct_done <- index / length(input)
+   #   setTxtProgressBar(bar, pct_done)
+   # }
     chr <- names(input)[index]
     chr_name <- strsplit(chr, split = " ")[[1]][1]
     if (is.null(genome_prefix)) {
@@ -94,9 +105,10 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
     output_list[[chr_name]] <- chr_file
     sequence_names <- paste0(sequence_names, '"', chr_name, '", ')
   }
-  if (isTRUE(show_progress)) {
-    close(bar)
-  }
+  #if (isTRUE(show_progress)) {
+  #  close(bar)
+  #}
+  message("Finished writing ", length(input), " contigs.")
   sequence_names <- gsub(pattern = ", $", replacement = ")", x = sequence_names)
 
   ## Now start creating the DESCRIPTION file
@@ -141,28 +153,27 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
   ## Invoking library(Biostrings") annoys R CMD check, but I am not sure there is a good
   ## way around that due to limitations of Biostrings, lets see.
   uniqueLetters <- Biostrings::uniqueLetters
-  tt <- try(do.call("library", as.list("Biostrings")), silent=TRUE)
-  annoying <- try(BSgenome::forgeBSgenomeDataPkg(description_file, verbose = TRUE))
+  tt <- try(do.call("library", as.list("Biostrings")), silent = TRUE)
+  pkg_builder <- sm(BSgenome::forgeBSgenomeDataPkg(description_file), wrap = TRUE)
+  if ("try-error" %in% class(pkg_builder)) {
+    message("forgeBSgenomeDataPkg failed with error: ")
+    message("A likely reason is too many open files, which may be changed in /etc/sysctl.conf")
+    print(pkg_builder)
+    pkg_builder <- NULL
+    return(NULL)
+  }
 
   built <- NULL
-  workedp <- ! "try-error" %in% class(annoying)
+  workedp <- ! "try-error" %in% class(pkg_builder)
   if (isTRUE(workedp)) {
     built <- try(devtools::build(pkgname, quiet = TRUE))
     workedp <- ! "try-error" %in% class(built)
   }
 
-  ## If we were able to build the package, then I think we can copy the data
-  ## and delete the intermediate files.
-
-  ## Note that as of this writing, one cannot use bsgenome with AH, so don't copy the data to S3
-  ## no matter what. I will leave in the code to do it though in case it becomes possible.
-  copy_s3 <- FALSE
   if (isTRUE(workedp)) {
-
     if (isTRUE(install)) {
       inst <- try(devtools::install(pkgname, quiet = TRUE))
     }
-
     if (isTRUE(copy_s3)) {
       source_dir <- basename(bsgenome_dir)
       s3_file <- entry[["BsgenomeFile"]]
@@ -179,7 +190,7 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
 
     ## If everything worked and we did whatever it is we think is appropriate with the results,
     ## then it should be safe to clean up the intermediates.
-    message("Cleanning up the bsgenome staging directory: ", bsgenome_dir, ".")
+    message("Cleaning up the bsgenome staging directory: ", bsgenome_dir, ".")
     if (file.exists(bsgenome_dir)) {
       deleted <- unlink(x = bsgenome_dir, recursive = TRUE, force = TRUE)
     }
@@ -196,6 +207,11 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
       message("Moving the tarball to the archive directory.")
       destination <- file.path(pkg_archive_dir, basename(built))
       tt <- file.rename(built, destination)
+    }
+
+    if (file.exists(pkgname)) {
+      message("Cleaning up the forgeBSGenomeDataPkg directory.")
+      deleted <- unlink(x = pkgname, recursive = TRUE, force = TRUE)
     }
   }
 
