@@ -7,7 +7,6 @@
 #'
 #' @param entry A row from the eupathdb metadataframe.
 #' @param eu_version Which version of the eupathdb to use for creating this package?
-#' @param build_dir Directory in which to build the packages.
 #' @param installp Install the resulting package?
 #' @param reinstall Overwrite existing data files?
 #' @param exclude_join I had a harebrained idea to automatically set up the
@@ -19,9 +18,9 @@
 #' @return The result of attempting to install the organismDbi package.
 #' @author Keith Hughitt, modified by atb.
 #' @export
-make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir = "build",
-                                    installp = TRUE, reinstall = FALSE,
-                                    exclude_join = "ENTREZID", copy_s3 = FALSE, build = TRUE) {
+make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, installp = TRUE,
+                                    reinstall = FALSE, exclude_join = "ENTREZID",
+                                    copy_s3 = FALSE, build = TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -38,13 +37,11 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir =
   }
   orgdb_name <- pkgnames[["orgdb"]]
   txdb_name <- pkgnames[["txdb"]]
-  orgdb_ret <- make_eupath_orgdb(entry, build_dir = build_dir,
-                                 reinstall = reinstall)
+  orgdb_ret <- make_eupath_orgdb(entry, reinstall = reinstall)
   if (is.null(orgdb_ret)) {
     return(NULL)
   }
-  txdb_ret <- make_eupath_txdb(entry, eu_version = eu_version, build_dir = build_dir,
-                               reinstall = reinstall)
+  txdb_ret <- make_eupath_txdb(entry, eu_version = eu_version, reinstall = reinstall)
   if (is.null(txdb_ret)) {
     return(NULL)
   }
@@ -150,8 +147,7 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, build_dir =
       }
     }
     final_organdb_name <- basename(organdb_path)
-    final_organdb_path <- move_final_package(organdb_path, type = "organismdbi",
-                                             build_dir = build_dir)
+    final_organdb_path <- move_final_package(organdb_path, type = "organismdbi")
   }
 
   retlist <- list(

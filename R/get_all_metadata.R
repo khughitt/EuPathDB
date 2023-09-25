@@ -31,8 +31,7 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
     message("Writing metadata csv files.")
     written <- write_eupath_metadata(metadata = valid_metadata, webservice = "eupathdb",
                                      file_type = "valid", bioc_version = bioc_version,
-                                     eu_version = eu_version, build_dir = build_dir,
-                                     overwrite = overwrite)
+                                     eu_version = eu_version, overwrite = overwrite)
   }
   retlist <- list(
     "valid" = valid_metadata,

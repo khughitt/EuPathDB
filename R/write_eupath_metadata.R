@@ -9,7 +9,6 @@
 #' @param file_type Either valid or invalid, defines the final output filenames.
 #' @param bioc_version Version of Bioconductor used for this set of metadata.
 #' @param eu_version Version of the EuPathDB used for this set of metadata.
-#' @param build_dir Directory to which to dump stuff.
 #' @return List containing the filenames written.
 #' @export
 write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
