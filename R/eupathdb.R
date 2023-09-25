@@ -7,6 +7,10 @@
 ##
 ## I am not sure if I can do #1 because there are some weirdo exceptions for some table types.
 
+#' Boolean to see if packages should be built by devtools.
+#' @export
+build <- TRUE
+
 #' EuPathDB: Access EuPathDB annotations using AnnotationHub
 #'
 #' EuPathDB provides an R interface for retrieving annotation resources from

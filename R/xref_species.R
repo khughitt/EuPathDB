@@ -78,6 +78,9 @@ xref_gidb_species <- function(metadatum, all_taxa_ids,
   if (is.na(id)) {
     return(retlist)
   }
+  if (is.na(id)) {
+    return(NULL)
+  }
 
   gs <- NULL
   found <- all_taxa_ids[["tax_id"]] == id

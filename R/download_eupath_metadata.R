@@ -12,7 +12,7 @@
 #' @export
 download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
-                                     verbose = FALSE, build_dir = "build") {
+                                     verbose = FALSE) {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
