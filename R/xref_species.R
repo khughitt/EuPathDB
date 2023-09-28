@@ -16,8 +16,7 @@ xref_ah_species <- function(metadatum, ah_species, verbose = FALSE,
                             metadata_taxon_column = "TaxonUnmodified",
                             metadata_species_column = "GenusSpecies",
                             gidb_species_column = "GIDB_Genus_Species",
-                            xref_column = "TaxonXref"
-                            ) {
+                            xref_column = "TaxonXref") {
 
   ## In this process I am adding a new column 'TaxonXref' which is the set of
   ## Species or SpeciesStrain names that we can successfully match against the
@@ -91,12 +90,15 @@ xref_gidb_species <- function(metadatum, all_taxa_ids,
     gs <- paste0(all_taxa_ids[found, "genus"], " ", all_taxa_ids[found, "species"])
     retlist[["ID"]] <- gs
     retlist[["status"]] <- "exact_match"
-  } else {
-    message("This should not happen, returning the first match.")
+  } else if (sum(found) > 1) {
+    message("Found more than one taxonomy ID match, returning the first match.")
     matched <- all_taxa_ids[found, ]
     gs <- paste0(all_taxa_ids[1, "genus"], " ", all_taxa_ids[1, "species"])
     retlist[["ID"]] <- gs
     retlist[["status"]] <- "multi_match"
+  } else {
+    message("This should not happen, returning NULL.")
+    return(NULL)
   }
   return(retlist)
 }

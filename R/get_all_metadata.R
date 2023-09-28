@@ -33,6 +33,7 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
                                      file_type = "valid", bioc_version = bioc_version,
                                      eu_version = eu_version, overwrite = overwrite)
   }
+  class(retlist) <- "eupath_metadata"
   retlist <- list(
     "valid" = valid_metadata,
     "invalid" = invalid_metadata)

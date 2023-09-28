@@ -58,15 +58,17 @@ xref_taxonomy_number <- function(metadatum, all_taxa_ids, verbose = FALSE,
     retlist[["status"]] <- "eupathdb_mismatch"
   }
 
-
   if (sum(id_idx) > 1) {
     ## I am increasingly uncertain if the following is a good idea.
-    id_gs <- glue::glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
+    id_gs <- glue("{all_taxa_ids[id_idx, 'genus']} {all_taxa_ids[id_idx, 'species']}")
     if (isTRUE(verbose)) {
       message("More than 1 match for metadata: ", metadatum[[metadata_taxon_column]], "\n",
               "             vs. genomeinfodb: ", id_gs)
     }
-    retlist[["ID"]] <- NULL
+
+    retlist[["ID"]] <- search_na_taxon(metadatum, all_taxa_ids,
+                                       taxon_number_column = taxon_number_column,
+                                       metadata_taxon_column = metadata_taxon_column)
     retlist[["status"]] <- "multiple_matches"
     return(retlist)
   }
@@ -131,7 +133,7 @@ search_na_taxon <- function(metadatum, all_taxa_ids, metadata_taxon_column = "Ta
         taxon_id <- species_taxa[["tax_id"]]
         if (isTRUE(verbose)) {
           message("Found an exact match for the combination genus/species not strain for ",
-                  species_taxa, ".")
+                  species_taxa[["genus"]], " ", species_taxa[["species"]],  ".")
         }
       } else if (length(found_species_taxa) > 1) {
         taxon_id <- species_taxa[1, "tax_id"]

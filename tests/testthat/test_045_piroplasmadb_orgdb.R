@@ -64,7 +64,7 @@ for (it in seq_len(valid_end)) {
       run_orgdb_tests <- FALSE
     }
     if (isTRUE(run_orgdb_tests)) {
-      passedp <- test_orgdb(orgdb_result)
+      passedp <- test_orgdb(orgdb_result, entry)
     }
   }
   orgdb_result <- NULL

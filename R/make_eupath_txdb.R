@@ -16,7 +16,7 @@
 make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
                              reinstall = FALSE, install = TRUE,
                              copy_s3 = FALSE, verbose = FALSE,
-                             build_dir = "build", build = TRUE) {
+                             build_dir = build_dir, build = TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }

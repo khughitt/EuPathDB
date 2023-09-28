@@ -35,7 +35,7 @@ if (file.exists(meta_valid_files[["orgdb"]])) {
 } else {
   meta <- download_eupath_metadata(overwrite = overwrite, webservice = webservice,
                                    bioc_version = bioc_version, eu_version = eu_version,
-                                   verbose = verbose, build_dir = build_dir)
+                                   verbose = verbose)
 }
 test_that("Did we download the metadata?", {
   expect_gt(nrow(meta[["valid"]]), 1)
@@ -64,7 +64,7 @@ for (it in seq_len(valid_end)) {
       run_orgdb_tests <- FALSE
     }
     if (isTRUE(run_orgdb_tests)) {
-      passedp <- test_orgdb(orgdb_result)
+      passedp <- test_orgdb(orgdb_result, entry)
     }
   }
   orgdb_result <- NULL

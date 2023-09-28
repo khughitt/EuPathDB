@@ -1,3 +1,116 @@
+check_orgdb_args <- function(orgdb_args, tables) {
+  for (t in seq_len(length(tables))) {
+    table <- tables[[t]]
+    name <- names(tables)[t]
+    if (is.null(table)) {
+      message(" ", name, " is null, not adding to the orgdb_args.")
+    } else if (nrow(go_table) > 0) {
+      orgdb_args[[name]] <- table
+    }
+  }
+  return(orgdb_args)
+}
+
+clean_orgdb_args <- function(orgdb_args) {
+  ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
+  ## Make sure that every GID field is character, too
+  ## -- otherwise you get 'The type of data in the 'GID'
+  ## columns must be the same for all data.frames.'
+  used_columns <- c()
+  for (i in seq_len(length(orgdb_args))) {
+    argname <- names(orgdb_args)[i]
+    if (class(orgdb_args[[i]])[1] == "data.frame") {
+      ## Make sure that the column names in this data frame are unique.
+      ## This starts at 2 because the first column should _always_ by 'GID'
+      for (cn in seq(from = 2, to = length(colnames(orgdb_args[[i]])))) {
+        colname <- colnames(orgdb_args[[i]])[cn]
+        if (colname %in% used_columns) {
+          new_colname <- glue("{toupper(argname)}_{colname}")
+          colnames(orgdb_args[[i]])[cn] <- new_colname
+          used_columns <- c(used_columns, new_colname)
+        } else {
+          used_columns <- c(used_columns, colname)
+        }
+      }
+      ## This should no longer be needed
+      ## First swap out NA to ""
+      na_tmp <- orgdb_args[[i]]
+      na_set <- is.na(na_tmp)
+      na_tmp[na_set] <- ""
+      orgdb_args[[i]] <- na_tmp
+
+      orgdb_dups <- duplicated(orgdb_args[[i]])
+      if (sum(orgdb_dups) > 0) {
+        tmp <- orgdb_args[[i]]
+        tmp <- tmp[!orgdb_dups, ]
+        orgdb_args[[i]] <- tmp
+      }
+      ## Finally, make sure all GID columns are characters
+      orgdb_args[[i]][["GID"]] <- as.character(orgdb_args[[i]][["GID"]])
+    } ## End checking for data.frames
+  }
+  return(orgdb_args)
+}
+
+download_eupath_tables <- function(table_names, entry, working_species,
+                                   overwrite, gene_ids, gene_columns) {
+  tables <- list()
+  for (t in table_names) {
+    name <- glue("{t}_table")
+    table <- data.frame()
+    if (t == "go") {
+      table <- try(post_eupath_go_table(entry, working_species,
+                                        overwrite = overwrite))
+    } else if (t == "goslim") {
+      table <- try(post_eupath_goslim_table(entry, working_species,
+                                            overwrite = overwrite))
+    } else if (t == "interpro") {
+      table <- try(post_eupath_interpro_table(entry, working_species,
+                                              overwrite = overwrite))
+    } else if (t == "linkout") {
+      table <- try(post_eupath_linkout_table(entry, working_species,
+                                             overwrite = overwrite))
+    } else if (t == "ortholog") {
+      if ("ANNOT_GENE_ORTHOMCL_NAME" %in% gene_columns) {
+        table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
+        colnames(table) <- c("GID", "ORTHOLOGS_GROUP_ID")
+      } else {
+        table <- as.data.frame("GID" = gene_ids)
+        table[["ORTHOLOGS_GROUP_ID"]] <- ""
+      }
+      table <- try(post_eupath_ortholog_table(entry, working_species,
+                                              ortholog_table = table,
+                                              gene_ids = gene_ids,
+                                              overwrite = overwrite))
+    } else if (t == "pathway") {
+      table <- try(post_eupath_pathway_table(entry, working_species,
+                                             overwrite = overwrite))
+    } else if (t == "pdb") {
+      table <- try(post_eupath_pdb_table(entry, working_species,
+                                         overwrite = overwrite))
+    } else if (t == "pubmed") {
+      table <- try(post_eupath_pubmed_table(entry, working_species,
+                                            overwrite = overwrite))
+    }
+
+    add_table <- TRUE
+    if ("try-error" %in% class(table)) {
+      add_table <- FALSE
+    }
+    if (is.null(table)) {
+      add_table <- FALSE
+    }
+    if (nrow(table) == 0) {
+      add_table <- FALSE
+    }
+
+    if (isTRUE(add_table)) {
+      tables[[name]] <- table
+    }
+  }
+  return(tables)
+}
+
 #' Create an orgdb SQLite database from the tables in eupathdb.
 #'
 #' This function has passed through multiple iterations as the preferred
@@ -24,7 +137,7 @@
 #' @export
 make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL, split = 13,
-                              build_dir = "build", build = TRUE) {
+                              build = TRUE, build_dir = build_dir) {
   ## Pull out the metadata for this species.
   if ("character" %in% class(entry)) {
     entry <- get_eupath_entry(entry)
@@ -69,80 +182,12 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## At some point we should be able to remove this, because post_*() try pretty hard to get
   ## rid of spurious NAs in the returned.data.
   gene_table <- remove_eupath_nas(gene_table, "annot")
-
-  ## Get the GO data from the GO and GOSlim tables
-  go_table <- data.frame()
-  go_table <- try(post_eupath_go_table(entry, working_species,
-                                       overwrite = overwrite))
-  if ("try-error" %in% class(go_table)) {
-    go_table <- data.frame()
-  }
-
-  goslim_table <- data.frame()
-  goslim_table <- try(post_eupath_goslim_table(entry, working_species,
-                                               overwrite = overwrite))
-  if ("try-error" %in% class(goslim_table)) {
-    goslim_table <- data.frame()
-  }
-
-  ## Gather orthologs
+  table_names <- c("go", "goslim", "interpro", "linkout",
+                   "ortholog", "pathway", "pdb", "pubmed")
   gene_ids <- gene_table[["GID"]]
-  ortholog_table <- data.frame()
-  if (!is.null(gene_table[["ANNOT_GENE_ORTHOMCL_NAME"]])) {
-    ortholog_table <- gene_table[, c("GID", "ANNOT_GENE_ORTHOMCL_NAME")]
-    colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  } else {
-       ortholog_table <- as.data.frame(gene_table[, c("GID")])
-       ortholog_table[["ORTHOLOGS_GROUP_ID"]] <- ""
-       colnames(ortholog_table) <- c("GID", "ORTHOLOGS_GROUP_ID")
-  }
-  ortholog_table <- try(post_eupath_ortholog_table(entry, working_species,
-                                                   ortholog_table = ortholog_table,
-                                                   gene_ids = gene_ids,
-                                                   overwrite = overwrite))
-  if ("try-error" %in% class(ortholog_table)) {
-     ortholog_table <- data.frame()
-   }
-
-  ## Get the PDB table
-  pdb_table <- data.frame()
-  pdb_table <- try(post_eupath_pdb_table(entry, working_species,
-                                         overwrite = overwrite))
-  if ("try-error" %in% class(pdb_table)) {
-    pdb_table <- data.frame()
-  }
-
-  ## The linkout table for entrez cross references papers.
-  linkout_table <- data.frame()
-  linkout_table <- try(post_eupath_linkout_table(entry, working_species,
-                                                 overwrite = overwrite))
-  if ("try-error" %in% class(linkout_table)) {
-    linkout_table <- data.frame()
-  }
-
-  ## The pubmed table for publications.
-  pubmed_table <- data.frame()
-  pubmed_table <- try(post_eupath_pubmed_table(entry, working_species,
-                                               overwrite = overwrite))
-  if ("try-error" %in% class(pubmed_table)) {
-    pubmed_table <- data.frame()
-  }
-
-  ## Interpro-specific annotations/cross references.
-  interpro_table <- data.frame()
-  interpro_table <- try(post_eupath_interpro_table(entry, working_species,
-                                                   overwrite = overwrite))
-  if ("try-error" %in% class(interpro_table)) {
-    interpro_table <- data.frame()
-  }
-
-  ## The pathway data
-  pathway_table <- data.frame()
-  pathway_table <- try(post_eupath_pathway_table(entry, working_species,
-                                                 overwrite = overwrite))
-  if ("try-error" %in% class(pathway_table)) {
-    pathway_table <- data.frame()
-  }
+  gene_columns <- colnames(gene_table)
+  tables <- download_eupath_tables(table_names, entry, working_species,
+                                   overwrite, gene_ids, gene_columns)
 
   ## Create the baby table of chromosomes
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
@@ -165,94 +210,10 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     "gene_info" = gene_table,
     "chromosome" = chromosome_table,
     "type" = type_table)
-
-  ## add any non-empty tables, this is sort of our last sanity check before
-  ## making the package.
-  if (is.null(go_table)) {
-    message(" This should not be possible, but the go table is still null.")
-  } else if (nrow(go_table) > 0) {
-    orgdb_args[["go_table"]] <- go_table
-  }
-
-  if (is.null(goslim_table)) {
-    message(" This should not be possible, but the goslim table is still null.")
-  } else if (nrow(goslim_table) > 0) {
-    orgdb_args[["goslim_table"]] <- goslim_table
-  }
-
-  if (is.null(interpro_table)) {
-    message(" This should not be possible, but the interpro table is still null.")
-  } else if (nrow(interpro_table) > 0) {
-    orgdb_args[["interpro_table"]] <- interpro_table
-  }
-
-  if (is.null(linkout_table)) {
-    message(" This should not be possible, but the linkout table is still null.")
-  } else if (nrow(linkout_table) > 0) {
-    orgdb_args[["linkout_table"]] <- linkout_table
-  }
-
-  if (is.null(ortholog_table)) {
-    message(" This should not be possible, but the ortholog table is still null.")
-  } else if (nrow(ortholog_table) > 0) {
-    orgdb_args[["ortholog_table"]] <- ortholog_table
-  }
-
-  if (is.null(pathway_table)) {
-    message(" This should not be possible, but the pathway table is still null.")
-  } else if (nrow(pathway_table) > 0) {
-    orgdb_args[["pathway_table"]] <- pathway_table
-  }
-
-  if (is.null(pdb_table)) {
-    message(" This should not be possible, but the pdb table is still null.")
-  } else if (nrow(pdb_table) > 0) {
-    orgdb_args[["pdb_table"]] <- pdb_table
-  }
-
-  if (is.null(pubmed_table)) {
-    message(" This should not be possible, but the pubmed table is still null.")
-  } else if (nrow(pubmed_table) > 0) {
-    orgdb_args[["pubmed_table"]] <- pubmed_table
-  }
-
-  ## Make sure no duplicated stuff snuck through, or makeOrgPackage throws an error.
-  ## Make sure that every GID field is character, too
-  ## -- otherwise you get 'The type of data in the 'GID'
-  ## columns must be the same for all data.frames.'
-  used_columns <- c()
-  for (i in seq_len(length(orgdb_args))) {
-    argname <- names(orgdb_args)[i]
-    if (class(orgdb_args[[i]])[1] == "data.frame") {
-      ## Make sure that the column names in this data frame are unique.
-      ## This starts at 2 because the first column should _always_ by 'GID'
-      for (cn in seq(from = 2, to = length(colnames(orgdb_args[[i]])))) {
-        colname <- colnames(orgdb_args[[i]])[cn]
-        if (colname %in% used_columns) {
-          new_colname <- glue("{toupper(argname)}_{colname}")
-          colnames(orgdb_args[[i]])[cn] <- new_colname
-          used_columns <- c(used_columns, new_colname)
-        } else {
-          used_columns <- c(used_columns, colname)
-        }
-      }
-      ## This should no longer be needed
-      ## First swap out NA to ""
-      na_tmp <- orgdb_args[[i]]
-      na_set <- is.na(na_tmp)
-      na_tmp[na_set] <- ""
-      orgdb_args[[i]] <- na_tmp
-
-      orgdb_dups <- duplicated(orgdb_args[[i]])
-      if (sum(orgdb_dups) > 0) {
-        tmp <- orgdb_args[[i]]
-        tmp <- tmp[!orgdb_dups, ]
-        orgdb_args[[i]] <- tmp
-      }
-      ## Finally, make sure all GID columns are characters
-      orgdb_args[[i]][["GID"]] <- as.character(orgdb_args[[i]][["GID"]])
-    } ## End checking for data.frames
-  }
+  ## Add to the orgdb args the non-empty tables.
+  orgdb_args <- check_orgdb_args(orgdb_args, tables)
+  ## Do a final pass for weird stuff in them.
+  orgdb_args <- clean_orgdb_args(orgdb_args)
 
   ## I am reading the AnnotationForge documentation and learning some ways to improve this.
   ## Here is one interesting section (arguments for makeOrgPackage()):
@@ -324,7 +285,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   } else {
     built_orgdb_path <- suppressMessages(try(do.call("makeOrgPackage", orgdb_args)))
   }
-  if (class(built_orgdb_path) == "try-error") {
+  if (class(built_orgdb_path)[1] == "try-error") {
     return(NULL)
   }
   if (orgdb_path != built_orgdb_path) {
@@ -356,8 +317,8 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## Since writing them, I have improved the logic in make_taxon_names() above,
   ## I therefore suspect these lines are not necessary.
   ## FIXME: See if you can remove the following two lines!
-  orgdb_path <- clean_pkg(orgdb_path, removal = "_", replace = "")
-  orgdb_path <- clean_pkg(orgdb_path, removal = "_like", replace = "like")
+  ## orgdb_path <- clean_pkg(orgdb_path, removal = "_", replace = "")
+  ## orgdb_path <- clean_pkg(orgdb_path, removal = "_like", replace = "like")
 
   if (isTRUE(copy_s3)) {
     s3_file <- entry[["OrgdbFile"]]
@@ -375,7 +336,6 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## And install the resulting package.
   ## I think installing the package really should be optional, but in the case of orgdb/txdb,
   ## without them there is no organismdbi, which makes things confusing.
-
   built <- NULL
   workedp <- FALSE
   if (isTRUE(build)) {
@@ -387,9 +347,11 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
     inst <- suppressWarnings(try(devtools::install_local(install_path)))
     workedp <- ! "try-error" %in% class(inst)
   }
+
+  final_paths <- list()
   if (isTRUE(workedp)) {
-    final_path <- move_final_package(orgdb_path, type = "orgdb")
-    orgdb_path <- file.path(dirname(orgdb_path), "orgdb", basename(orgdb_path))
+    final_paths <- move_final_orgdb_package(orgdb_path, build_dir = build_dir)
+    orgdb_path <- final_paths[["data_path"]]
     rda_files <- get_rda_filename(entry, "all")
     for (rda in rda_files) {
       deleted <- unlink(x = rda, force = TRUE)
@@ -400,11 +362,16 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   ## Probably should return something more useful/interesting than this, perhaps
   ## the dimensions of the various tables in the orgdb?
   sqlite_file <- basename(gsub(x = orgdb_path, pattern = "db$", replacement = "sqlite"))
+  db_file <- file.path(orgdb_path, "inst", "extdata", sqlite_file)
   retlist <- list(
     "pkgname" = pkgname,
-    "db_path" = file.path(orgdb_path, "inst", "extdata", sqlite_file))
-  if (isTRUE(build)) {
-    retlist[["package_file"]] <- built
+    "db_path" = db_file)
+  if (!is.null(final_paths[["package_path"]])) {
+    retlist[["package_file"]] <- final_paths[["package_path"]]
   }
+  if (!is.null(final_paths[["data_path"]])) {
+    retlist[["data_path"]] <- final_paths[["data_path"]]
+  }
+  class(retlist) <- "eupath_orgdb"
   return(retlist)
 }

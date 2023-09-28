@@ -26,6 +26,12 @@ post_eupath_go_table <- function(entry, working_species, overwrite = FALSE, verb
   ## It also appears that readr::read_csv can get around this?
   colnames(result) <- gsub(x = colnames(result), pattern = "^GODB_", replacement = "GO_")
   colnames(result) <- gsub(x = colnames(result), pattern = "^GO_GO_", replacement = "GO_")
+  factor_columns <- c("GO_ONTOLOGY", "GO_SOURCE", "GO_EVIDENCE_CODE")
+  for (f in factor_columns) {
+    if (!is.null(result[[f]])) {
+      result[[f]] <- as.factor(result[[f]])
+    }
+  }
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)

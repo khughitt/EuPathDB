@@ -240,16 +240,19 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE,
     ## Every record contains an id, some fields, and tables.
     records <- json_result[["records"]]
     removed <- rm(list = "json_result")
-    colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "", x = colnames(records))
-    colnames(records) <- gsub(pattern = "\\.", replacement = "_", x = colnames(records))
+    colnames(records) <- gsub(pattern = "^attributes\\.", replacement = "",
+                              x = colnames(records))
+    colnames(records) <- gsub(pattern = "\\.", replacement = "_",
+                              x = colnames(records))
     records <- expand_list_columns(records)
     ## Drop some annoying columns
     records[["recordClassName"]] <- NULL
     ## Drop duplicate IDs
-    keepers <- !duplicated(records[["displayName"]])
-    if (sum(!keepers) > 0) {
-      message("This surprises me, but there were ", sum(!keepers),
-              " duplicate displayNames that were dropped.")
+    dups <- duplicated(records[["displayName"]])
+    keepers <- !dups
+    if (sum(dups) > 0) {
+      message("This surprises me, but there were ", sum(dups),
+              " dropped duplicate displayNames.")
     }
     records <- records[keepers, ]
 
@@ -281,7 +284,11 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE,
   removed <- rm(list = "all_records")
   colnames(records) <- paste0("annot_", colnames(records))
 
-  ## Change entries which say 'N/A' to the actual NA value
+  ## Change entries which say 'N/A' to the actual NA value.
+  ## I therefore need to make an index of the various strings I have found
+  ## which mean NA and then check for the actual NAs in the data.
+  ## The resulting index of NA-like values will sadly contain a bunch of NAs,
+  ## so set those to FALSE and then set what is left to NA.
   na_idx <- records == "N/A" | records == "NA" | grepl(x = records, pattern = "^#N/A")
   false_idx <- is.na(records)
   na_idx[false_idx] <- FALSE
@@ -304,6 +311,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE,
     records[[col]] <- gsub(x = records[[col]], pattern = "\\s+.*(\"|\\\")>.*", replacement = "")
     records[[col]] <- gsub(x = records[[col]], pattern = "(\"|\\\")>.*", replacement = "")
   }
+  message("  Finished sanitizing the annotation data, performing final cleanups.")
 
   ## Hopefully the data is consistent now
   ## The last thing to do is send the NAs to a contextually sensible value
@@ -336,11 +344,12 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE,
   dup_idx <- duplicated(records)
   if (sum(dup_idx) > 0) {
     message("  Dropped ", sum(dup_idx), " duplicated entries.")
+    records <- records[!dup_idx, ]
   }
-  records <- records[!dup_idx, ]
+
   colnames(records)[1] <- "GID"
   records[["GID"]] <- as.character(records[["GID"]])
-  message("  Saving ", savefile, " with ", nrow(records), " rows.")
+  message("  Saving ", savefile, " with ", nrow(records), " rows and ", ncol(records), " columns.")
   attr(records, "species") <- chosen_species
   result <- records
   save(result, file = savefile)

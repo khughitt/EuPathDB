@@ -26,6 +26,7 @@ post_eupath_pdb_table <- function(entry, working_species,
   result[empty_pvalue_idx, "PDB_PVALUE_NUM"] <- 1
   result[["PDB_PVALUE_NUM"]] <- as.numeric(result[["PDB_PVALUE_NUM"]])
 
+  ## I don't think there are any factor columns to recast.
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)

@@ -48,14 +48,15 @@ post_eupath_table <- function(entry, species, tables = "GOTerms", table_name = N
     warning("   An error status code was returned.")
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
-    warning("   A minimal amount of content was returned.")
+    message("   A minimal amount of content was returned.")
   }
   cont <- httr::content(result, encoding = "UTF-8", as = "text")
   ##handle <- textConnection(cont)
   ##result <- read.csv(handle, quote = "", stringsAsFactors = FALSE)
   ##%>%
   ##  mutate(across(everything(), ~ purrr::map_chr(.x, ~ gsub("\"", "", .x))))
-  result <- as.data.frame(suppressWarnings(readr::read_csv(cont, show_col_types = FALSE)))
+  result <- as.data.frame(
+    suppressMessages(suppressWarnings(readr::read_csv(cont, show_col_types = FALSE))))
 
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {

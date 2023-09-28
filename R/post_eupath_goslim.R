@@ -21,6 +21,13 @@ post_eupath_goslim_table <- function(entry, working_species, overwrite = FALSE,
                            replacement = "GOSLIM_")
   colnames(result) <- gsub(x = colnames(result), pattern = "GO_SLIM_",
                            replacement = "")
+
+  factor_columns <- c("GOSLIM_ONTOLOGY")
+  for (f in factor_columns) {
+    if (!is.null(result[[f]])) {
+      result[[f]] <- as.factor(result[[f]])
+    }
+  }
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)

@@ -20,6 +20,13 @@ post_eupath_linkout_table <- function(entry, working_species, overwrite = FALSE,
   colnames(result) <- gsub(x = colnames(result), pattern = "LINKOUT_X_",
                            replacement = "LINKOUT_")
 
+  factor_columns <- c("LINKOUT_DATABASE")
+  for (f in factor_columns) {
+    if (!is.null(result[[f]])) {
+      result[[f]] <- as.factor(result[[f]])
+    }
+  }
+
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)

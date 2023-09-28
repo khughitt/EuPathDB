@@ -16,7 +16,7 @@ test_bsgenome <- function(bsgenome) {
   return(passedp)
 }
 
-test_orgdb <- function(orgdb) {
+test_orgdb <- function(orgdb, entry) {
   passedp <- list()
   passedp[["sqlite"]] <- test_that("Created an orgdb sqlite file.", {
     expect_true(file.exists(orgdb_result[["db_path"]]))
@@ -36,6 +36,35 @@ test_orgdb <- function(orgdb) {
   passedp[["chromosomes"]] <- test_that("We have some sensible data in the gene_info table:", {
     expect_equal(nrow(found_chromosomes), 10)
   })
+
+  ## Ideally, the metadata entry should provide the number of chromosomes.
+  entry_chromosomes <- as.numeric(entry[["NumChromosome"]])
+  if (!is.null(entry_chromosomes) && entry_chromosomes > 0) {
+    found_chromosomes <- RSQLite::dbGetQuery(db, "SELECT * FROM chromosome")
+    passedp[["entry_chromosomes"]] <- test_that("We have the same number of chromosomes as the metadata?", {
+      expect_equal(nrow(found_chromosomes), as.numeric(entry_chromosomes))
+    })
+  } else {
+    warning("It appears the metadata entry for this species does not list the number of chromosomes.")
+  }
+
+  entry_coding_genes <- as.numeric(entry[["NumCodingGene"]])
+  if (!is.null(entry_coding_genes) && entry_coding_genes > 0) {
+    found_genes <- RSQLite::dbGetQuery(db, "SELECT _id FROM gene_info")
+    passedp[["entry_num_genes"]] <- test_that("We have the same number of genes as the metadata?", {
+      expect_equal(length(unique(found_genes[["_id"]])), entry_coding_genes)
+    })
+  }
+
+  entry_go_genes <- as.numeric(entry[["NumGO"]])
+  if (!is.null(entry_go_genes) && entry_go_genes > 0) {
+    found_genes <- RSQLite::dbGetQuery(db, "SELECT * FROM goslim_table")
+    go_genes <- length(unique(found_genes[["_id"]]))
+    passedp[["entry_num_go"]] <- test_that("We have the same number of GO annotations as the metadata?", {
+      expect_equal(go_genes, entry_go_genes)
+    })
+  }
+
   ## Interestingly, the id column is '_id', does this portend a problem?
   ## hmm it looks like the first column of every table is '_id'
   ## I guess AnnotationDbi maps this to the name 'GID'?
@@ -48,6 +77,8 @@ test_orgdb <- function(orgdb) {
   closed <- RSQLite::dbDisconnect(db)
   found_chromosomes <- NULL
   found_genes <- NULL
+
+  class(passedp) <- "orgdb_tests"
   return(passedp)
 }
 

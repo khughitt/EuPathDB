@@ -12,7 +12,7 @@
 #' @export
 download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
-                                     verbose = FALSE) {
+                                     verbose = FALSE, build_dir = build_dir) {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]
@@ -50,7 +50,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   ## Finalize the URL to query using the webservice, tld, etc.
   service_directory <- prefix_map(webservice)
-  base_url <- glue::glue("https://{webservice}.{tld}/{service_directory}/service/record-types/organism/searches/GenomeDataTypes/reports/standard")
+  base_url <- glue("https://{webservice}.{tld}/{service_directory}/service/record-types/organism/searches/GenomeDataTypes/reports/standard")
 
   ## FIXME: Set this up as a configurable datastructure that I can modify without being sad.
   post_string <- '{
@@ -289,7 +289,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     dplyr::mutate_if(is.character,
                      stringr::str_replace_all,
                      pattern = "Current_Release",
-                     replacement = glue::glue("release-{db_version}"))
+                     replacement = glue("release-{db_version}"))
   ## 2. In the weeks leading up to a new release, the EuPathDB folks change the SourceURL column
   ##    to reflect the coming database version before it actually exists.  Thus during that time
   ##    downloads will fail unless the database version is substituted back in.
@@ -297,16 +297,16 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   URLGFF <- URLGenome <- URLProtein <- NULL
   metadata <- metadata %>%
     dplyr::mutate("SourceUrl" = gsub(pattern = "DB-(\\d\\d)_",
-                                     replacement = glue::glue("DB-{db_version}_"),
+                                     replacement = glue("DB-{db_version}_"),
                                      x = URLGFF)) %>%
     dplyr::mutate("URLGFF" = gsub(pattern = "DB-(\\d\\d)_",
-                                  replacement = glue::glue("DB-{db_version}_"),
+                                  replacement = glue("DB-{db_version}_"),
                                   x = URLGFF)) %>%
     dplyr::mutate("URLGenome" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
-                                     replacement = glue::glue("DB-{db_version}_"),
+                                     replacement = glue("DB-{db_version}_"),
                                      x = URLGenome)) %>%
     dplyr::mutate("URLProtein" = gsub(pattern = "DB-(\\d\\d)_",  ## Ibid.
-                                      replacement = glue::glue("DB-{db_version}_"),
+                                      replacement = glue("DB-{db_version}_"),
                                       x = URLProtein))
   ## 3.  Add taxonomic tags
   tag_strings <- get_tags()
@@ -376,6 +376,8 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     ## But, right now we are in the process of making that match, so use the
     ## Species column here.
     pkg_names <- get_eupath_pkgnames(metadatum, column = "TaxonomyName")
+    message("Working on: ", i, ": ", pkg_names[["orgdb"]], ".")
+
     species_info <- make_taxon_names(metadatum, column = "TaxonomyName")
     metadatum["BsgenomePkg"] <- pkg_names[["bsgenome"]]
     metadatum["BsgenomeFile"] <- file.path(
@@ -395,9 +397,9 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     metadatum["TxdbPkg"] <- pkg_names[["txdb"]]
     metadatum["TxdbFile"] <- file.path(
       build_dir, "S3", "TxDb", metadatum["BiocVersion"],
-      glue::glue("{metadatum['TxdbPkg']}.sqlite"))
+      glue("{metadatum['TxdbPkg']}.sqlite"))
     metadatum["GenusSpecies"] <- gsub(x = species_info[["genus_species"]],
-                                        pattern = "\\.", replacement = " ")
+                                      pattern = "\\.", replacement = " ")
     metadatum["Strain"] <- species_info[["strain"]]
     metadatum["Genus"] <- species_info[["genus"]]
     metadatum["Species"] <- species_info[["species"]]
@@ -405,6 +407,13 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                pattern = "\\.", replacement = " ")
     metadatum["TaxonUnmodified"] <- species_info[["unmodified"]]
 
+    ## Cross reference the taxonomy number (if existing) in the
+    ## downloaded metadata against the taxonomy database.  If they
+    ## agree, great!  If only one of the two has information, it
+    ## should be the taxonomy database.  If there are more than one
+    ## match, that is a bit disappointing but not as uncommong as one
+    ## would think (primarily because  the same number is recycled for
+    ## multiple strains of a single species.
     taxonomy_lst <- xref_taxonomy_number(
       metadatum, all_taxa_ids, taxon_number_column = "TaxonomyID",
       metadata_taxon_column = "TaxonUnmodified", verbose = verbose)
@@ -425,12 +434,23 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
       message("Should not fall through to here.")
     }
 
+    ## Cross reference the downloaded species ID (and associated
+    ## taxonomy number) against the genomeInfoDB hopefully canonical
+    ## set of species IDs.
     gidb_lst <- xref_gidb_species(
       metadatum, taxon_number_column = "TaxonomyID", all_taxa_ids, verbose = verbose)
     metadatum[["GIDB_Genus_Species"]] <- gidb_lst[["ID"]]
     metadatum[["Matched_GIDB"]] <- gidb_lst[["status"]]
 
+    ## Finally, cross reference the species against annotationHub.
+    ## Note, that despite the previous attempts to sanitize
+    ## everything, if an ID does not match what is in AH, then it will
+    ## end badly when/if the data is submitted to annotationHub.
+    ## Thus, the previous two cross references are really intended
+    ## only to make a good faith attempt to find IDs/names which are
+    ## suitable/most likely to match what is found at AH.
     ah_lst <- xref_ah_species(metadatum, ah_species, verbose = verbose)
+
     found_ah_species <- ah_lst[["ID"]]
     metadata[["Matched_AH"]] <- ah_lst[["status"]]
     if (!is.null(found_ah_species)) {
@@ -464,7 +484,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
                                            webservice = webservice,
                                            file_type = "invalid",
                                            overwrite = overwrite)
-    retlist <- list(
+  retlist <- list(
     "valid" = valid_entries,
     "invalid" = invalid_entries)
   class(retlist) <- "downloaded_metadata"

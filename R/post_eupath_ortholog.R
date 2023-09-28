@@ -36,6 +36,13 @@ post_eupath_ortholog_table <- function(entry, working_species,
     summarise("ORTHOLOGS_COUNT" = n())
   result <- merge(result, counts, by = "GID")
 
+  factor_columns <- c("ORTHOLOGS_ORGANISM", "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
+  for (f in factor_columns) {
+    if (!is.null(result[[f]])) {
+      result[[f]] <- as.factor(result[[f]])
+    }
+  }
+
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)
