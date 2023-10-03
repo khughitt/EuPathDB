@@ -37,7 +37,7 @@ choose_successful_post <- function(post_attempts, base_url) {
       message("POST: ", attempt_name,
               " failed, trying again with a differently formatted species.")
       ## Adding a sleep so that I see when there is a failure.
-      Sys.sleep(3)
+      Sys.sleep(5)
     } else {
       message("POST: ", attempt_name, " worked for this species.")
       retlist[["result"]] <- result
@@ -276,7 +276,7 @@ post_eupath_annotations <- function(entry = NULL, overwrite = FALSE,
     if (isTRUE(verbose)) {
       message("Finished POST number ", g, ".")
     }
-    snooze <- Sys.sleep(1)
+    snooze <- Sys.sleep(5)
   } ## End of my nasty hack to get around some webservices crashing
   ## when I ask for all the columns.
   message("Finished looping over subgroups of columns.")

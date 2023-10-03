@@ -96,11 +96,9 @@ download_eupath_tables <- function(table_names, entry, working_species,
     add_table <- TRUE
     if ("try-error" %in% class(table)) {
       add_table <- FALSE
-    }
-    if (is.null(table)) {
+    } else if (is.null(table)) {
       add_table <- FALSE
-    }
-    if (nrow(table) == 0) {
+    } else if (nrow(table) == 0) {
       add_table <- FALSE
     }
 

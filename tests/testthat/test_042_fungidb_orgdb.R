@@ -70,6 +70,7 @@ for (it in seq_len(valid_end)) {
   }
   orgdb_result <- NULL
   cleaned <- gc()
+  Sys.sleep(5)
 } ## End iterating over every entry in the eupathdb metadata.
 
 end <- as.POSIXlt(Sys.time())
