@@ -179,7 +179,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
 
   ## I do not think you can disable this, the package creation later fails horribly without it.
   ## At some point we should be able to remove this, because post_*() try pretty hard to get
-  ## rid of spurious NAs in the returned.data.
+  ## rid of spurious NAs in the returned data.
   gene_table <- remove_eupath_nas(gene_table, "annot")
   table_names <- c("go", "goslim", "interpro", "linkout",
                    "ortholog", "pathway", "pdb", "pubmed")
@@ -231,24 +231,24 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   if (is.null(godb_source)) {
     message("Setting the godb source to the union of go and goslim.")
     if (nrow(goslim_table) > 0) {
-        godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
+        godb_table <- tables[["goslim_table"]][, c("GID", "GOSLIM_GO_ID")]
         godb_table[["EVIDENCE"]] <- "GOSlim"
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
     if (nrow(go_table) > 0) {
-      tmp_table <- go_table[, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
+      tmp_table <- tables[["go_table"]][, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
       colnames(tmp_table) <- c("GID", "GO", "EVIDENCE")
       godb_table <- rbind(godb_table, tmp_table)
     }
   } else if (godb_source == "goslim") {
-    if (nrow(goslim_table) > 0) {
-        godb_table <- goslim_table[, c("GID", "GOSLIM_GO_ID")]
+    if (nrow(tables[["goslim_table"]]) > 0) {
+        godb_table <- tables[["goslim_table"]][, c("GID", "GOSLIM_GO_ID")]
         godb_table[["EVIDENCE"]] <- "GOSlim"
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
     }
   } else {
     if (nrow(go_table) > 0) {
-      godb_table <- go_table[, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
+      godb_table <- tables[["go_table"]][, c("GID", "GO_ID", "GO_EVIDENCE_CODE")]
       colnames(godb_table) <- c("GID", "GO", "EVIDENCE")
       godb_table <- rbind(godb_table, tmp_table)
     }
