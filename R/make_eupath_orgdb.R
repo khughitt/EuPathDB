@@ -53,7 +53,8 @@ clean_orgdb_args <- function(orgdb_args) {
 }
 
 download_eupath_tables <- function(table_names, entry, working_species,
-                                   overwrite, gene_ids, gene_columns) {
+                                   overwrite, gene_ids, gene_columns,
+                                   gene_table) {
   tables <- list()
   for (t in table_names) {
     name <- glue("{t}_table")
@@ -185,7 +186,7 @@ make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrit
   gene_ids <- gene_table[["GID"]]
   gene_columns <- colnames(gene_table)
   tables <- download_eupath_tables(table_names, entry, working_species,
-                                   overwrite, gene_ids, gene_columns)
+                                   overwrite, gene_ids, gene_columns, gene_table)
 
   ## Create the baby table of chromosomes
   chromosome_table <- gene_table[, c("GID", "ANNOT_SEQUENCE_ID")]
