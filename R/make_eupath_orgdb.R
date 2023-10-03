@@ -4,7 +4,7 @@ check_orgdb_args <- function(orgdb_args, tables) {
     name <- names(tables)[t]
     if (is.null(table)) {
       message(" ", name, " is null, not adding to the orgdb_args.")
-    } else if (nrow(go_table) > 0) {
+    } else if (nrow(table) > 0) {
       orgdb_args[[name]] <- table
     }
   }
