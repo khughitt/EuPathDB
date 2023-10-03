@@ -135,7 +135,7 @@ download_eupath_tables <- function(table_names, entry, working_species,
 #' @export
 make_eupath_orgdb <- function(entry, install = TRUE, reinstall = FALSE, overwrite = FALSE,
                               verbose = FALSE, copy_s3 = FALSE, godb_source = NULL, split = 13,
-                              build = TRUE, build_dir = build_dir) {
+                              build = TRUE, build_dir = "build") {
   ## Pull out the metadata for this species.
   if ("character" %in% class(entry)) {
     entry <- get_eupath_entry(entry)
