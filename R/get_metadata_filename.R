@@ -1,5 +1,6 @@
 #' Create a list of output csv filenames containing the metadata for each datatype.
-get_metadata_filename <- function(webservice, bioc_version, eu_version, file_type = "valid") {
+get_metadata_filename <- function(webservice, bioc_version, eu_version,
+                                  file_type = "valid", build_dir = 'build') {
   file_lst <- list(
     "all" = file.path(
       build_dir, "metadata",

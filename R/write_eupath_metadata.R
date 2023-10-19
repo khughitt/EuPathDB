@@ -13,7 +13,8 @@
 #' @export
 write_eupath_metadata <- function(metadata, webservice, file_type = "valid",
                                   bioc_version = NULL, eu_version = NULL,
-                                  overwrite = FALSE, output_csv = NULL) {
+                                  overwrite = FALSE, output_csv = NULL,
+                                  build_dir = "build") {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
   eu_version <- versions[["eu_version"]]
   db_version <- versions[["db_version"]]

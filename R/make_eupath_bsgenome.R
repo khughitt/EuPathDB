@@ -154,7 +154,7 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
   ## way around that due to limitations of Biostrings, lets see.
   uniqueLetters <- Biostrings::uniqueLetters
   tt <- try(do.call("library", as.list("Biostrings")), silent = TRUE)
-  pkg_builder <- sm(BSgenome::forgeBSgenomeDataPkg(description_file), wrap = TRUE)
+  pkg_builder <- BSgenome::forgeBSgenomeDataPkg(description_file)
   if ("try-error" %in% class(pkg_builder)) {
     message("forgeBSgenomeDataPkg failed with error: ")
     message("A likely reason is too many open files, which may be changed in /etc/sysctl.conf")
@@ -175,7 +175,6 @@ make_eupath_bsgenome <- function(entry, eu_version = NULL, build_dir = "build",
 
   ## Note that as of this writing, one cannot use bsgenome with AH, so don't copy the data to S3
   ## no matter what. I will leave in the code to do it though in case it becomes possible.
-  destination <- file.path(pkg_archive_dir)
   copy_s3 <- FALSE
   if (isTRUE(workedp)) {
     if (isTRUE(install)) {

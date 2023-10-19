@@ -7,7 +7,8 @@
 #' @return Dataframe of the various species metadata.
 #' @export
 get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
-                             eu_version = NULL, verbose = FALSE) {
+                             eu_version = NULL, verbose = FALSE,
+                             build_dir = "build") {
   ##projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
   ##              "microsporidiadb", "piroplasmadb", "plasmodb",
   ##              "schistodb", "toxodb", "trichdb", "tritrypdb")
@@ -19,7 +20,7 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
     webservice <- projects[i]
     results[[webservice]] <- download_eupath_metadata(
       webservice = webservice, overwrite = overwrite, bioc_version = bioc_version,
-      eu_version = eu_version, verbose = verbose)
+      eu_version = eu_version, verbose = verbose, build_dir = build_dir)
   }
 
   for (r in results) {
