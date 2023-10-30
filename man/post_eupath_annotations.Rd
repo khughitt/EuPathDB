@@ -7,7 +7,8 @@
 post_eupath_annotations(
   entry = NULL,
   overwrite = FALSE,
-  build_dir = "EuPathDB"
+  verbose = FALSE,
+  split = 13
 )
 }
 \arguments{

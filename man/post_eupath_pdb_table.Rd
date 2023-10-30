@@ -4,14 +4,19 @@
 \alias{post_eupath_pdb_table}
 \title{Use the post interface to get linkout data.}
 \usage{
-post_eupath_pdb_table(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE)
+post_eupath_pdb_table(
+  entry,
+  working_species,
+  overwrite = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{build_dir}{Location to which to save intermediate savefile.}
-
 \item{overwrite}{Overwrite the savefile when attempting a redo?}
+
+\item{build_dir}{Location to which to save intermediate savefile.}
 }
 \value{
 A big honking table.

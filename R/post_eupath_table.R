@@ -12,8 +12,9 @@
 #' @return list containing response from API request.
 #'
 #' @author Keith Hughitt
+#' @import glue
 #' @export
-post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minutes = 60) {
+post_eupath_table <- function(entry, species, tables = "GOTerms", table_name = NULL, minutes = 60) {
   if (is.null(entry)) {
     stop("   This requires a eupathdb entry.")
   }
@@ -27,8 +28,7 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
     tld <- "net"
   }
 
-  base_url <- glue::glue("https://{webservice}.{tld}/{prefix}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
-  species <- entry[["TaxonUnmodified"]]
+  base_url <- glue("https://{webservice}.{tld}/{prefix}/service/record-types/gene/searches/GenesByTaxonGene/reports/tableTabular")
   query_body <- list(
       "searchConfig" = list(
           "parameters" = list("organism" = jsonlite::unbox(species)),
@@ -48,14 +48,15 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
     warning("   An error status code was returned.")
     return(data.frame())
   } else if (length(result[["content"]]) < 100) {
-    warning("   A minimal amount of content was returned.")
+    message("   A minimal amount of content was returned.")
   }
   cont <- httr::content(result, encoding = "UTF-8", as = "text")
   ##handle <- textConnection(cont)
   ##result <- read.csv(handle, quote = "", stringsAsFactors = FALSE)
   ##%>%
   ##  mutate(across(everything(), ~ purrr::map_chr(.x, ~ gsub("\"", "", .x))))
-  result <- as.data.frame(suppressWarnings(readr::read_csv(cont, show_col_types = FALSE)))
+  result <- as.data.frame(
+    suppressMessages(suppressWarnings(readr::read_csv(cont, show_col_types = FALSE))))
 
   ## If nothing was received, return nothing.
   if (nrow(result) == 0) {
@@ -82,7 +83,7 @@ post_eupath_table <- function(entry, tables = "GOTerms", table_name = NULL, minu
   if (!is.null(table_name)) {
     for (c in 2:length(colnames(result))) {
       col_name <- colnames(result)[c]
-      new_col <- glue::glue("{toupper(table_name)}_{toupper(col_name)}")
+      new_col <- glue("{toupper(table_name)}_{toupper(col_name)}")
       colnames(result)[c] <- new_col
     }
   }

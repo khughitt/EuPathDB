@@ -5,11 +5,12 @@
 \title{Use the post interface to get ortholog data.}
 \usage{
 post_eupath_ortholog_table(
-  entry = NULL,
+  entry,
+  working_species,
   ortholog_table = NULL,
-  build_dir = "EuPathDB",
   gene_ids = NULL,
-  overwrite = FALSE
+  overwrite = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -17,11 +18,11 @@ post_eupath_ortholog_table(
 
 \item{ortholog_table}{This should no longer be needed, it is only OrthologsLite now.}
 
-\item{build_dir}{Location to which to save an intermediate savefile.}
-
 \item{gene_ids}{When provided, ask only for the orthologs for these genes.}
 
 \item{overwrite}{Overwrite incomplete savefiles?}
+
+\item{build_dir}{Location to which to save an intermediate savefile.}
 }
 \value{
 A big honking table.

@@ -6,19 +6,19 @@
 \usage{
 make_eupath_orgdb(
   entry,
-  build_dir = "EuPathDB",
   install = TRUE,
   reinstall = FALSE,
   overwrite = FALSE,
   verbose = FALSE,
   copy_s3 = FALSE,
-  godb_source = NULL
+  godb_source = NULL,
+  split = 13,
+  build_dir = "build",
+  build = TRUE
 )
 }
 \arguments{
 \item{entry}{If not provided, then species will get this, it contains all the information.}
-
-\item{build_dir}{Where to put all the various temporary files.}
 
 \item{install}{Install the resulting package?}
 
@@ -31,6 +31,8 @@ make_eupath_orgdb(
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
 
 \item{godb_source}{Which table to use for the putative union of the GO tables.}
+
+\item{build_dir}{Where to put all the various temporary files.}
 }
 \value{
 Currently only the name of the installed package.  This should

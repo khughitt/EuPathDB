@@ -7,11 +7,13 @@
 make_eupath_bsgenome(
   entry,
   eu_version = NULL,
-  build_dir = "EuPathDB",
+  build_dir = "build",
   copy_s3 = FALSE,
   install = TRUE,
   reinstall = FALSE,
-  ...
+  author = NULL,
+  verbose = FALSE,
+  build = TRUE
 )
 }
 \arguments{

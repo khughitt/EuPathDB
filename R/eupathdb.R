@@ -1,3 +1,19 @@
+## TODO:
+## 1.  Replace the post_*() functions with a S4 dispatch where the class of each
+##     method is the name of the wanted table, then use that to set up the various
+##     things which must be done to sanitize the data.
+## 2.  Clean up the successful POST-detector so that it may more easily be
+##     expanded and used with the other post functions.
+##
+## I am not sure if I can do #1 because there are some weirdo exceptions for some table types.
+
+#' Boolean to see if packages should be built by devtools.
+#' @export
+build <- TRUE
+
+#' Set the build directory
+build_dir <- "build"
+
 #' EuPathDB: Access EuPathDB annotations using AnnotationHub
 #'
 #' EuPathDB provides an R interface for retrieving annotation resources from
@@ -31,10 +47,10 @@
 #'
 #' @docType package
 #' @name EuPathDB
-#' @import jsonlite
 #' @import dplyr
-#' @import httr
 #' @import GenomeInfoDbData
+#' @import httr
+#' @import jsonlite
 #' @import rvest
 #' @import xml2
 #' @import utils

@@ -13,8 +13,10 @@
 #' @return TxDb instance name.
 #' @author Keith Hughitt with significant modifications by atb.
 #' @export
-make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = NULL,
-                             reinstall = FALSE, install = TRUE, copy_s3 = FALSE) {
+make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
+                             reinstall = FALSE, install = TRUE,
+                             copy_s3 = FALSE, verbose = FALSE,
+                             build_dir = "build", build = TRUE) {
   if (is.null(entry)) {
     stop("Need an entry.")
   }
@@ -23,7 +25,11 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
   pkgnames <- get_eupath_pkgnames(entry, eu_version = eu_version)
   pkgname <- pkgnames[["txdb"]]
 
-  input_gff <- file.path(build_dir, glue::glue("{pkgname}.gff"))
+  gff_download_dir <- file.path(build_dir, "gff")
+  if (!file.exists(gff_download_dir)) {
+    created <- dir.create(gff_download_dir)
+  }
+  input_gff <- file.path(gff_download_dir, glue::glue("{pkgname}.gff"))
   gff_url <- gsub(pattern = "^http:", replacement = "https:", x = entry[["SourceUrl"]])
   if (isTRUE(pkgnames[["txdb_installed"]]) & !isTRUE(reinstall)) {
     message(" ", pkgname, " is already installed.")
@@ -37,29 +43,29 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
   if (!RCurl::url.exists(gff_url)) {
     warn(sprintf("Cannot create TxDb package for %s %s: GFF file unavailable.",
                  entry[["Species"]], entry[["Strain"]]))
+    message("Attempted to download url: ")
+    message(gff_url)
     return(NULL)
   }
-
-  message("Starting creation of ", pkgname, ".")
-  downloaded_gff <- try(download.file(url = gff_url, destfile = input_gff,
-                                      method = "curl", quiet = FALSE), silent = TRUE)
-  if ("try-error" %in% class(downloaded_gff)) {
-    stop(" Failed to download the gff file from: ", gff_url, ".")
+  if (isTRUE(verbose)) {
+    message("Starting creation of ", pkgname, ".")
+  }
+  if (!file.exists(input_gff)) {
+    downloaded_gff <- try(download.file(url = gff_url, destfile = input_gff,
+                                        method = "curl", quiet = FALSE), silent = TRUE)
+    if ("try-error" %in% class(downloaded_gff)) {
+      warning(" Failed to download the gff file from: ", gff_url, ".")
+      return(NULL)
+    }
   }
 
   ## It appears that sometimes I get weird results from this download.file()
   ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_lst <- try(make_eupath_granges(entry = entry, build_dir = build_dir,
-                                         copy_s3 = copy_s3), silent = TRUE)
+  granges_lst <- try(make_eupath_granges(entry = entry, copy_s3 = copy_s3), silent = TRUE)
   if ("try-error" %in% class(granges_lst)) {
     warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
                  entry[["Species"]], entry[["Strain"]]))
     return(NULL)
-  }
-  ## Happily, making a granges from txdb is quite quick and easy in most cases.
-
-  if (isTRUE(install)) {
-    final_granges_path <- move_final_package(granges_lst, type = "granges", build_dir = build_dir)
   }
 
   chr_entries <- read.delim(file = input_gff, header = FALSE, sep = "")
@@ -76,24 +82,27 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
   txdb_metadata[["name"]] <- rownames(txdb_metadata)
   colnames(txdb_metadata) <- c("value", "name")
   txdb_metadata <- txdb_metadata[, c("name", "value")]
-  txdb <- try(GenomicFeatures::makeTxDbFromGFF(
-                                   file = input_gff,
-                                   format = "gff",
-                                   chrominfo = chromosome_info,
-                                   dataSource = entry[["SourceUrl"]],
-                                   organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}"),
-                                   ))
+  txdb <- NULL
+  if (!is.na(entry[["TaxonomyID"]])) {
+    txdb <- try(GenomicFeatures::makeTxDbFromGFF(
+      taxonomyId = entry[["TaxonomyID"]],
+      file = input_gff, format = "gff", chrominfo = chromosome_info,
+      dataSource = entry[["SourceUrl"]],
+      organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
+  } else {
+    txdb <- try(GenomicFeatures::makeTxDbFromGFF(
+      file = input_gff, format = "gff", chrominfo = chromosome_info,
+      dataSource = entry[["SourceUrl"]],
+      organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
+  }
   if ("try-error" %in% class(txdb)) {
     ## Perhaps it is an invalid taxonomy ID?
     txdb <- try(GenomicFeatures::makeTxDbFromGFF(
-                                     taxonomyId = 32644, ## 32644 is unidentified according to:
-                                     ## https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=32644
-                                     file = input_gff,
-                                     format = "gff",
-                                     chrominfo = chromosome_info,
-                                     dataSource = entry[["SourceUrl"]],
-                                     organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}"),
-                                     ))
+      taxonomyId = 32644, ## 32644 is unidentified according to:
+      ## https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=32644
+      file = input_gff, format = "gff", chrominfo = chromosome_info,
+      dataSource = entry[["SourceUrl"]],
+      organism = glue::glue("{taxa[['genus']]} {taxa[['species']]}")))
   }
   if ("try-error" %in% class(txdb)) {
     message("The txdb creation failed.")
@@ -165,33 +174,45 @@ make_eupath_txdb <- function(entry = NULL, build_dir = "EuPathDB", eu_version = 
   install_dir <- clean_pkg(install_dir, removal = "_", replace = "")
   install_dir <- clean_pkg(install_dir, removal = "_like", replace = "like")
 
+  s3_file <- entry[["TxdbFile"]]
   if (isTRUE(copy_s3)) {
-    s3_file <- entry[["TxdbFile"]]
     copied <- copy_s3_file(src_dir = db_dir, type = "txdb", s3_file = s3_file)
     if (isTRUE(copied)) {
-      message(" Successfully copied the txdb sqlite to the s3 staging directory.")
+      if (isTRUE(verbose)) {
+        message(" Successfully copied the txdb sqlite to the s3 staging directory.")
+      }
+    } else {
+      warning(" Failed to copy the txdb sqlite file to the s3 staging directory.")
     }
+  }
+
+  built <- NULL
+  workedp <- FALSE
+  if (isTRUE(build)) {
+    built <- try(devtools::build(install_dir, quiet = TRUE))
+    workedp <- ! "try-error" %in% class(built)
   }
 
   if (isTRUE(install)) {
     inst <- try(devtools::install(install_dir, quiet = TRUE))
-    if (! "try-error" %in% class(inst)) {
-      built <- try(devtools::build(install_dir, quiet = TRUE))
-      if (! "try-error" %in% class(built)) {
-        final_path <- move_final_package(pkgname, type = "txdb", build_dir = build_dir)
-        final_deleted <- unlink(x = install_dir, recursive = TRUE, force = TRUE)
-      }
-    }
+    workedp <- ! "try-error" %in% class(inst)
   }
 
-  info(sprintf("Finished creation of %s...", pkgname))
+  if (isTRUE(workedp)) {
+    final_path <- move_final_package(pkgname, type = "txdb")
+    final_deleted <- unlink(x = install_dir, recursive = TRUE, force = TRUE)
+    message("Moved built tar to ", final_path, " and deleted installation directory:")
+    message(install_dir)
+  }
 
+  if (isTRUE(verbose)) {
+    message("Finished creation of ", pkgname)
+  }
   retlist <- list(
-    "object" = txdb,
+    "db_path" = s3_file,
     "gff" = input_gff,
     "txdb_name" = pkgname,
     "granges_file" = granges_lst[["name"]],
     "granges_variable" = granges_lst[["variable"]])
-
   return(retlist)
 }

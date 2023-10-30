@@ -4,7 +4,7 @@
 \alias{copy_s3_file}
 \title{Copy the relevant file for each data type into a place which is easy for pickup by s3.}
 \usage{
-copy_s3_file(src_dir, s3_file, type = "bsgenome")
+copy_s3_file(src_dir, s3_file, type = "bsgenome", move = FALSE)
 }
 \arguments{
 \item{src_dir}{Source directory for the package top be copied.}

@@ -5,17 +5,18 @@
 \title{Use the post interface to get pathway data.}
 \usage{
 post_eupath_pathway_table(
-  entry = NULL,
-  build_dir = "EuPathDB",
-  overwrite = FALSE
+  entry,
+  working_species,
+  overwrite = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{entry}{The full annotation entry.}
 
-\item{build_dir}{Location to which to save intermediate savefile.}
-
 \item{overwrite}{If trying again, overwrite the savefile?}
+
+\item{build_dir}{Location to which to save intermediate savefile.}
 }
 \value{
 A big honking table.

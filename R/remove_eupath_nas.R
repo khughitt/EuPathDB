@@ -4,7 +4,7 @@
 #'
 #' @param table dataframe of SQLite-bound data
 #' @param name column prefix, just used for printing for the moment.
-remove_eupath_nas <- function(table, name = "annot") {
+remove_eupath_nas <- function(table, name = "annot", verbose = FALSE) {
   ## At this point, there should be no NA values in the gene_table, there is
   ## logic in post_eupath_annotations() which should preclude this possibility,
   ## however this has been proven untrue.
@@ -16,13 +16,16 @@ remove_eupath_nas <- function(table, name = "annot") {
     na_sum <- sum(na_idx)
     if (na_sum > 0) {
       column_class <- class(table[[col]])[1]
-      message("    I found ", na_sum, " NAs in the ", gene_cols[col],
-              " column of type ", column_class, " from the table: ", name,
-              " table, removing them now.")
+      if (isTRUE(verbose)) {
+        message("    I found ", na_sum, " NAs in the ", gene_cols[col],
+                " column of type ", column_class, " from the table: ", name,
+                " table, removing them now.")
+      }
       if (column_class == "character") {
         table[na_idx, col] <- ""
       } else if (column_class == "factor") {
-        table[na_idx, col] <- 0
+        ##table[na_idx, col] <- 0
+        table[[col]] <- forcats::fct_na_value_to_level(table[[col]], "")
       } else if (column_class == "numeric") {
         table[na_idx, col] <- 0
       } else {

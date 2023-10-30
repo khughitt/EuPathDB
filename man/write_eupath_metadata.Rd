@@ -10,8 +10,8 @@ write_eupath_metadata(
   file_type = "valid",
   bioc_version = NULL,
   eu_version = NULL,
-  build_dir = "EuPathDB",
-  overwrite = FALSE
+  overwrite = FALSE,
+  output_csv = NULL
 )
 }
 \arguments{

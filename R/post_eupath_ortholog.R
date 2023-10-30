@@ -9,29 +9,21 @@
 #' @param gene_ids When provided, ask only for the orthologs for these genes.
 #' @param overwrite Overwrite incomplete savefiles?
 #' @return A big honking table.
-post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL, build_dir = "EuPathDB",
-                                       gene_ids = NULL, overwrite = FALSE) {
-  if (is.null(entry)) {
-    stop("  Need an entry from the eupathdb.")
-  }
-  rdadir <- file.path(build_dir, "rda")
-  if (!file.exists(rdadir)) {
-    created <- dir.create(rdadir, recursive = TRUE)
-  }
-  savefile <- file.path(rdadir, glue::glue("{entry[['Genome']]}_ortholog_table.rda"))
-  if (file.exists(savefile)) {
-    if (isTRUE(overwrite)) {
-      removed <- file.remove(savefile)
-    } else {
-      message("  Delete the file ", savefile, " to regenerate.")
-      result <- new.env()
-      load(savefile, envir = result)
-      result <- result[["result"]]
-      return(result)
+post_eupath_ortholog_table <- function(entry, working_species,
+                                       ortholog_table = NULL,
+                                       gene_ids = NULL, overwrite = FALSE, verbose = TRUE) {
+
+  rda <- check_rda("ortholog", entry, overwrite)
+  savefile <- rda[["savefile"]]
+  if (!is.null(rda[["result"]])) {
+    if (isTRUE(verbose)) {
+      message("Returning ortholog data from a previous savefile.")
     }
+    return(rda[["result"]])
   }
 
-  result <- post_eupath_table(entry, tables = "OrthologsLite", table_name = "orthologs")
+  result <- post_eupath_table(entry, working_species,
+                              tables = "OrthologsLite", table_name = "orthologs")
   colnames(result) <- c("GID", "GENE_ID", "ORTHOLOGS_GID", "ORTHOLOGS_ORGANISM",
                         "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
   result[["GENE_ID"]] <- NULL
@@ -43,6 +35,13 @@ post_eupath_ortholog_table <- function(entry = NULL, ortholog_table = NULL, buil
     group_by(GID) %>%
     summarise("ORTHOLOGS_COUNT" = n())
   result <- merge(result, counts, by = "GID")
+
+  factor_columns <- c("ORTHOLOGS_ORGANISM", "ORTHOLOGS_PRODUCT", "ORTHOLOGS_SYNTENIC")
+  for (f in factor_columns) {
+    if (!is.null(result[[f]])) {
+      result[[f]] <- as.factor(result[[f]])
+    }
+  }
 
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)

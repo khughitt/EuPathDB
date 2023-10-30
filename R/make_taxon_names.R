@@ -8,7 +8,8 @@
 #' @return A list of hopefully valid nomenclature names to be used elsewhere in
 #'  this family.
 #' @author atb
-make_taxon_names <- function(entry, column = "TaxonUnmodified") {
+#' @export
+make_taxon_names <- function(entry, column = "TaxonUnmodified", spaces = "dot") {
   taxon <- entry[[column]]
   unmodified <- taxon
   species_parts <- unlist(strsplit(taxon, " "))
@@ -53,7 +54,7 @@ make_taxon_names <- function(entry, column = "TaxonUnmodified") {
 
   ## Holy crap there is a fungus with an '=' sign in the strain name!
   silly_pattern <- "\\="
-  taxon <- gsub(pattern = silly_pattern, replacement = "", x=taxon)
+  taxon <- gsub(pattern = silly_pattern, replacement = "", x = taxon)
   genus <- gsub(pattern = silly_pattern, replacement = "", x = genus)
   species <- gsub(pattern = silly_pattern, replacement = "", x = species)
   strain <- gsub(pattern = silly_pattern, replacement = "", x = strain)
@@ -68,7 +69,7 @@ make_taxon_names <- function(entry, column = "TaxonUnmodified") {
   species_strain <- glue::glue("{species}.{strain}")
   genus_species <- glue::glue("{genus}.{species}")
 
-  species_strain <- paste(unlist(strsplit(taxon, split="\\."))[-1], collapse = ".")
+  species_strain <- paste(unlist(strsplit(taxon, split = "\\."))[-1], collapse = ".")
   genus_species <- glue::glue("{genus}.{species}")
 
   gspecies <- glue::glue("{first}{species}")
@@ -79,6 +80,14 @@ make_taxon_names <- function(entry, column = "TaxonUnmodified") {
   genus_species <- gsub(pattern = silly_pattern, replacement = "\\.", x = genus_species)
   gspecies <- gsub(pattern = silly_pattern, replacement = "\\.", x = gspecies)
   gsstrain <- gsub(pattern = silly_pattern, replacement = "\\.", x = gsstrain)
+
+  if (spaces != "dot") {
+    taxon <- gsub(pattern = "\\.", replacement = " ", x = taxon)
+    species_strain <- gsub(pattern = "\\.", replacement = " ", x = species_strain)
+    genus_species <- gsub(pattern = "\\.", replacement = " ", x = genus_species)
+    gspecies <- gsub(pattern = "\\.", replacement = " ", x = gspecies)
+    gsstrain <- gsub(pattern = "\\.", replacement = " ", x = gsstrain)
+  }
 
   taxa <- list(
     "unmodified" = unmodified,

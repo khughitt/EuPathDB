@@ -12,13 +12,11 @@
 #' @param taxon_column metadata column with the taxonomy information.
 #' @param species_column metadata column with my generated species name.
 #' @return Likely smaller data frame of valid information and larger dataframe of invalid.
-xref_species <- function(valid, invalid, verbose=FALSE, xref_column = "TaxonXref",
-                         taxon_column = "TaxonUnmodified", species_column = "GenusSpecies") {
-  testing_metadata <- valid
-  valid_metadata <- data.frame()
-  invalid_metadata <- data.frame()
-  annotationhub_species <- AnnotationHubData::getSpeciesList()
-  valid_idx <- testing_metadata[[taxon_column]] %in% annotationhub_species
+xref_ah_species <- function(metadatum, ah_species, verbose = FALSE,
+                            metadata_taxon_column = "TaxonUnmodified",
+                            metadata_species_column = "GenusSpecies",
+                            gidb_species_column = "GIDB_Genus_Species",
+                            xref_column = "TaxonXref") {
 
   ## In this process I am adding a new column 'TaxonXref' which is the set of
   ## Species or SpeciesStrain names that we can successfully match against the
@@ -28,60 +26,79 @@ xref_species <- function(valid, invalid, verbose=FALSE, xref_column = "TaxonXref
   ## will get filled in with just the species names provided by the eupathdb.
   ## If we cannot match even that, then the entries will get moved into the
   ## pile of invalid entries for future examination and probably deletion.
+  retlist <- list(
+    "ID" = NULL,
+    "status" = "unmatched")
 
-  if (isTRUE(verbose)) {
-    message("Adding ", sum(valid_idx), " species without changing anything out of ",
-            nrow(testing_metadata), ".")
-  }
-  if (sum(valid_idx) > 0) {
-    ## Add the stuff which was found to the set of valid entries.
-    valid_metadata <- testing_metadata[which(valid_idx), ]
-    ## Remove them from the set to be tested.
-    testing_metadata <- testing_metadata[which(!valid_idx), ]
-    ## Set the 'Species' column to taxonunmodified
-    valid_metadata[[xref_column]] <- valid_metadata[[taxon_column]]
+  initial_valid <- metadatum[[metadata_taxon_column]] %in% ah_species
+  if (isTRUE(initial_valid)) {
+    retlist[["ID"]] <- metadatum[[metadata_taxon_column]]
+    retlist[["status"]] <- "exact_taxon"
+    return(retlist)
   }
 
-  ## The remainder of testing_metadata needs to be queried further.
-  if (isTRUE(verbose)) {
-    message("Now there are: ", nrow(testing_metadata), " rows left.")
-  }
   ## We have previously filled in the 'Species' column with information from GenomeInfoDb.
   ## So let us query that now and see if we pick up more valid entries.
-  valid_idx <- testing_metadata[[species_column]] %in% annotationhub_species
-  if (isTRUE(verbose)) {
-    message("Adding ", sum(valid_idx), " species after using GenomeInfoDb against ",
-            species_column, ".")
-  }
-  if (sum(valid_idx) > 0) {
-    ## Pull out the new valid entries
-    new_metadata <- testing_metadata[which(valid_idx), ]
-    new_metadata[[xref_column]] <- new_metadata[[species_column]]
-    ## Add those to the valid metadata.
-    valid_metadata <- rbind(valid_metadata, new_metadata)
-    ## Add whatever is left to the set of invalid metadata.
-    invalid_metadata <- testing_metadata[which(!valid_idx), ]
+  valid <- metadatum[[gidb_species_column]] %in% ah_species
+  if (isTRUE(valid)) {
+    if (isTRUE(verbose)) {
+      message("Found a match between the GIDB genus/species and the AH species list.")
+    }
+    retlist[["ID"]] <- metadatum[[gidb_species_column]]
+    retlist[["status"]] <- "exact_gidb_species"
+    return(retlist)
   } else {
-    invalid_metadata <- testing_metadata
-  }
-  if (nrow(invalid_metadata) > 0) {
-    message("Unable to find species names for ", nrow(invalid_metadata), " species.")
-    message(toString(invalid_metadata[[taxon_column]]))
+    retlist[["ID"]] <- NULL
+    retlist[["status"]] <- "unexpected_gidb"
+    return(retlist)
   }
 
-  ## Now do a final check to see what is up with some weirdos which somehow snuck through.
-  valid_idx <- valid_metadata[[species_column]] %in% annotationhub_species
-  ## I am going to get a little crazy here.
-  invalid_idx <- ! valid_idx
-  if (sum(invalid_idx) > 0) {
-    warning("How in the flying hell are these still here: ",
-            toString(valid_metadata[invalid_idx, taxon_column]), ".")
-  }
-  valid_metadata <- valid_metadata[valid_idx, ]
-  invalid_metadata <- rbind(invalid, invalid_metadata)
+  ## If we get here, see if AH has genus/species.
+  valid <- metadatum[["GenusSpecies"]] %in% ah_species
 
+}
+
+#' Cross reference information from the taxonDB vs. the downloaded metadata.
+#'
+#' @param metadatum The downloaded metadata for an individual species.
+#' @param all_taxa_ids The taxonDB result.
+#' @param taxon_number_column The metadatum column which should contain the relevant number.
+#' @param verbose Be a chatty catty?
+xref_gidb_species <- function(metadatum, all_taxa_ids,
+                              taxon_number_column = "TaxonomyID",
+                              verbose = verbose) {
+  id <- metadatum[[taxon_number_column]]
   retlist <- list(
-    "valid" = valid_metadata,
-    "invalid" = invalid_metadata)
+    "ID" = id,
+    "status" = "unmatched")
+  if (is.null(id)) {
+    return(retlist)
+  }
+  if (is.na(id)) {
+    return(retlist)
+  }
+  if (is.na(id)) {
+    return(NULL)
+  }
+
+  gs <- NULL
+  found <- all_taxa_ids[["tax_id"]] == id
+  if (sum(found) == 0) {
+    retlist[["ID"]] <- NULL
+    retlist[["status"]] <- "mismatched"
+  } else if (sum(found) == 1) {
+    gs <- paste0(all_taxa_ids[found, "genus"], " ", all_taxa_ids[found, "species"])
+    retlist[["ID"]] <- gs
+    retlist[["status"]] <- "exact_match"
+  } else if (sum(found) > 1) {
+    message("Found more than one taxonomy ID match, returning the first match.")
+    matched <- all_taxa_ids[found, ]
+    gs <- paste0(all_taxa_ids[1, "genus"], " ", all_taxa_ids[1, "species"])
+    retlist[["ID"]] <- gs
+    retlist[["status"]] <- "multi_match"
+  } else {
+    message("This should not happen, returning NULL.")
+    return(NULL)
+  }
   return(retlist)
 }

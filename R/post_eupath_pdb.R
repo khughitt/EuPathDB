@@ -4,13 +4,19 @@
 #' @param build_dir Location to which to save intermediate savefile.
 #' @param overwrite Overwrite the savefile when attempting a redo?
 #' @return  A big honking table.
-post_eupath_pdb_table <- function(entry = NULL, build_dir = "EuPathDB", overwrite = FALSE) {
-  rda <- check_rda("pdb", entry, build_dir, overwrite)
-  if (!is.null(rda)) {
-    return(rda)
+post_eupath_pdb_table <- function(entry, working_species,
+                                  overwrite = FALSE, verbose = FALSE) {
+  rda <- check_rda("pdb", entry, overwrite)
+  savefile <- rda[["savefile"]]
+  if (!is.null(rda[["result"]])) {
+    if (isTRUE(verbose)) {
+      message("Returning PDB data from a previous savefile.")
+    }
+    return(rda[["result"]])
   }
 
-  result <- post_eupath_table(entry, tables = "PdbSimilarities", table_name = "pdb")
+  result <- post_eupath_table(entry, working_species,
+                              tables = "PdbSimilarities", table_name = "pdb")
   colnames(result) <- gsub(x = colnames(result), pattern = "PDB_PDB_", replacement = "PDB_")
 
   ## Fix the brain dead p value column.
@@ -20,6 +26,7 @@ post_eupath_pdb_table <- function(entry = NULL, build_dir = "EuPathDB", overwrit
   result[empty_pvalue_idx, "PDB_PVALUE_NUM"] <- 1
   result[["PDB_PVALUE_NUM"]] <- as.numeric(result[["PDB_PVALUE_NUM"]])
 
+  ## I don't think there are any factor columns to recast.
   message("  Saving ", savefile, " with ", nrow(result), " rows.")
   save(result, file = savefile)
   return(result)

@@ -4,21 +4,16 @@
 \alias{make_eupath_granges}
 \title{Generate a GRanges rda savefile from a gff file.}
 \usage{
-make_eupath_granges(
-  entry,
-  build_dir = "EuPathDB",
-  eu_version = NULL,
-  copy_s3 = FALSE
-)
+make_eupath_granges(entry, eu_version = NULL, copy_s3 = FALSE)
 }
 \arguments{
 \item{entry}{Metadatum entry.}
 
-\item{build_dir}{Place to put the resulting file(s).}
-
 \item{eu_version}{Optionally request a specific version of the gff file.}
 
 \item{copy_s3}{Copy the 2bit file into an s3 staging directory for copying to AnnotationHub?}
+
+\item{build_dir}{Place to put the resulting file(s).}
 }
 \description{
 There is not too much else to say. This uses import.gff from rtracklayer.
