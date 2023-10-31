@@ -1,4 +1,6 @@
-# EuPathDB AnnotationHub Recipes and access
+# EuPathDB AnnotationHub Recipes and Access
+
+## Overview
 
 This package contains code for generating Bioconductor objects
 ([OrgDb](https://bioconductor.org/packages/release/BiocViews.html#___OrgDb),
@@ -24,8 +26,12 @@ The primary purposes for this package are:
 
 1.  Generate organism-specific Bioconductor resources to be made available through
 [AnnotationHub](https://bioconductor.org/packages/release/bioc/html/AnnotationHub.html).
-2.  Generate installable packages for the various resources.
+2.  Generate local installable packages for the various EuPathDB resources.
 3.  Provide shortcuts for accessing these resources.
+
+## Usage
+
+### Accessing data via AnnotationHub
 
 To access EuPathDB resources via AnnotationHub, simply load the AnnotationHub package and use the
 query function like you would for any other AnnotationHub resource:
@@ -41,7 +47,32 @@ res <- query(ah, c('Toxoplasma gondii ME49', 'OrgDb', 'EuPathDB'))
 orgdb <- res[[1]]
 ```
 
-To create a local package of a EuPathDB resource, and get information from it:
+Note that you do _not_ need to install this package (`EuPathDB`) for this to work; this is only
+needed if you wish to generate your own R packages locally, for example, if there is a newer version
+of the data available that you wish you use.
+
+### Creating local R packages
+
+If you would like to build your own EuPathDB resource packages locally, being by clone this
+repository and creating a [conda](https://docs.conda.io/en/latest/) environment with the necessary
+requirements:
+
+```
+git clone https://github.com/khughitt/EuPathDB/
+cd EuPathDB
+
+# "mamba" can also be used in place of conda for faster installation
+conda create -n "eupathdb" --file requirements.txt
+conda active eutpathdb
+```
+
+Next, install the EuPathDB package itself:
+
+```
+R CMD INSTALL .
+```
+
+To create a local package of a EuPathDB resource, and get information from it, 
 
 ```{r query_orgdb}
 library(EuPathDB)

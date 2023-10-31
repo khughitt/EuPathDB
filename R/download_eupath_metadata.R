@@ -20,7 +20,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   file_lst <- get_metadata_filename(webservice, bioc_version, eu_version,
                                     build_dir = build_dir)
-  if (isFALSE(overwrite) && file.exists(file_lst[["all"]]) {
+  if (isFALSE(overwrite) && file.exists(file_lst[["all"]])) {
     message("Reading existing metadata csv file.")
     metadata_df <- readr::read_csv(file = file_lst[["all"]], col_types = readr::cols())
     retlist <- list(
@@ -38,7 +38,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   ## Create the build directory if it is not already there.
   if (!dir.exists(build_dir)) {
-    created <- dir.create(build_dir, recursive = TRUE)
+    dir.create(build_dir, recursive = TRUE)
   }
 
   .data <- NULL  ## To satisfy R CMD CHECK
@@ -476,15 +476,15 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
   }
 
   ## Write out the metadata and finish up.
-  written <- write_eupath_metadata(metadata = valid_entries,
-                                   webservice = webservice,
-                                   file_type = "valid",
-                                   build_dir = build_dir,
-                                   overwrite = overwrite)
-  invalid_written <- write_eupath_metadata(metadata = invalid_entries,
-                                           webservice = webservice,
-                                           file_type = "invalid",
-                                           overwrite = overwrite)
+  write_eupath_metadata(metadata = valid_entries,
+                        webservice = webservice,
+                        file_type = "valid",
+                        build_dir = build_dir,
+                        overwrite = overwrite)
+  write_eupath_metadata(metadata = invalid_entries,
+                        webservice = webservice,
+                        file_type = "invalid",
+                        overwrite = overwrite)
   retlist <- list(
     "valid" = valid_entries,
     "invalid" = invalid_entries)
