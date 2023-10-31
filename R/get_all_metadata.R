@@ -16,6 +16,9 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
   projects <- c("amoebadb", "cryptodb", "fungidb", "giardiadb",
                 "microsporidiadb", "piroplasmadb", "plasmodb",
                 "toxodb", "trichdb", "tritrypdb")
+
+  results <- list()
+
   for (i in seq_along(length(projects))) {
     webservice <- projects[i]
     results[[webservice]] <- download_eupath_metadata(
@@ -23,20 +26,24 @@ get_all_metadata <- function(overwrite = TRUE, bioc_version = NULL,
       eu_version = eu_version, verbose = verbose, build_dir = build_dir)
   }
 
+  valid_metadata <- data.frame()
+  invalid_metadata <- data.frame()
+
   for (r in results) {
     valid_metadata <- rbind(valid_metadata, r[["valid"]])
     invalid_metadata <- rbind(invalid_metadata, r[["invalid"]])
   }
 
-  if (isTRUE(write_csv)) {
+  if (isTRUE(readr::write_csv)) {
     message("Writing metadata csv files.")
     written <- write_eupath_metadata(metadata = valid_metadata, webservice = "eupathdb",
                                      file_type = "valid", bioc_version = bioc_version,
                                      eu_version = eu_version, overwrite = overwrite)
   }
-  class(retlist) <- "eupath_metadata"
   retlist <- list(
     "valid" = valid_metadata,
     "invalid" = invalid_metadata)
+  class(retlist) <- "eupath_metadata"
+
   return(retlist)
 }
