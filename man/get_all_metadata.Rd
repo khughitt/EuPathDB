@@ -8,7 +8,8 @@ get_all_metadata(
   overwrite = TRUE,
   bioc_version = NULL,
   eu_version = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  build_dir = "build"
 )
 }
 \arguments{

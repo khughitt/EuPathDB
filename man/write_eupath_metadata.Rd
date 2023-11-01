@@ -11,7 +11,8 @@ write_eupath_metadata(
   bioc_version = NULL,
   eu_version = NULL,
   overwrite = FALSE,
-  output_csv = NULL
+  output_csv = NULL,
+  build_dir = "build"
 )
 }
 \arguments{
@@ -25,8 +26,6 @@ write_eupath_metadata(
 \item{bioc_version}{Version of Bioconductor used for this set of metadata.}
 
 \item{eu_version}{Version of the EuPathDB used for this set of metadata.}
-
-\item{build_dir}{Directory to which to dump stuff.}
 }
 \value{
 List containing the filenames written.

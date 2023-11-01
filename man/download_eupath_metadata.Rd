@@ -9,7 +9,8 @@ download_eupath_metadata(
   webservice = "eupathdb",
   bioc_version = NULL,
   eu_version = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  build_dir = "build"
 )
 }
 \arguments{

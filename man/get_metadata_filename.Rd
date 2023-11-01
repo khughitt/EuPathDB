@@ -8,7 +8,8 @@ get_metadata_filename(
   webservice,
   bioc_version,
   eu_version,
-  file_type = "valid"
+  file_type = "valid",
+  build_dir = "build"
 )
 }
 \description{
