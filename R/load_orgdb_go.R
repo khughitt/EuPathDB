@@ -19,20 +19,22 @@
 #' @author I think Keith provided the initial implementation of this, but atb
 #'  messed with it pretty extensively.
 #' @export
-load_orgdb_go <- function(orgdb = NULL) {
-  if (is.null(orgdb)) {
-    message("Assuming Homo.sapiens.")
-    org_pkgstring <- "library(Homo.sapiens); orgdb <- Homo.sapiens"
-    eval(parse(text = org_pkgstring))
-  } else if ("character" %in% class(orgdb)) {
-    org_pkgstring <- glue::glue("library({orgdb}); orgdb <- {orgdb}")
-    eval(parse(text = org_pkgstring))
-  }
+load_orgdb_go <- function(orgdb, table = "go") {
+  ## Hey, redo this using attachNamespace, doofus.
+  org_pkgstring <- glue::glue("library({orgdb}); orgdb <- {orgdb}")
+  eval(parse(text = org_pkgstring))
 
-  gids <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), "SELECT * FROM genes;")
-  go <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), "SELECT * FROM go;")
+  query <- glue("SELECT * FROM genes;")
+  gids <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), query)
+  if (table == "go") {
+    query <- glue("SELECT * FROM {table};")
+  } else {
+    query <- glue("SELECT * FROM {table}_table;")
+  }
+  go <- DBI::dbGetQuery(BiocGenerics::dbconn(orgdb), query)
 
   godf <- merge(gids, go, by = "_id", all.y = TRUE)
   godf[["_id"]] <- NULL
   return(godf)
 }
+setGeneric("load_orgdb_go")

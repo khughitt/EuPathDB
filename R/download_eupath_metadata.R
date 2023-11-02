@@ -26,6 +26,7 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
     retlist <- list(
       "valid" = metadata_df,
       "invalid" = data.frame())
+    class(retlist) <- "downloaded_metadata"
     return(retlist)
   }
 

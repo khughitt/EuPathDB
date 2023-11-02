@@ -161,3 +161,5 @@ load_orgdb_annotations <- function(orgdb = NULL, gene_ids = NULL, include_go = F
     "threep_utr" = threep_utr)
   return(retlist)
 }
+## Make this the generic.
+setGeneric("load_orgdb_annotations")
