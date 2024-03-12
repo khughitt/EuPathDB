@@ -24,8 +24,23 @@ make_eupath_granges <- function(entry, eu_version = NULL, copy_s3 = FALSE) {
                         method = "curl", quiet = FALSE)
   }
 
+  chr_entries <- read.delim(file = input_gff, header = FALSE, sep = "")
+  chromosomes <- chr_entries[["V1"]] == "##sequence-region"
+  chromosomes <- chr_entries[chromosomes, c("V2", "V3", "V4")]
+  colnames(chromosomes) <- c("ID", "start", "end")
+  chromosome_info <- data.frame(
+    "chrom" = chromosomes[["ID"]],
+    "length" = as.numeric(chromosomes[["end"]]),
+    "is_circular" = NA,
+    stringsAsFactors = FALSE)
+
   ## Dump a granges object and save it as an rda file.
   granges_result <- rtracklayer::import.gff3(input_gff)
+  name_order <- names(seqinfo(granges_result))
+  chromosome_info <- chromosome_info[name_order, ]
+  length_vector <- chromosome_info[["length"]]
+
+  GenomeInfoDb::seqlengths(granges_result) <- length_vector
   granges_name <- pkgnames[["granges"]]
   granges_env <- new.env()
   granges_variable <- gsub(pattern = "\\.rda$", replacement = "", x = granges_name)

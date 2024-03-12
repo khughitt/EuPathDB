@@ -10,7 +10,7 @@
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export
-download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
+download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
                                      verbose = FALSE, build_dir = "build") {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)

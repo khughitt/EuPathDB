@@ -35,7 +35,7 @@ tritryp_metadata <- download_eupath_metadata(webservice = "tritrypdb",
 ## Extract an entry of interest, if metadata is not provided it will
 ## download it (defaulting to all eupathdb webservices, which can take
 ## a little while.
-lm_entry <- get_eupath_entry(species = "Friedlin", metadata = tritryp_metadata)
+lm_entry <- get_eupath_entry(species = "MHOM/COL", metadata = tritryp_metadata)
 ## Look at the entry of interest.
 colnames(lm_entry)
 ## Create an orgdb database
@@ -43,6 +43,7 @@ orgdb_pkgname <- make_eupath_orgdb(lm_entry)
 ## Create a txdb database, since there are so few introns in the
 ## trypanosomatids, it tends to be less interesting for them...
 txdb_pkgname <- make_eupath_txdb(lm_entry)
+grange_pkgname <- make_eupath_granges(lm_entry)
 ## Create a bsgenome, note you _must_ increase the number of open
 ## files for this to work with fragmented assemblies.[1]
 bsgenome_pkgname <- make_eupath_bsgenome(lm_entry)
