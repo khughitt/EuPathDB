@@ -33,6 +33,7 @@ make_eupath_granges <- function(entry, eu_version = NULL, copy_s3 = FALSE) {
     "length" = as.numeric(chromosomes[["end"]]),
     "is_circular" = NA,
     stringsAsFactors = FALSE)
+  rownames(chromosome_info) <- make.names(chromosome_info[["chrom"]], unique = TRUE)
 
   ## Dump a granges object and save it as an rda file.
   granges_result <- rtracklayer::import.gff3(input_gff)
