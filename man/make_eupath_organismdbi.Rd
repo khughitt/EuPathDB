@@ -7,7 +7,6 @@
 make_eupath_organismdbi(
   entry = NULL,
   eu_version = NULL,
-  build_dir = "build",
   installp = TRUE,
   reinstall = FALSE,
   exclude_join = "ENTREZID",
@@ -19,8 +18,6 @@ make_eupath_organismdbi(
 \item{entry}{A row from the eupathdb metadataframe.}
 
 \item{eu_version}{Which version of the eupathdb to use for creating this package?}
-
-\item{build_dir}{Directory in which to build the packages.}
 
 \item{installp}{Install the resulting package?}
 

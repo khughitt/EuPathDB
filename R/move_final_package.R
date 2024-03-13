@@ -66,8 +66,12 @@ move_final_txdb_package <- function(pkglist, build_dir = "build") {
     dir.create(gff_dir, recursive = TRUE)
   }
   data_destination <- file.path(gff_dir, basename(gff_file))
-  gff_moved <- file.rename(from = gff_file, data_destination)
-  tar_moved <- file.rename()
+  if (file.exists(gff_file)) {
+    gff_moved <- file.rename(from = gff_file, data_destination)
+  } else {
+    message("The file: ", gff_file, " does not exist, was it already moved?")
+  }
+  tar_moved <- file.rename(retlist[["starting_tar"]], retlist[["package_path"]])
   retlist[["data_path"]] <- data_destination
   return(retlist)
 }

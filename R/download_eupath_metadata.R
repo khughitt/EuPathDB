@@ -10,7 +10,7 @@
 #' @return Dataframe with lots of rows for the various species in eupathdb.
 #' @author Keith Hughitt
 #' @export
-download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
+download_eupath_metadata <- function(overwrite = FALSE, webservice = "eupathdb",
                                      bioc_version = NULL, eu_version = NULL,
                                      verbose = FALSE, build_dir = "build") {
   versions <- get_versions(bioc_version = bioc_version, eu_version = eu_version)
@@ -20,12 +20,13 @@ download_eupath_metadata <- function(overwrite = TRUE, webservice = "eupathdb",
 
   file_lst <- get_metadata_filename(webservice, bioc_version, eu_version,
                                     build_dir = build_dir)
-  if (isFALSE(overwrite) && file.exists(file_lst[["all"]]) {
+  if (isFALSE(overwrite) && file.exists(file_lst[["all"]])) {
     message("Reading existing metadata csv file.")
     metadata_df <- readr::read_csv(file = file_lst[["all"]], col_types = readr::cols())
     retlist <- list(
       "valid" = metadata_df,
       "invalid" = data.frame())
+    class(retlist) <- "downloaded_metadata"
     return(retlist)
   }
 

@@ -147,7 +147,7 @@ make_eupath_organismdbi <- function(entry = NULL, eu_version = NULL, installp = 
       }
     }
     final_organdb_name <- basename(organdb_path)
-    final_organdb_path <- move_final_package(organdb_path, type = "organismdbi")
+    final_organdb_path <- move_final_organismdbi_package(organdb_path)
   }
 
   retlist <- list(

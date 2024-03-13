@@ -59,15 +59,6 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
     }
   }
 
-  ## It appears that sometimes I get weird results from this download.file()
-  ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
-  granges_lst <- try(make_eupath_granges(entry = entry, copy_s3 = copy_s3), silent = TRUE)
-  if ("try-error" %in% class(granges_lst)) {
-    warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
-                 entry[["Species"]], entry[["Strain"]]))
-    return(NULL)
-  }
-
   chr_entries <- read.delim(file = input_gff, header = FALSE, sep = "")
   chromosomes <- chr_entries[["V1"]] == "##sequence-region"
   chromosomes <- chr_entries[chromosomes, c("V2", "V3", "V4")]
@@ -77,6 +68,16 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
     "length" = as.numeric(chromosomes[["end"]]),
     "is_circular" = NA,
     stringsAsFactors = FALSE)
+
+  ## It appears that sometimes I get weird results from this download.file()
+  ## So I will use the later import.gff3 here to ensure that the gff is actually a gff.
+  granges_lst <- try(make_eupath_granges(entry = entry,
+                                         copy_s3 = copy_s3), silent = TRUE)
+  if ("try-error" %in% class(granges_lst)) {
+    warn(sprintf("Cannot create TxDb package for %s %s: failed to create GRanges object.",
+                 entry[["Species"]], entry[["Strain"]]))
+    return(NULL)
+  }
 
   txdb_metadata <- as.data.frame(t(entry))
   txdb_metadata[["name"]] <- rownames(txdb_metadata)
@@ -171,6 +172,10 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
 
   install_dir <- file.path(build_dir, pkgname)
   install_dir <- clean_pkg(install_dir)
+  ## The following two lines look stupid, because they are.
+  ## They are included because of the peculiar ways in which the various
+  ## Trypanosoma cruzi strains are included: e.g. the 'Esmeraldo-like' and
+  ## 'NonEsmeraldo-like' species/strains.
   install_dir <- clean_pkg(install_dir, removal = "_", replace = "")
   install_dir <- clean_pkg(install_dir, removal = "_like", replace = "like")
 
@@ -199,7 +204,7 @@ make_eupath_txdb <- function(entry = NULL, eu_version = NULL,
   }
 
   if (isTRUE(workedp)) {
-    final_path <- move_final_package(pkgname, type = "txdb")
+    final_path <- move_final_txdb_package(pkgname)
     final_deleted <- unlink(x = install_dir, recursive = TRUE, force = TRUE)
     message("Moved built tar to ", final_path, " and deleted installation directory:")
     message(install_dir)

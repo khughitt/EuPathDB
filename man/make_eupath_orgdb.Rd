@@ -13,8 +13,8 @@ make_eupath_orgdb(
   copy_s3 = FALSE,
   godb_source = NULL,
   split = 13,
-  build_dir = "build",
-  build = TRUE
+  build = TRUE,
+  build_dir = "build"
 )
 }
 \arguments{

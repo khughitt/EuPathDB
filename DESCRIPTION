@@ -96,3 +96,4 @@ Collate:
  'xref_species.R'
  'xref_taxonomy.R'
  'zzz_print.R'
+ 'zzz_methods.R'
